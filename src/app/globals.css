@@ -5,17 +5,64 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --color1: #484A47;
+  --color2: #A37774;
+  --color3: #C3D7FF;
+  --color4: #5C6D70;
+  --fill: #efefef;
+  --fillbutton: #f7f7f8;
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
-}
+} */
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  /* color: var(--foreground); */
+  /* background: var(--color3);
+  font-family: Arial, Helvetica, sans-serif; */
+  font-variation-settings: "wght" 450;
+  font-family: "Inter", sans-serif;
+  line-height: 1;
+  font-size: 15px;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+html {
+  background: var(--fill) !important;
+  color: #666;
+}
+
+.uk-navbar-container {
+  background: var(--color1) !important;
+}
+
+.tm-sidebar-left {
+  position: fixed;
+  top: 80px;
+  bottom: 0;
+  box-sizing: border-box;
+  width: 240px !important;
+  padding: 40px 40px 60px 40px;
+  border-right: 1px #e5e5e5 solid;
+  overflow: auto;
+}
+
+@media (min-width: 1400px) {
+  .tm-sidebar-left {
+    width: 300px !important;
+    padding: 45px 45px 60px 45px;
+  }
+}
+
+.tm-main {
+  bottom: 0;
+  position: absolute;
+  width: 100%;
+  top: 80px;
+  margin-left: 300px;
 }

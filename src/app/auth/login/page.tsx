@@ -22,10 +22,24 @@ const Login: React.FC = () => {
     };
 
     return (
-        <form onSubmit={handleLogin}>
-            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            <button type="submit">Login</button>
+        <form className="uk-form-stacked" onSubmit={handleLogin}>
+            <div className="uk-margin">
+                <label className="uk-form-label" htmlFor="form-stacked-text">Email</label>
+                <div className="uk-form-controls">
+                    <input className="uk-input" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+            </div>
+
+            <div className="uk-margin">
+                <label className="uk-form-label" htmlFor="form-stacked-select">Password</label>
+                <div className="uk-form-controls">
+                    <input className="uk-input" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                </div>
+            </div>
+
+            <div className="uk-margin">
+                <button className="uk-button uk-button-default" type="submit">Login</button>
+            </div>
         </form>
     );
 };
