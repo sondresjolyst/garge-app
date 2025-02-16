@@ -11,7 +11,7 @@ export default async function Sidebar() {
             </Link>
             <ul className="uk-nav uk-nav-default tm-nav ">
                 <li className="uk-nav-header">foobar</li>
-                <li><Link className="uk-button uk-button-link" href={`/login`}>Login</Link></li>
+                <li><Link className="uk-button uk-button-link" href={`/sensors`}>Sensors</Link></li>
             </ul>
         </div>
     );
