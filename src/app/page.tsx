@@ -1,6 +1,6 @@
 import React from 'react';
 
-const HomePage: React.FC = () => {
+export default async function HomePage() {
     return (
         <div>
             <h1>Welcome to the Home Page</h1>
@@ -8,5 +8,3 @@ const HomePage: React.FC = () => {
         </div>
     );
 };
-
-export default HomePage;

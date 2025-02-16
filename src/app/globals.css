@@ -32,16 +32,25 @@ body {
   overflow-x: hidden;
 }
 
+.uk-input {
+  background: var(--fillbutton);
+}
+
+.sidebar, .sidebar.h3, .sidebar.li, .sidebar.a{
+  background: var(--color1);
+  color: var(--background) !important;
+}
+
 html {
   background: var(--fill) !important;
   color: #666;
 }
 
 .uk-navbar-container {
-  background: var(--color1) !important;
+  background: var(--background) !important;
 }
 
-.tm-sidebar-left {
+/* .tm-sidebar-left {
   position: fixed;
   top: 80px;
   bottom: 0;
@@ -49,6 +58,25 @@ html {
   width: 240px !important;
   padding: 40px 40px 60px 40px;
   border-right: 1px #e5e5e5 solid;
+  overflow: auto;
+} */
+.tm-sidebar-left {
+  position: fixed;
+  top: 80px;
+  bottom: 0;
+  box-sizing: border-box;
+  /* width: 240px !important; */
+  padding: 40px 40px 60px 40px;
+  border-right: 1px #e5e5e5 solid;
+  overflow: auto;
+}
+
+.tm-content {
+  /* position: fixed;
+  top: 80px;
+  bottom: 0; */
+  box-sizing: border-box;
+  width: 100vw;
   overflow: auto;
 }
 
