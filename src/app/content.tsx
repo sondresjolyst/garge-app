@@ -35,7 +35,7 @@ export default function Content({
                                                 <li><Link className="uk-button uk-button-link" href={`/profile`}>Profile</Link></li>
                                             </ul>
                                             <div className="uk-navbar-item">
-                                                <a className="uk-button uk-button-default" onClick={logoutUser}>Logout</a>
+                                                <a className="uk-button uk-button-primary" onClick={logoutUser}>Logout</a>
                                             </div>
                                         </>
                                     ) : (

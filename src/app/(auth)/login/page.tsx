@@ -66,7 +66,7 @@ const Login: React.FC = () => {
                     </div>
 
                     <div className="uk-margin">
-                        <button className="uk-button uk-button-default" type="submit">Login</button>
+                        <button className="uk-button uk-button-primary" type="submit">Login</button>
                     </div>
                 </form>
             )}

@@ -3,81 +3,67 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --color1: #484A47;
-  --color2: #A37774;
-  --color3: #C3D7FF;
-  --color4: #5C6D70;
+  --color1: #353445; /* Tuna */
+  --color2: #cdd6dc; /* Geyser */
+  --color3: #74cbe8; /* Seagull */
+  --color4: #7390a9; /* Bermuda Gray */
   --fill: #efefef;
   --fillbutton: #f7f7f8;
+  --color4text: #000000;
+
+  --uk-primary: var(--color1);
+  --uk-secondary: var(--color2);
+  --uk-success: var(--color3);
+  --uk-warning: var(--color4);
 }
 
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-} */
-
 body {
-  /* color: var(--foreground); */
-  /* background: var(--color3);
-  font-family: Arial, Helvetica, sans-serif; */
   font-variation-settings: "wght" 450;
   font-family: "Inter", sans-serif;
   line-height: 1;
   font-size: 15px;
   height: 100%;
   overflow-x: hidden;
+  color: var(--color1) !important;
+  background: var(--fill) !important;
 }
 
 .uk-input {
-  background: var(--fillbutton);
+  background: var(--fillbutton) !important;
+  color: var(--color1) !important;
 }
 
-.sidebar, .sidebar.h3, .sidebar.li, .sidebar.a{
-  background: var(--color1);
-  color: var(--background) !important;
+.sidebar, .sidebar h3, .sidebar li, .sidebar a {
+  background: var(--color1) !important;
+  color: var(--fill) !important;
 }
 
 html {
   background: var(--fill) !important;
-  color: #666;
+  color: var(--color1) !important;
 }
 
 .uk-navbar-container {
-  background: var(--background) !important;
+  background: var(--color4) !important;
+  color: var(--color4text) !important;
 }
 
-/* .tm-sidebar-left {
-  position: fixed;
-  top: 80px;
-  bottom: 0;
-  box-sizing: border-box;
-  width: 240px !important;
-  padding: 40px 40px 60px 40px;
-  border-right: 1px #e5e5e5 solid;
-  overflow: auto;
-} */
 .tm-sidebar-left {
   position: fixed;
   top: 80px;
   bottom: 0;
   box-sizing: border-box;
-  /* width: 240px !important; */
   padding: 40px 40px 60px 40px;
   border-right: 1px #e5e5e5 solid;
   overflow: auto;
 }
 
 .tm-content {
-  /* position: fixed;
-  top: 80px;
-  bottom: 0; */
   box-sizing: border-box;
   width: 100vw;
   overflow: auto;
+  background: var(--fill) !important;
+  color: var(--color1) !important;
 }
 
 @media (min-width: 1400px) {
@@ -93,4 +79,38 @@ html {
   width: 100%;
   top: 80px;
   margin-left: 300px;
+  background: var(--color2) !important;
+  color: var(--color1) !important;
+}
+
+.uk-button-primary {
+  background-color: var(--uk-primary) !important;
+  border-color: var(--uk-primary) !important;
+  color: var(--fill) !important;
+}
+
+.uk-button-secondary {
+  background-color: var(--uk-secondary) !important;
+  border-color: var(--uk-secondary) !important;
+  color: var(--color1) !important;
+}
+
+.uk-button-success {
+  background-color: var(--uk-success) !important;
+  border-color: var(--uk-success) !important;
+  color: var(--color1) !important;
+}
+
+.uk-button-warning {
+  background-color: var(--uk-warning) !important;
+  border-color: var(--uk-warning) !important;
+  color: var(--fill) !important;
+}
+
+.uk-navbar-nav > li > a {
+  color: var(--fill) !important;
+}
+
+.uk-navbar-item > a {
+  color: var(--fill) !important;
 }

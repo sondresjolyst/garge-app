@@ -72,7 +72,7 @@ const Register: React.FC = () => {
             </div>
 
             <div className="uk-margin">
-                <button className="uk-button uk-button-default" type="submit">Register</button>
+                <button className="uk-button uk-button-primary" type="submit">Register</button>
             </div>
 
             {apiMessage && <p className="uk-text-danger">{apiMessage}</p>}
