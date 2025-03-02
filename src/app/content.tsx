@@ -17,7 +17,7 @@ export default function Content({
     }, []);
 
     if (!isClient) {
-        return null; // Render nothing on the server side
+        return null;
     }
 
     return (

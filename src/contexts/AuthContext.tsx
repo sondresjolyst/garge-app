@@ -43,7 +43,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const loginUser = (token: string) => {
         const decoded = jwt.decode(token) as DecodedToken;
         if (decoded && decoded.exp) {
-            const expires = new Date(decoded.exp * 1000); // Convert exp to milliseconds
+            const expires = new Date(decoded.exp * 1000);
             Cookies.set('jwtToken', token, { expires, secure: true, sameSite: 'none', path: '/' });
             setIsAuthenticated(true);
             setDecodedToken(decoded);
