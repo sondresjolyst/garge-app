@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
 // Define route patterns
-const protectedRoutePatterns = [/^\/dashboard/, /^\/profile/];
+const protectedRoutePatterns = [/^\/dashboard/, /^\/profile/, /^\/sensors/];
 const publicRoutePatterns = [/^\/login$/, /^\/register$/, /^\/$/];
 
 export default async function middleware(req: NextRequest) {

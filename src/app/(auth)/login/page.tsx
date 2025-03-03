@@ -23,7 +23,7 @@ const Login: React.FC = () => {
         try {
             const response = await UserService.login({ email, password });
             const token = response.token;
-            loginUser(token);
+            await loginUser(token);
             router.push('/profile');
         } catch (error: any) {
             setApiMessage(error.message);
@@ -31,45 +31,39 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div>
-            {isAuthenticated ? (
-                <div>
-                    <p>You are logged in!</p>
-                </div>
-            ) : (
-                <form className="uk-form-stacked" onSubmit={handleLogin}>
-                    {apiMessage && <p className="uk-text-danger">{apiMessage}</p>}
-                    <div className="uk-margin">
-                        <label className="uk-form-label" htmlFor="form-stacked-text">Email</label>
-                        <div className="uk-form-controls">
-                            <input
-                                className="uk-input"
-                                type="email"
-                                placeholder="Email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </div>
+        <div className="flex items-center justify-center bg-gray-900 text-gray-200">
+            <div className="w-full max-w-md p-6 rounded-lg shadow-md mx-auto">
+                <h1 className="text-2xl mb-4">Login</h1>
+                <p className="mb-4">New customer? <a href="/register" className="text-blue-500">Register account</a></p>
+                <form onSubmit={handleLogin}>
+                    {apiMessage && <p className="text-red-500">{apiMessage}</p>}
+                    <div className="mb-4">
+                        <label className="block text-gray-400">Email</label>
+                        <input
+                            className="w-full p-2 border border-gray-600 rounded mt-1 bg-gray-700 text-gray-200"
+                            type="email"
+                            placeholder="Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
                     </div>
 
-                    <div className="uk-margin">
-                        <label className="uk-form-label" htmlFor="form-stacked-select">Password</label>
-                        <div className="uk-form-controls">
-                            <input
-                                className="uk-input"
-                                type="password"
-                                placeholder="Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-400">Password</label>
+                        <input
+                            className="w-full p-2 border border-gray-600 rounded mt-1 bg-gray-700 text-gray-200"
+                            type="password"
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
                     </div>
 
-                    <div className="uk-margin">
-                        <button className="uk-button uk-button-default" type="submit">Login</button>
+                    <div>
+                        <button className="w-full bg-gray-600 text-gray-200 p-2 rounded hover:bg-gray-500" type="submit">Login</button>
                     </div>
                 </form>
-            )}
+            </div>
         </div>
     );
 };

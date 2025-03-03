@@ -6,11 +6,12 @@ import { UserDTO } from '@/dto/UserDTO';
 import UserService, { decodeToken } from '@/services/userService';
 import { DecodedToken } from '@/types/types';
 import jwt from 'jsonwebtoken';
+import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
     isAuthenticated: boolean;
     user: UserDTO | null;
-    loginUser: (token: string) => void;
+    loginUser: (token: string) => Promise<void>;
     logoutUser: () => void;
     decodedToken: DecodedToken | null;
 }
@@ -21,6 +22,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState<UserDTO | null>(null);
     const [decodedToken, setDecodedToken] = useState<DecodedToken | null>(null);
+    const router = useRouter();
 
     useEffect(() => {
         const token = Cookies.get('jwtToken');
@@ -40,22 +42,32 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         }
     }, []);
 
-    const loginUser = (token: string) => {
-        const decoded = jwt.decode(token) as DecodedToken;
-        if (decoded && decoded.exp) {
-            const expires = new Date(decoded.exp * 1000);
-            Cookies.set('jwtToken', token, { expires, secure: true, sameSite: 'none', path: '/' });
-            setIsAuthenticated(true);
-            setDecodedToken(decoded);
-            UserService.getUserProfile().then(setUser);
+    const loginUser = async (token: string): Promise<void> => {
+        try {
+            const decoded = jwt.decode(token) as DecodedToken;
+            if (decoded && decoded.exp) {
+                const expires = new Date(decoded.exp * 1000);
+                Cookies.set('jwtToken', token, { expires, secure: true, sameSite: 'none', path: '/' });
+                setIsAuthenticated(true);
+                setDecodedToken(decoded);
+
+                const user = await UserService.getUserProfile();
+                setUser(user);
+
+                router.replace('/profile');
+            }
+        } catch (error) {
+            console.error('Error during login:', error);
         }
     };
+
 
     const logoutUser = () => {
         Cookies.remove('jwtToken');
         setIsAuthenticated(false);
         setUser(null);
         setDecodedToken(null);
+        router.push('/login');
     };
 
     return (

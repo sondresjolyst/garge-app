@@ -1,31 +1,26 @@
-import React from 'react';
-import Chart from 'react-apexcharts';
+import React, { useMemo } from 'react';
+import Chart from "react-apexcharts";
 import { SensorData } from '@/services/sensorService';
 import { ApexOptions } from 'apexcharts';
 
 interface TimeSeriesChartProps {
     sensorName: string;
     sensorData: SensorData[];
-    interval: number;
     fetchData: () => Promise<void>;
 }
 
-const TimeSeriesChart = ({ sensorName, sensorData }: TimeSeriesChartProps) => {
-    if (!sensorData || sensorData.length === 0) {
-        return null;
-    }
-
-    const series = [
+const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ sensorName, sensorData }) => {
+    const series = useMemo(() => [
         {
             name: sensorName,
             data: sensorData.map((data) => ({
                 x: new Date(data.timestamp).toLocaleString(),
-                y: parseFloat(data.value)
+                y: data.value
             }))
         }
-    ];
+    ], [sensorName, sensorData]);
 
-    const options: ApexOptions = {
+    const options: ApexOptions = useMemo(() => ({
         chart: {
             type: 'line',
             height: 350,
@@ -44,8 +39,13 @@ const TimeSeriesChart = ({ sensorName, sensorData }: TimeSeriesChartProps) => {
             title: {
                 text: 'Value'
             }
+            
         }
-    };
+    }), [sensorName]);
+
+    if (!sensorData || sensorData.length === 0) {
+        return null;
+    }
 
     return (
         <Chart options={options} series={series} type="line" height={350} />

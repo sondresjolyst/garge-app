@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { useRouter } from 'next/router';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://garge-api.prod.tumogroup.com/api';
 
@@ -29,6 +30,19 @@ axiosInstance.interceptors.response.use(
         if (process.env.NODE_ENV === 'development') {
             console.error('Response error:', error);
         }
+
+        if (error.response && error.response.status === 401) {
+            const router = useRouter();
+
+            const errorMessage = error.response.data.message;
+            if (errorMessage === 'Token expired' || errorMessage === 'Invalid token') {
+                Cookies.remove('jwtToken');
+                router.push('/login');
+            } else {
+                console.error('Access denied:', errorMessage);
+            }
+        }
+
         return Promise.reject(error);
     }
 );

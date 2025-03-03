@@ -6,7 +6,9 @@ import { z } from 'zod';
 import { DecodedToken } from '@/types/types';
 
 interface RegisterData extends LoginData {
-    name: string;
+    firstName: string;
+    lastName: string;
+    userName: string;
 }
 
 interface LoginData {
@@ -24,9 +26,17 @@ const decodeToken = (): DecodedToken | null => {
 };
 
 const registerSchema = z.object({
-    name: z
+    firstName: z
         .string()
-        .min(2, { message: 'Name must be at least 2 characters long.' })
+        .min(2, { message: 'First Name must be at least 2 characters long.' })
+        .trim(),
+    lastName: z
+        .string()
+        .min(2, { message: 'Last Name must be at least 2 characters long.' })
+        .trim(),
+    userName: z
+        .string()
+        .min(2, { message: 'Username must be at least 2 characters long.' })
         .trim(),
     email: z.string().email({ message: 'Please enter a valid email.' }).trim(),
     password: z
