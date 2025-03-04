@@ -11,8 +11,7 @@ const SensorsPage: React.FC = () => {
     const [sensors, setSensors] = useState<Sensor[]>([]);
     const [sensorData, setSensorData] = useState<Record<number, SensorData[]>>({});
     const [loading, setLoading] = useState(true);
-    const [interval, setInterval] = useState<number>(30000);
-    const [isFetching, setIsFetching] = useState<boolean>(false);
+    const [interval, setInterval] = useState<number>(60000); // Default to 1 minute
     const [timeRangeError, setTimeRangeError] = useState<string | null>(null);
 
     const defaultEndDate = new Date().toISOString().split('T')[0];
@@ -23,8 +22,6 @@ const SensorsPage: React.FC = () => {
     const [timeRange, setTimeRange] = useState<string>('');
 
     const fetchSensors = useCallback(async (startDate?: string, endDate?: string, timeRange?: string): Promise<void> => {
-        if (isFetching) return;
-        setIsFetching(true);
         try {
             const sensors = await SensorService.getAllSensors();
             setSensors(sensors);
@@ -44,26 +41,32 @@ const SensorsPage: React.FC = () => {
         } catch (error) {
             console.error(error instanceof Error ? error.message : 'An unknown error occurred');
             setLoading(false);
-        } finally {
-            setIsFetching(false);
         }
-    }, [isFetching]);
+    }, []);
+
+    const debouncedFetchSensors = useCallback(
+        debounce((startDate?: string, endDate?: string, timeRange?: string) => fetchSensors(startDate, endDate, timeRange), 500),
+        [fetchSensors]
+    );
+
+    const fetchData = useCallback((): Promise<void> => {
+        return new Promise((resolve) => {
+            debouncedFetchSensors(startDate, endDate, timeRange);
+            resolve();
+        });
+    }, [debouncedFetchSensors, startDate, endDate, timeRange]);
 
     useEffect(() => {
-        const debouncedFetchSensors = debounce((startDate?: string, endDate?: string, timeRange?: string) => {
-            fetchSensors(startDate, endDate, timeRange);
-        }, 500);
-
-        debouncedFetchSensors(startDate, endDate, timeRange);
+        fetchData();
 
         const intervalId = window.setInterval(() => {
-            debouncedFetchSensors(startDate, endDate, timeRange);
+            fetchData();
         }, interval);
 
         return () => {
             window.clearInterval(intervalId);
         };
-    }, [interval, startDate, endDate, timeRange, fetchSensors]);
+    }, [interval, startDate, endDate, timeRange, fetchData]);
 
     const handleIntervalChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newInterval = parseInt(e.target.value, 10);
@@ -74,7 +77,7 @@ const SensorsPage: React.FC = () => {
         const isValid = /^(\d+)([mhdwy])$/.test(timeRange);
         if (isValid || timeRange === '') {
             setTimeRangeError(null);
-            fetchSensors(startDate, endDate, timeRange);
+            fetchData();
         } else {
             setTimeRangeError('Invalid time range format. Use format like 1h, 30m, 1d, etc.');
         }
@@ -145,7 +148,7 @@ const SensorsPage: React.FC = () => {
                             </h3>
                         </div>
                         <div className="p-4">
-                            <TimeSeriesChart sensorName={sensor.name} sensorData={sensorData[sensor.id]} fetchData={() => fetchSensors(startDate, endDate, timeRange)} />
+                            <TimeSeriesChart sensorName={sensor.name} sensorData={sensorData[sensor.id]} fetchData={fetchData} />
                         </div>
                     </div>
                 ))}
