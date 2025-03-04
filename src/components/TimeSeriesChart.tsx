@@ -26,20 +26,46 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ sensorName, sensorDat
             height: 350,
             animations: {
                 enabled: false
-            }
+            },
+            foreColor: '#f0f0f0'
         },
         title: {
             text: sensorName,
-            align: 'left'
+            align: 'left',
+            style: {
+                color: '#f0f0f0'
+            }
         },
         xaxis: {
-            type: 'datetime'
+            type: 'datetime',
+            labels: {
+                style: {
+                    colors: '#f0f0f0'
+                }
+            }
         },
         yaxis: {
             title: {
-                text: 'Value'
+                text: 'Value',
+                style: {
+                    color: '#f0f0f0'
+                }
+            },
+            labels: {
+                style: {
+                    colors: '#f0f0f0'
+                },
+                formatter: (value) => value.toFixed(2)
             }
-            
+        },
+        tooltip: {
+            theme: 'dark',
+            style: {
+                fontSize: '12px',
+                fontFamily: undefined,
+                background: '#111827',
+                color: '#f0f0f0'
+            }
         }
     }), [sensorName]);
 
