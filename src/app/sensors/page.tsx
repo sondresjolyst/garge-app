@@ -42,23 +42,18 @@ const SensorsPage: React.FC = () => {
             setSensorData(validDataMap);
             setLoading(false);
         } catch (error) {
-            if (error instanceof Error) {
-                console.error(error.message);
-            } else {
-                console.error('An unknown error occurred');
-            }
+            console.error(error instanceof Error ? error.message : 'An unknown error occurred');
             setLoading(false);
         } finally {
             setIsFetching(false);
         }
     }, [isFetching]);
 
-    const debouncedFetchSensors = useCallback(
-        debounce((startDate?: string, endDate?: string, timeRange?: string) => fetchSensors(startDate, endDate, timeRange), 500),
-        [fetchSensors]
-    );
-
     useEffect(() => {
+        const debouncedFetchSensors = debounce((startDate?: string, endDate?: string, timeRange?: string) => {
+            fetchSensors(startDate, endDate, timeRange);
+        }, 500);
+
         debouncedFetchSensors(startDate, endDate, timeRange);
 
         const intervalId = window.setInterval(() => {
@@ -68,7 +63,7 @@ const SensorsPage: React.FC = () => {
         return () => {
             window.clearInterval(intervalId);
         };
-    }, [interval, startDate, endDate, timeRange, debouncedFetchSensors]);
+    }, [interval, startDate, endDate, timeRange, fetchSensors]);
 
     const handleIntervalChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newInterval = parseInt(e.target.value, 10);
@@ -79,7 +74,7 @@ const SensorsPage: React.FC = () => {
         const isValid = /^(\d+)([mhdwy])$/.test(timeRange);
         if (isValid || timeRange === '') {
             setTimeRangeError(null);
-            debouncedFetchSensors(startDate, endDate, timeRange);
+            fetchSensors(startDate, endDate, timeRange);
         } else {
             setTimeRangeError('Invalid time range format. Use format like 1h, 30m, 1d, etc.');
         }
@@ -98,7 +93,7 @@ const SensorsPage: React.FC = () => {
 
     return (
         <div className="p-4">
-            <h1 className="text-2xl font-bold">Sensors</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Sensors</h1>
             <div className="my-4">
                 <label htmlFor="interval-select" className="block mb-2">Update Interval:</label>
                 <select id="interval-select" className="block w-full p-2 border rounded bg-gray-800 text-gray-200" onChange={handleIntervalChange} value={interval}>
@@ -143,21 +138,21 @@ const SensorsPage: React.FC = () => {
             <button className="bg-gray-600 text-gray-200 px-4 py-2 rounded" onClick={handleFetchData}>Fetch Data</button>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 {sensorsWithData.map(sensor => (
-                    <div key={sensor.id} className="bg-gray-800 text-gray-200 shadow-md rounded-lg overflow-hidden">
+                    <div key={sensor.id} className="bg-gray-800 text-gray-200 shadow-md rounded-lg overflow-auto">
                         <div className="p-4">
-                            <h3 className="text-lg font-bold">
+                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold">
                                 {sensor.name}
                             </h3>
                         </div>
                         <div className="p-4">
-                            <TimeSeriesChart sensorName={sensor.name} sensorData={sensorData[sensor.id]} fetchData={() => debouncedFetchSensors(startDate, endDate, timeRange)} />
+                            <TimeSeriesChart sensorName={sensor.name} sensorData={sensorData[sensor.id]} fetchData={() => fetchSensors(startDate, endDate, timeRange)} />
                         </div>
                     </div>
                 ))}
             </div>
             {sensorsWithoutData.length > 0 && (
                 <div className="mt-8">
-                    <h2 className="text-xl font-bold">Sensors without data</h2>
+                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold">Sensors without data</h2>
                     <ul className="list-disc pl-5 space-y-2">
                         {sensorsWithoutData.map(sensor => (
                             <li key={sensor.id} className="text-gray-200">{sensor.name}</li>

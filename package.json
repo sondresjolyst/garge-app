@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "apexcharts": "^4.5.0",
     "axios": "^1.7.9",
     "jose": "^5.9.6",
@@ -27,6 +28,7 @@
     "@eslint/eslintrc": "^3",
     "@types/js-cookie": "^3.0.6",
     "@types/jsonwebtoken": "^9.0.8",
+    "@types/lodash": "^4.17.16",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
