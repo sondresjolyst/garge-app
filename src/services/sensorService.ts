@@ -1,4 +1,5 @@
 import axiosInstance from '@/services/axiosInstance';
+import { AxiosError } from 'axios';
 
 export interface Sensor {
     id: number;
@@ -8,6 +9,8 @@ export interface Sensor {
 }
 
 export interface SensorData {
+    id: number;
+    sensorId: number;
     timestamp: string;
     value: number;
 }
@@ -47,14 +50,18 @@ const SensorService = {
         try {
             const response = await axiosInstance.get<{ $values: Sensor[] }>('/sensor');
             return response.data.$values;
-        } catch (error: Error | any) {
-            throw new Error(error.response?.data.message || 'Failed to fetch sensors');
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to fetch sensors');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
         }
     },
 
     async getSensorData(sensorId: number, startDate?: string, endDate?: string, timeRange?: string): Promise<SensorData[]> {
         try {
-            const params: any = {};
+            const params: Record<string, string> = {};
             if (timeRange) {
                 const { startDate: parsedStartDate, endDate: parsedEndDate } = parseTimeRange(timeRange);
                 params.startDate = parsedStartDate;
@@ -66,14 +73,18 @@ const SensorService = {
 
             const response = await axiosInstance.get<{ $values: SensorData[] }>(`/sensor/${sensorId}/data`, { params });
             return response.data.$values;
-        } catch (error: Error | any) {
-            throw new Error(error.response?.data.message || 'Failed to fetch sensor data');
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to fetch sensor data');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
         }
     },
 
     async getMultipleSensorsData(sensorIds: number[], startDate?: string, endDate?: string, timeRange?: string): Promise<Record<number, SensorData[]>> {
         try {
-            const params: any = {};
+            const params: Record<string, string> = {};
             if (timeRange) {
                 const { startDate: parsedStartDate, endDate: parsedEndDate } = parseTimeRange(timeRange);
                 params.startDate = parsedStartDate;
@@ -84,7 +95,7 @@ const SensorService = {
             }
 
             sensorIds.forEach((id, index) => {
-                params[`sensorIds[${index}]`] = id;
+                params[`sensorIds[${index}]`] = id.toString();
             });
 
             const response = await axiosInstance.get<{ $values: SensorData[] }>('/sensor/data', { params });
@@ -98,8 +109,12 @@ const SensorService = {
             });
 
             return dataMap;
-        } catch (error: Error | any) {
-            throw new Error(error.response?.data.message || 'Failed to fetch multiple sensors data');
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to fetch multiple sensors data');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
         }
     }
 };

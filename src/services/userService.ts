@@ -4,6 +4,7 @@ import Cookies from 'js-cookie';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { DecodedToken } from '@/types/types';
+import { AxiosError } from 'axios';
 
 interface RegisterData extends LoginData {
     firstName: string;
@@ -61,18 +62,26 @@ const UserService = {
         try {
             const response = await axiosInstance.get<UserDTO>(`/user/profile/${sub}`);
             return response.data;
-        } catch (error: Error | any) {
-            console.log(error);
-            throw new Error(error.response?.data.message || 'Failed to fetch user profile');
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                console.log(error);
+                throw new Error(error.response?.data.message || 'Failed to fetch user profile');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
         }
     },
     async login(data: LoginData): Promise<{ token: string }> {
         try {
             const response = await axiosInstance.post<{ token: string }>('/auth/login', data);
             return response.data;
-        } catch (error: Error | any) {
-            const errorMessage = error.response?.data.message || 'Failed to login';
-            throw new Error(errorMessage);
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                const errorMessage = error.response?.data.message || 'Failed to login';
+                throw new Error(errorMessage);
+            } else {
+                throw new Error('An unknown error occurred');
+            }
         }
     },
     async register(data: RegisterData): Promise<{ message: string }> {
@@ -93,8 +102,12 @@ const UserService = {
         try {
             const response = await axiosInstance.post<{ message: string }>('/auth/register', data);
             return response.data;
-        } catch (error: Error | any) {
-            throw new Error(error.response?.data.message || 'Failed to register');
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to register');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
         }
     }
 };
