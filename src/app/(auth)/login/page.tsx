@@ -25,8 +25,12 @@ const Login: React.FC = () => {
             const token = response.token;
             await loginUser(token);
             router.push('/profile');
-        } catch (error: any) {
-            setApiMessage(error.message);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                setApiMessage(error.message);
+            } else {
+                setApiMessage('An unknown error occurred');
+            }
         }
     };
 

@@ -29,12 +29,16 @@ const Register: React.FC = () => {
             loginUser(token);
 
             router.push('/profile');
-        } catch (error: any) {
-            try {
-                const parsedErrors = JSON.parse(error.message);
-                setErrors(parsedErrors);
-            } catch {
-                setApiMessage(error.message);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                try {
+                    const parsedErrors = JSON.parse(error.message);
+                    setErrors(parsedErrors);
+                } catch {
+                    setApiMessage(error.message);
+                }
+            } else {
+                setApiMessage('An unknown error occurred');
             }
         }
     };
