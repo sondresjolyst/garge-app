@@ -66,6 +66,9 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ sensorName, sensorDat
                 background: '#111827',
                 color: '#f0f0f0'
             }
+        },
+        x: {
+            format: 'dd MMM yyyy HH:mm:ss'
         }
     }), [sensorName]);
 
