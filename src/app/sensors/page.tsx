@@ -11,7 +11,7 @@ const SensorsPage: React.FC = () => {
     const [sensors, setSensors] = useState<Sensor[]>([]);
     const [sensorData, setSensorData] = useState<Record<number, SensorData[]>>({});
     const [loading, setLoading] = useState(true);
-    const [interval, setInterval] = useState<number>(60000); // Default to 1 minute
+    const [interval, setInterval] = useState<number>(60000 * 5);
     const [timeRangeError, setTimeRangeError] = useState<string | null>(null);
 
     const defaultEndDate = new Date().toISOString().split('T')[0];
@@ -42,7 +42,7 @@ const SensorsPage: React.FC = () => {
             console.error(error instanceof Error ? error.message : 'An unknown error occurred');
             setLoading(false);
         }
-    }, []);
+    }, [endDate]);
 
     const debouncedFetchSensors = useCallback(
         debounce((startDate?: string, endDate?: string, timeRange?: string) => fetchSensors(startDate, endDate, timeRange), 500),
@@ -84,7 +84,15 @@ const SensorsPage: React.FC = () => {
     };
 
     const handleTimeRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setTimeRange(e.target.value);
+        const value = e.target.value;
+        setTimeRange(value);
+
+        const isValid = /^(\d+)([mhdwy])$/.test(value);
+        if (isValid || value === '') {
+            setTimeRangeError(null);
+        } else {
+            setTimeRangeError('Invalid time range format. Use format like 1h, 30m, 1d, etc.');
+        }
     };
 
     const sensorsWithData = useMemo(() => sensors.filter(sensor => sensorData[sensor.id]?.length > 0), [sensors, sensorData]);
@@ -100,10 +108,9 @@ const SensorsPage: React.FC = () => {
             <div className="my-4">
                 <label htmlFor="interval-select" className="block mb-2">Update Interval:</label>
                 <select id="interval-select" className="block w-full p-2 border rounded bg-gray-800 text-gray-200" onChange={handleIntervalChange} value={interval}>
-                    <option value={10000}>10 seconds</option>
-                    <option value={30000}>30 seconds</option>
                     <option value={60000}>1 minute</option>
                     <option value={300000}>5 minutes</option>
+                    <option value={600000}>10 minutes</option>
                 </select>
             </div>
             <div className="my-4">
@@ -141,7 +148,7 @@ const SensorsPage: React.FC = () => {
             <button className="bg-gray-600 text-gray-200 px-4 py-2 rounded" onClick={handleFetchData}>Fetch Data</button>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 {sensorsWithData.map(sensor => (
-                    <div key={sensor.id} className="bg-gray-800 text-gray-200 shadow-md rounded-lg overflow-auto">
+                    <div key={sensor.id} className="bg-gray-800 text-gray-200 shadow-md rounded-lg overflow-hidden">
                         <div className="p-4">
                             <h3 className="text-lg sm:text-xl md:text-2xl font-bold">
                                 {sensor.name}

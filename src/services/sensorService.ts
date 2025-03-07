@@ -91,22 +91,26 @@ const SensorService = {
                 params.endDate = parsedEndDate;
             } else {
                 if (startDate) params.startDate = new Date(startDate).toISOString();
-                if (endDate) params.endDate = new Date(endDate).toISOString();
+                if (endDate) {
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59, 999);
+                    params.endDate = end.toISOString();
+                }
             }
 
-            sensorIds.forEach((id, index) => {
+                sensorIds.forEach((id, index) => {
                 params[`sensorIds[${index}]`] = id.toString();
-            });
+                });
 
             const response = await axiosInstance.get<{ $values: SensorData[] }>('/sensor/data', { params });
             const dataMap: Record<number, SensorData[]> = {};
 
-            response.data.$values.forEach((data) => {
-                if (!dataMap[data.sensorId]) {
-                    dataMap[data.sensorId] = [];
-                }
-                dataMap[data.sensorId].push(data);
-            });
+                response.data.$values.forEach((data) => {
+                    if (!dataMap[data.sensorId]) {
+                        dataMap[data.sensorId] = [];
+                    }
+                    dataMap[data.sensorId].push(data);
+                });
 
             return dataMap;
         } catch (error: unknown) {

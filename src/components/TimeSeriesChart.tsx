@@ -65,10 +65,10 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ sensorName, sensorDat
                 fontFamily: undefined,
                 background: '#111827',
                 color: '#f0f0f0'
+            },
+            x: {
+                format: 'dd MMM yyyy HH:mm:ss'
             }
-        },
-        x: {
-            format: 'dd MMM yyyy HH:mm:ss'
         }
     }), [sensorName]);
 
