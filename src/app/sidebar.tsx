@@ -12,10 +12,10 @@ export default function Sidebar() {
                 <div className="p-2 mt-2 mb-2 flex justify-center">
                     <Link href="/">
                         <div className="hidden md:block">
-                            <Image src="/next.svg" width={130} height={70} alt="Next.js Logo" />
+                            <Image src="/garge-icon-large.png" width={130} height={70} alt="Next.js Logo" />
                         </div>
                         <div className="block md:hidden">
-                            <Image src="/vercel.svg" width={130} height={70} alt="Vercel Logo" />
+                            <Image src="/garge-icon-small.png" width={130} height={70} alt="Vercel Logo" />
                         </div>
                     </Link>
                 </div>
