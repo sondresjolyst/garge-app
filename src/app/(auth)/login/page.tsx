@@ -2,35 +2,36 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import UserService from '@/services/userService';
-import { useAuth } from '@/hooks/useAuth';
+import { signIn, getSession } from 'next-auth/react';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [apiMessage, setApiMessage] = useState<string>('');
-    const { isAuthenticated, loginUser } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
-        if (isAuthenticated) {
-            router.push('/profile');
-        }
-    }, [isAuthenticated, router]);
+        const checkSession = async () => {
+            const session = await getSession();
+            if (session) {
+                router.push('/profile');
+            }
+        };
+        checkSession();
+    }, [router]);
 
     const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        try {
-            const response = await UserService.login({ email, password });
-            const token = response.token;
-            await loginUser(token);
+        const result = await signIn('credentials', {
+            redirect: false,
+            email,
+            password,
+        });
+
+        if (result?.error) {
+            setApiMessage(result.error);
+        } else {
             router.push('/profile');
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                setApiMessage(error.message);
-            } else {
-                setApiMessage('An unknown error occurred');
-            }
         }
     };
 

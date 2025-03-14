@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify, JWTPayload } from 'jose';
-import { cookies } from 'next/headers';
+import { getToken } from 'next-auth/jwt';
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+const secret = process.env.NEXTAUTH_SECRET;
 
-// Define route patterns
 const protectedRoutePatterns = [/^\/dashboard/, /^\/profile/, /^\/sensors/];
 const publicRoutePatterns = [/^\/login$/, /^\/register$/, /^\/$/];
 
@@ -18,34 +16,22 @@ export default async function middleware(req: NextRequest) {
     console.log(`Is Protected Route: ${isProtectedRoute}`);
     console.log(`Is Public Route: ${isPublicRoute}`);
 
-    const cookie = (await cookies()).get('jwtToken')?.value;
-    console.log(`Cookie: ${cookie}`);
-    let session: JWTPayload | null = null;
-    if (cookie) {
-        try {
-            const { payload } = await jwtVerify(cookie, secret);
-            session = payload;
-            console.log(`Session: ${JSON.stringify(session)}`);
-        } catch (error) {
-            console.error('Failed to verify token:', error);
-        }
-    }
+    const token = await getToken({ req, secret });
+    console.log(`Token: ${JSON.stringify(token)}`);
 
-    if (isProtectedRoute && !session?.sub) {
+    if (isProtectedRoute && !token?.accessToken) {
         console.log('Redirecting to /login');
         return NextResponse.redirect(new URL('/login', req.nextUrl));
     }
 
-    // Redirect to / if the user is authenticated
-    if (isPublicRoute && session?.sub && !req.nextUrl.pathname.startsWith('/')) {
-        console.log('Redirecting to /');
-        return NextResponse.redirect(new URL('/', req.nextUrl));
+    if (isPublicRoute && token?.accessToken && path === '/login') {
+        console.log('Redirecting to /profile');
+        return NextResponse.redirect(new URL('/profile', req.nextUrl));
     }
 
     return NextResponse.next();
 }
 
-// Routes Middleware should not run on
 export const config = {
     matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
 };

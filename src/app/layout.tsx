@@ -2,8 +2,8 @@ import React from 'react';
 import './globals.css';
 import Sidebar from './sidebar';
 import Content from './content';
-import { AuthProvider } from '@/contexts/AuthContext';
 import Navbar from './navbar';
+import SessionProviderWrapper from './SessionProviderWrapper';
 
 export default function Layout({
     children,
@@ -16,7 +16,7 @@ export default function Layout({
                 <title>Garge</title>
             </head>
             <body className="bg-gray-900 text-gray-200">
-                <AuthProvider>
+                <SessionProviderWrapper>
                     <div className="flex h-screen overflow-hidden">
                         <Sidebar />
                         <div className="flex-1 overflow-auto">
@@ -24,7 +24,7 @@ export default function Layout({
                             <Content>{children}</Content>
                         </div>
                     </div>
-                </AuthProvider>
+                </SessionProviderWrapper>
             </body>
         </html>
     );

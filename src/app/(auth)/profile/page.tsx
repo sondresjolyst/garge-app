@@ -1,20 +1,34 @@
 "use client"
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import { useSession } from 'next-auth/react';
+import UserService from '@/services/userService';
+import { UserDTO } from '@/dto/UserDTO';
 
 const Profile: React.FC = () => {
-    const { isAuthenticated, user } = useAuth();
+    const { data: session, status } = useSession();
     const router = useRouter();
+    const isAuthenticated = status === 'authenticated';
+    const [user, setUser] = useState<UserDTO | null>(null);
 
     useEffect(() => {
         if (!isAuthenticated) {
             router.push('/login');
+        } else {
+            const fetchUserProfile = async () => {
+                try {
+                    const userProfile = await UserService.getUserProfile();
+                    setUser(userProfile);
+                } catch (error) {
+                    console.error('Failed to fetch user profile:', error);
+                }
+            };
+            fetchUserProfile();
         }
     }, [isAuthenticated, router]);
 
-    if (!user) {
+    if (status === 'loading' || !user) {
         return <p>Loading...</p>;
     }
 

@@ -125,7 +125,6 @@ const SensorService = {
             console.log(`API response contains ${response.data.$values.length} data points`);
             console.log('Data size in bytes:', new Blob([JSON.stringify(response.data.$values)]).size);
 
-            // Check for anomalies in the data
             const dataPointsPerSensor = Object.values(dataMap).map(dataArray => dataArray.length);
             const maxDataPoints = Math.max(...dataPointsPerSensor);
             const minDataPoints = Math.min(...dataPointsPerSensor);

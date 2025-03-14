@@ -1,10 +1,9 @@
-import { UserDTO } from '@/dto/UserDTO';
 import axiosInstance from '@/services/axiosInstance';
-import Cookies from 'js-cookie';
+import { UserDTO } from '@/dto/UserDTO';
+import { AxiosError } from 'axios';
+import { getSession } from 'next-auth/react';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-import { DecodedToken } from '@/types/types';
-import { AxiosError } from 'axios';
 
 interface RegisterData extends LoginData {
     firstName: string;
@@ -16,15 +15,6 @@ interface LoginData {
     email: string;
     password: string;
 }
-
-const decodeToken = (): DecodedToken | null => {
-    const token = Cookies.get('jwtToken');
-    if (!token) {
-        return null;
-    }
-
-    return jwt.decode(token) as DecodedToken;
-};
 
 const registerSchema = z.object({
     firstName: z
@@ -53,14 +43,24 @@ const registerSchema = z.object({
 
 const UserService = {
     async getUserProfile(): Promise<UserDTO> {
-        const decodedToken = decodeToken();
-        if (!decodedToken) {
-            throw new Error('No token found or token is invalid');
+        const session = await getSession();
+        if (!session?.user?.accessToken) {
+            throw new Error('No access token found');
+        }
+
+        const decodedToken = jwt.decode(session.user.accessToken) as { sub: string, unique_name: string };
+        if (!decodedToken || !decodedToken.sub || !decodedToken.unique_name) {
+            throw new Error('Failed to decode access token');
         }
 
         const sub = decodedToken.sub;
+        const uniqueName = decodedToken.unique_name;
         try {
-            const response = await axiosInstance.get<UserDTO>(`/user/profile/${sub}`);
+            const response = await axiosInstance.get<UserDTO>(`/user/profile/${sub}`, {
+                headers: {
+                    Authorization: `Bearer ${session.user.accessToken}`,
+                },
+            });
             return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
@@ -113,4 +113,3 @@ const UserService = {
 };
 
 export default UserService;
-export { decodeToken };
