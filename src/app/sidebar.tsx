@@ -25,13 +25,13 @@ export default function Sidebar() {
                 <ul className="w-full">
                     <li>
                         <Link href="/" className="block text-gray-200 hover:text-white p-2 flex flex-col items-center justify-center">
-                            <HomeIcon className="h-5 w-5 mb-2 md:mb-0" />
+                            <HomeIcon className="h-8 w-8 mb-2 md:mb-0" />
                             <span className="hidden md:block">Home</span>
                         </Link>
                     </li>
                     <li>
                         <Link href="/sensors" className="block text-gray-200 hover:text-white p-2 flex flex-col items-center justify-center">
-                            <SignalIcon className="h-5 w-5 mb-2 md:mb-0" />
+                            <SignalIcon className="h-8 w-8 mb-2 md:mb-0" />
                             <span className="hidden md:block">Sensors</span>
                         </Link>
                     </li>
