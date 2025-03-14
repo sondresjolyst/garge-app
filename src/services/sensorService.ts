@@ -82,7 +82,7 @@ const SensorService = {
         }
     },
 
-    async getMultipleSensorsData(sensorIds: number[], startDate?: string, endDate?: string, timeRange?: string): Promise<Record<number, SensorData[]>> {
+    async getMultipleSensorsData(sensorIds: number[], startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string): Promise<Record<number, SensorData[]>> {
         try {
             const params: Record<string, string> = {};
             if (timeRange) {
@@ -93,30 +93,55 @@ const SensorService = {
                 if (startDate) params.startDate = new Date(startDate).toISOString();
                 if (endDate) {
                     const end = new Date(endDate);
-                    end.setHours(23, 59, 59, 999);
+                    end.setHours(24, 0, 0, 0);
                     params.endDate = end.toISOString();
                 }
             }
 
-                sensorIds.forEach((id, index) => {
+            sensorIds.forEach((id, index) => {
                 params[`sensorIds[${index}]`] = id.toString();
-                });
+            });
+
+            if (average !== undefined) {
+                params.average = average.toString();
+            }
+
+            if (groupBy) {
+                params.groupBy = groupBy;
+            }
+
+            console.log('Fetching data with params:', params);
 
             const response = await axiosInstance.get<{ $values: SensorData[] }>('/sensor/data', { params });
             const dataMap: Record<number, SensorData[]> = {};
 
-                response.data.$values.forEach((data) => {
-                    if (!dataMap[data.sensorId]) {
-                        dataMap[data.sensorId] = [];
-                    }
-                    dataMap[data.sensorId].push(data);
-                });
+            response.data.$values.forEach((data) => {
+                if (!dataMap[data.sensorId]) {
+                    dataMap[data.sensorId] = [];
+                }
+                dataMap[data.sensorId].push(data);
+            });
+
+            console.log(`API response contains ${response.data.$values.length} data points`);
+            console.log('Data size in bytes:', new Blob([JSON.stringify(response.data.$values)]).size);
+
+            // Check for anomalies in the data
+            const dataPointsPerSensor = Object.values(dataMap).map(dataArray => dataArray.length);
+            const maxDataPoints = Math.max(...dataPointsPerSensor);
+            const minDataPoints = Math.min(...dataPointsPerSensor);
+            const averageDataPoints = dataPointsPerSensor.reduce((a, b) => a + b, 0) / dataPointsPerSensor.length;
+
+            console.log(`Max data points per sensor: ${maxDataPoints}`);
+            console.log(`Min data points per sensor: ${minDataPoints}`);
+            console.log(`Average data points per sensor: ${averageDataPoints}`);
 
             return dataMap;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
+                console.error('API Error:', error.response?.data.message || 'Failed to fetch multiple sensors data');
                 throw new Error(error.response?.data.message || 'Failed to fetch multiple sensors data');
             } else {
+                console.error('Unknown Error:', error);
                 throw new Error('An unknown error occurred');
             }
         }

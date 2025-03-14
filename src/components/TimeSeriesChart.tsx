@@ -9,16 +9,33 @@ interface TimeSeriesChartProps {
     fetchData: () => Promise<void>;
 }
 
+const MAX_DATA_POINTS = 1000;
+
 const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ sensorName, sensorData }) => {
+    console.log(`Rendering chart for ${sensorName} with ${sensorData.length} data points`);
+
+    const processedData = useMemo(() => {
+        if (sensorData.length > MAX_DATA_POINTS) {
+            const step = Math.ceil(sensorData.length / MAX_DATA_POINTS);
+            return sensorData.filter((_, index) => index % step === 0).map(data => ({
+                x: new Date(data.timestamp).getTime(),
+                y: data.value
+            }));
+        }
+        return sensorData.map(data => ({
+            x: new Date(data.timestamp).getTime(),
+            y: data.value
+        }));
+    }, [sensorData]);
+
+    console.log(`Processed data for ${sensorName}:`, processedData);
+
     const series = useMemo(() => [
         {
             name: sensorName,
-            data: sensorData.map((data) => ({
-                x: new Date(data.timestamp).toLocaleString(),
-                y: data.value
-            }))
+            data: processedData
         }
-    ], [sensorName, sensorData]);
+    ], [sensorName, processedData]);
 
     const options: ApexOptions = useMemo(() => ({
         chart: {
@@ -72,7 +89,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ sensorName, sensorDat
         }
     }), [sensorName]);
 
-    if (!sensorData || sensorData.length === 0) {
+    if (!processedData || processedData.length === 0) {
         return null;
     }
 

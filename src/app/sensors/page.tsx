@@ -13,6 +13,8 @@ const SensorsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [interval, setInterval] = useState<number>(60000 * 5);
     const [timeRangeError, setTimeRangeError] = useState<string | null>(null);
+    const [average, setAverage] = useState<boolean>(false);
+    const [groupBy, setGroupBy] = useState<string>('');
 
     const defaultEndDate = new Date().toISOString().split('T')[0];
     const defaultStartDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -21,13 +23,13 @@ const SensorsPage: React.FC = () => {
     const [endDate, setEndDate] = useState<string>(defaultEndDate);
     const [timeRange, setTimeRange] = useState<string>('');
 
-    const fetchSensors = useCallback(async (startDate?: string, endDate?: string, timeRange?: string): Promise<void> => {
+    const fetchSensors = useCallback(async (startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string): Promise<void> => {
         try {
             const sensors = await SensorService.getAllSensors();
             setSensors(sensors);
 
             const sensorIds = sensors.map(sensor => sensor.id);
-            const dataMap = await SensorService.getMultipleSensorsData(sensorIds, startDate, endDate, timeRange);
+            const dataMap = await SensorService.getMultipleSensorsData(sensorIds, startDate, endDate, timeRange, average, groupBy);
 
             const validDataMap = Object.fromEntries(
                 Object.entries(dataMap).map(([key, dataArray]) => [
@@ -36,7 +38,31 @@ const SensorsPage: React.FC = () => {
                 ])
             );
 
-            setSensorData(validDataMap);
+            // Filter out duplicate timestamps
+            const filteredDataMap = Object.fromEntries(
+                Object.entries(validDataMap).map(([key, dataArray]) => [
+                    key,
+                    dataArray.filter((data, index, self) =>
+                        index === self.findIndex((t) => (
+                            t.timestamp === data.timestamp
+                        ))
+                    )
+                ])
+            );
+
+            console.log(`Fetched data for ${Object.keys(filteredDataMap).length} sensors`);
+            Object.entries(filteredDataMap).forEach(([sensorId, dataArray]) => {
+                console.log(`Sensor ${sensorId} has ${dataArray.length} data points`);
+            });
+
+            // Log data points for today
+            const today = new Date().toISOString().split('T')[0];
+            Object.entries(filteredDataMap).forEach(([sensorId, dataArray]) => {
+                const todayData = dataArray.filter(data => data.timestamp.startsWith(today));
+                console.log(`Sensor ${sensorId} has ${todayData.length} data points for today`);
+            });
+
+            setSensorData(filteredDataMap);
             setLoading(false);
         } catch (error) {
             console.error(error instanceof Error ? error.message : 'An unknown error occurred');
@@ -45,16 +71,16 @@ const SensorsPage: React.FC = () => {
     }, [endDate]);
 
     const debouncedFetchSensors = useCallback(
-        debounce((startDate?: string, endDate?: string, timeRange?: string) => fetchSensors(startDate, endDate, timeRange), 500),
+        debounce((startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string) => fetchSensors(startDate, endDate, timeRange, average, groupBy), 500),
         [fetchSensors]
     );
 
     const fetchData = useCallback((): Promise<void> => {
         return new Promise((resolve) => {
-            debouncedFetchSensors(startDate, endDate, timeRange);
+            debouncedFetchSensors(startDate, endDate, timeRange, average, groupBy);
             resolve();
         });
-    }, [debouncedFetchSensors, startDate, endDate, timeRange]);
+    }, [debouncedFetchSensors, startDate, endDate, timeRange, average, groupBy]);
 
     useEffect(() => {
         fetchData();
@@ -66,7 +92,7 @@ const SensorsPage: React.FC = () => {
         return () => {
             window.clearInterval(intervalId);
         };
-    }, [interval, startDate, endDate, timeRange, fetchData]);
+    }, [interval, startDate, endDate, timeRange, average, groupBy, fetchData]);
 
     const handleIntervalChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newInterval = parseInt(e.target.value, 10);
@@ -93,6 +119,14 @@ const SensorsPage: React.FC = () => {
         } else {
             setTimeRangeError('Invalid time range format. Use format like 1h, 30m, 1d, etc.');
         }
+    };
+
+    const handleAverageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setAverage(e.target.value === 'true');
+    };
+
+    const handleGroupByChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setGroupBy(e.target.value);
     };
 
     const sensorsWithData = useMemo(() => sensors.filter(sensor => sensorData[sensor.id]?.length > 0), [sensors, sensorData]);
@@ -144,6 +178,25 @@ const SensorsPage: React.FC = () => {
                     onChange={handleTimeRangeChange}
                 />
                 {timeRangeError && <p className="text-red-500">{timeRangeError}</p>}
+            </div>
+            <div className="my-4">
+                <label htmlFor="average-select" className="block mb-2">Enable average:</label>
+                <select id="average-select" className="block w-full p-2 border rounded bg-gray-800 text-gray-200" onChange={handleAverageChange} value={average ? 'true' : 'false'}>
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                </select>
+            </div>
+            <div className="my-4">
+                <label htmlFor="groupby-select" className="block mb-2">Group by:</label>
+                <select id="groupby-select" className="block w-full p-2 border rounded bg-gray-800 text-gray-200" onChange={handleGroupByChange} value={groupBy}>
+                    <option value="">None</option>
+                    <option value="5m">5 minutes</option>
+                    <option value="10m">10 minutes</option>
+                    <option value="30m">30 minutes</option>
+                    <option value="1h">1 hour</option>
+                    <option value="2h">2 hours</option>
+                    <option value="1d">1 day</option>
+                </select>
             </div>
             <button className="bg-gray-600 text-gray-200 px-4 py-2 rounded" onClick={handleFetchData}>Fetch Data</button>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
