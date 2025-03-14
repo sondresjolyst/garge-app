@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import AuthService from '@/services/userService';
-import { useAuth } from '@/hooks/useAuth';
 
 const Register: React.FC = () => {
     const [userName, setUserName] = useState<string>('');
@@ -14,7 +14,6 @@ const Register: React.FC = () => {
     const [errors, setErrors] = useState<{ userName?: string[]; firstName?: string[]; lastName?: string[]; email?: string[]; password?: string[] }>({});
     const [apiMessage, setApiMessage] = useState<string>('');
     const router = useRouter();
-    const { loginUser } = useAuth();
 
     const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -24,11 +23,17 @@ const Register: React.FC = () => {
             setApiMessage(response.message);
             setErrors({});
 
-            const loginResponse = await AuthService.login({ email, password });
-            const token = loginResponse.token;
-            loginUser(token);
+            const result = await signIn('credentials', {
+                redirect: false,
+                email,
+                password,
+            });
 
-            router.push('/profile');
+            if (result?.error) {
+                setApiMessage(result.error);
+            } else {
+                router.push('/profile');
+            }
         } catch (error: unknown) {
             if (error instanceof Error) {
                 try {
