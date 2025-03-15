@@ -1,6 +1,6 @@
 import axiosInstance from '@/services/axiosInstance';
 import { UserDTO } from '@/dto/UserDTO';
-import { AxiosError } from 'axios'; // Ensure AxiosError is imported
+import { AxiosError } from 'axios';
 import { getSession } from 'next-auth/react';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
@@ -45,7 +45,6 @@ const UserService = {
     async getUserProfile(): Promise<UserDTO> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const session: any = await getSession();
-        console.log('Session:', session);
         if (!session?.accessToken) {
             throw new Error('No access token found');
         }

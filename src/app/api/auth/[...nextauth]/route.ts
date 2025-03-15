@@ -46,7 +46,7 @@ const handler = NextAuth({
                             name: decodedToken.unique_name,
                             email: credentials.email,
                             accessToken: user.token,
-                            accessTokenExpires: decodedToken.exp * 1000, // Use exp from decoded token
+                            accessTokenExpires: decodedToken.exp * 1000,
                         } as ExtendedUser;
                     }
                     return null;
@@ -61,18 +61,17 @@ const handler = NextAuth({
         signIn: "/auth/login",
     },
     session: {
-        maxAge: 30 * 24 * 60 * 60, // 30 days
+        maxAge: 30 * 24 * 60 * 60,
     },
     jwt: {
         secret: process.env.NEXTAUTH_SECRET,
     },
     callbacks: {
         async jwt({ token, user }) {
-            // Initial sign in
             if (user) {
                 const decodedToken = jwt.decode((user as ExtendedUser).accessToken) as DecodedToken;
                 token.accessToken = (user as ExtendedUser).accessToken;
-                token.accessTokenExpires = decodedToken.exp * 1000; // Use exp from decoded token
+                token.accessTokenExpires = decodedToken.exp * 1000;
                 token.user = {
                     id: user.id,
                     name: user.name,
@@ -80,12 +79,10 @@ const handler = NextAuth({
                 };
             }
 
-            // Return previous token if the access token has not expired yet
             if (token.accessTokenExpires && Date.now() < (token.accessTokenExpires as number)) {
                 return token;
             }
 
-            // Token has expired, re-authenticate the user
             return {
                 ...token,
                 error: "AccessTokenExpired",

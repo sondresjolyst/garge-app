@@ -9,7 +9,6 @@ const publicRoutePatterns = [/^\/login$/, /^\/register$/, /^\/$/];
 export default async function middleware(req: NextRequest) {
     const path = req.nextUrl.pathname;
 
-    // Bypass middleware for static assets
     if (path.startsWith('/_next/') || path.startsWith('/favicon.ico')) {
         return NextResponse.next();
     }
