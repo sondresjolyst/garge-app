@@ -50,18 +50,6 @@ const SensorsPage: React.FC = () => {
                 ])
             );
 
-            console.log(`Fetched data for ${Object.keys(filteredDataMap).length} sensors`);
-            Object.entries(filteredDataMap).forEach(([sensorId, dataArray]) => {
-                console.log(`Sensor ${sensorId} has ${dataArray.length} data points`);
-            });
-
-            // Log data points for today
-            const today = new Date().toISOString().split('T')[0];
-            Object.entries(filteredDataMap).forEach(([sensorId, dataArray]) => {
-                const todayData = dataArray.filter(data => data.timestamp.startsWith(today));
-                console.log(`Sensor ${sensorId} has ${todayData.length} data points for today`);
-            });
-
             setSensorData(filteredDataMap);
             setLoading(false);
         } catch (error) {
@@ -133,7 +121,7 @@ const SensorsPage: React.FC = () => {
     const sensorsWithoutData = useMemo(() => sensors.filter(sensor => !sensorData[sensor.id] || sensorData[sensor.id].length === 0), [sensors, sensorData]);
 
     if (loading) {
-        return <p>Loading...</p>;
+        return <p>Sensors loading...</p>;
     }
 
     return (

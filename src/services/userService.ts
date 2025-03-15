@@ -1,6 +1,6 @@
 import axiosInstance from '@/services/axiosInstance';
 import { UserDTO } from '@/dto/UserDTO';
-import { AxiosError } from 'axios';
+import { AxiosError } from 'axios'; // Ensure AxiosError is imported
 import { getSession } from 'next-auth/react';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
@@ -43,22 +43,23 @@ const registerSchema = z.object({
 
 const UserService = {
     async getUserProfile(): Promise<UserDTO> {
-        const session = await getSession();
-        if (!session?.user?.accessToken) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const session: any = await getSession();
+        console.log('Session:', session);
+        if (!session?.accessToken) {
             throw new Error('No access token found');
         }
 
-        const decodedToken = jwt.decode(session.user.accessToken) as { sub: string, unique_name: string };
+        const decodedToken = jwt.decode(session.accessToken) as { sub: string, unique_name: string };
         if (!decodedToken || !decodedToken.sub || !decodedToken.unique_name) {
             throw new Error('Failed to decode access token');
         }
 
         const sub = decodedToken.sub;
-        const uniqueName = decodedToken.unique_name;
         try {
             const response = await axiosInstance.get<UserDTO>(`/user/profile/${sub}`, {
                 headers: {
-                    Authorization: `Bearer ${session.user.accessToken}`,
+                    Authorization: `Bearer ${session.accessToken}`,
                 },
             });
             return response.data;
@@ -113,3 +114,4 @@ const UserService = {
 };
 
 export default UserService;
+

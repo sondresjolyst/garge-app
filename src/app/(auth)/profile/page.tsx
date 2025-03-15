@@ -7,7 +7,7 @@ import UserService from '@/services/userService';
 import { UserDTO } from '@/dto/UserDTO';
 
 const Profile: React.FC = () => {
-    const { data: session, status } = useSession();
+    const { status } = useSession();
     const router = useRouter();
     const isAuthenticated = status === 'authenticated';
     const [user, setUser] = useState<UserDTO | null>(null);

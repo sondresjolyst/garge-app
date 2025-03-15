@@ -110,8 +110,6 @@ const SensorService = {
                 params.groupBy = groupBy;
             }
 
-            console.log('Fetching data with params:', params);
-
             const response = await axiosInstance.get<{ $values: SensorData[] }>('/sensor/data', { params });
             const dataMap: Record<number, SensorData[]> = {};
 
@@ -121,18 +119,6 @@ const SensorService = {
                 }
                 dataMap[data.sensorId].push(data);
             });
-
-            console.log(`API response contains ${response.data.$values.length} data points`);
-            console.log('Data size in bytes:', new Blob([JSON.stringify(response.data.$values)]).size);
-
-            const dataPointsPerSensor = Object.values(dataMap).map(dataArray => dataArray.length);
-            const maxDataPoints = Math.max(...dataPointsPerSensor);
-            const minDataPoints = Math.min(...dataPointsPerSensor);
-            const averageDataPoints = dataPointsPerSensor.reduce((a, b) => a + b, 0) / dataPointsPerSensor.length;
-
-            console.log(`Max data points per sensor: ${maxDataPoints}`);
-            console.log(`Min data points per sensor: ${minDataPoints}`);
-            console.log(`Average data points per sensor: ${averageDataPoints}`);
 
             return dataMap;
         } catch (error: unknown) {

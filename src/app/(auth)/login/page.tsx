@@ -23,7 +23,7 @@ const Login: React.FC = () => {
     const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const result = await signIn('credentials', {
-            redirect: false,
+            redirect: true,
             email,
             password,
         });

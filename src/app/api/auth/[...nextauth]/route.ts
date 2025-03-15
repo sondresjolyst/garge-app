@@ -1,7 +1,26 @@
-import NextAuth from "next-auth";
+import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
 import UserService from "@/services/userService";
 import jwt from 'jsonwebtoken';
+
+type DecodedToken = {
+    sub: string;
+    unique_name: string;
+    email: string;
+    nbf: number;
+    exp: number;
+    iat: number;
+    iss: string;
+    aud: string;
+};
+
+type ExtendedUser = {
+    id: string;
+    name: string;
+    email: string;
+    accessToken: string;
+    accessTokenExpires: number;
+};
 
 const handler = NextAuth({
     providers: [
@@ -12,40 +31,72 @@ const handler = NextAuth({
                 password: { label: "Password", type: "password" },
             },
             async authorize(credentials) {
+                if (!credentials) {
+                    throw new Error("Credentials are missing");
+                }
                 try {
                     const user = await UserService.login({
                         email: credentials.email,
                         password: credentials.password,
                     });
                     if (user) {
-                        return { token: user.token, email: credentials.email };
+                        const decodedToken = jwt.decode(user.token) as DecodedToken;
+                        return {
+                            id: decodedToken.sub,
+                            name: decodedToken.unique_name,
+                            email: credentials.email,
+                            accessToken: user.token,
+                            accessTokenExpires: decodedToken.exp * 1000, // Use exp from decoded token
+                        } as ExtendedUser;
                     }
                     return null;
                 } catch (error) {
+                    console.error("Error in authorize function:", error);
                     throw new Error("Invalid email or password");
                 }
-            },
+            }
         }),
     ],
     pages: {
         signIn: "/auth/login",
     },
     session: {
-        jwt: true,
         maxAge: 30 * 24 * 60 * 60, // 30 days
+    },
+    jwt: {
+        secret: process.env.NEXTAUTH_SECRET,
     },
     callbacks: {
         async jwt({ token, user }) {
+            // Initial sign in
             if (user) {
-                token.accessToken = user.token;
-                const decodedToken = jwt.decode(user.token) as { unique_name: string };
-                token.unique_name = decodedToken.unique_name;
+                const decodedToken = jwt.decode((user as ExtendedUser).accessToken) as DecodedToken;
+                token.accessToken = (user as ExtendedUser).accessToken;
+                token.accessTokenExpires = decodedToken.exp * 1000; // Use exp from decoded token
+                token.user = {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                };
             }
-            return token;
+
+            // Return previous token if the access token has not expired yet
+            if (token.accessTokenExpires && Date.now() < (token.accessTokenExpires as number)) {
+                return token;
+            }
+
+            // Token has expired, re-authenticate the user
+            return {
+                ...token,
+                error: "AccessTokenExpired",
+            };
         },
-        async session({ session, token }) {
-            session.user.accessToken = token.accessToken;
-            session.user.name = token.unique_name;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        async session({ session, token }: { session: any, token: any }) {
+            session.user = token.user;
+            session.accessToken = token.accessToken;
+            session.error = token.error;
+
             return session;
         },
     },

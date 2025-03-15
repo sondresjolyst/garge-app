@@ -12,7 +12,6 @@ interface TimeSeriesChartProps {
 const MAX_DATA_POINTS = 1000;
 
 const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ sensorName, sensorData }) => {
-    console.log(`Rendering chart for ${sensorName} with ${sensorData.length} data points`);
 
     const processedData = useMemo(() => {
         if (sensorData.length > MAX_DATA_POINTS) {
@@ -27,8 +26,6 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ sensorName, sensorDat
             y: data.value
         }));
     }, [sensorData]);
-
-    console.log(`Processed data for ${sensorName}:`, processedData);
 
     const series = useMemo(() => [
         {
