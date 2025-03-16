@@ -11,7 +11,12 @@ export interface ElectricityData {
 const ElectricityService = {
     async getElectricityData(type: string, area: string, date: string, currency = 'NOK') {
         try {
-            const params = {
+            const params: {
+                type: string;
+                area: string;
+                currency: string;
+                date?: string;
+            } = {
                 type,
                 area,
                 currency
@@ -39,3 +44,4 @@ const ElectricityService = {
 };
 
 export default ElectricityService;
+

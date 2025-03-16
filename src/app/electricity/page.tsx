@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -25,7 +26,7 @@ const getDate = (type: string) => {
             date.setHours(0, 0, 0, 0);
             break;
         case 'firstDayOfYear':
-            date.setMonth(0, 1);
+            date.setMonth(0);
             date.setDate(1);
             date.setHours(0, 0, 0, 0);
             break;
@@ -36,12 +37,12 @@ const getDate = (type: string) => {
 };
 
 const ElectricityPage = () => {
-    const [dailyData, setDailyData] = useState([]);
-    const [hourlyData, setHourlyData] = useState([]);
-    const [monthlyData, setMonthlyData] = useState([]);
-    const [yearlyData, setYearlyData] = useState([]);
+    const [dailyData, setDailyData] = useState<any[]>([]);
+    const [hourlyData, setHourlyData] = useState<any[]>([]);
+    const [monthlyData, setMonthlyData] = useState<any[]>([]);
+    const [yearlyData, setYearlyData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
 
     const fetchData = useCallback(async (type: string, frequency: string, setData: React.Dispatch<React.SetStateAction<any[]>>, dateType: string) => {
         try {
@@ -54,7 +55,7 @@ const ElectricityPage = () => {
                 y: d.price / 1000
             }));
             setData(processedData);
-        } catch (err) {
+        } catch {
             setError(`Failed to fetch ${type} electricity data`);
         }
     }, []);
