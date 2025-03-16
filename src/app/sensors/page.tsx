@@ -38,7 +38,6 @@ const SensorsPage: React.FC = () => {
                 ])
             );
 
-            // Filter out duplicate timestamps
             const filteredDataMap = Object.fromEntries(
                 Object.entries(validDataMap).map(([key, dataArray]) => [
                     key,
