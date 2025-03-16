@@ -13,8 +13,8 @@ const SensorsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [interval, setInterval] = useState<number>(60000 * 5);
     const [timeRangeError, setTimeRangeError] = useState<string | null>(null);
-    const [average, setAverage] = useState<boolean>(false);
-    const [groupBy, setGroupBy] = useState<string>('');
+    const [average, setAverage] = useState<boolean>(true);
+    const [groupBy, setGroupBy] = useState<string>('5m');
 
     const defaultEndDate = new Date().toISOString().split('T')[0];
     const defaultStartDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -230,3 +230,4 @@ const SensorsPage: React.FC = () => {
 };
 
 export default SensorsPage;
+
