@@ -53,6 +53,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ sensorName, sensorDat
         xaxis: {
             type: 'datetime',
             labels: {
+                datetimeUTC: false,
                 style: {
                     colors: '#f0f0f0'
                 }
