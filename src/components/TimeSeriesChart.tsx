@@ -1,42 +1,24 @@
 import React, { useMemo } from 'react';
 import Chart from "react-apexcharts";
-import { SensorData } from '@/services/sensorService';
 import { ApexOptions } from 'apexcharts';
 
 interface TimeSeriesChartProps {
-    sensorName: string;
-    sensorData: SensorData[];
-    fetchData: () => Promise<void>;
+    title: string;
+    data: { x: number, y: number }[];
+    chartType?: 'line' | 'bar';
 }
 
-const MAX_DATA_POINTS = 1000;
-
-const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ sensorName, sensorData }) => {
-
-    const processedData = useMemo(() => {
-        if (sensorData.length > MAX_DATA_POINTS) {
-            const step = Math.ceil(sensorData.length / MAX_DATA_POINTS);
-            return sensorData.filter((_, index) => index % step === 0).map(data => ({
-                x: new Date(data.timestamp).getTime(),
-                y: data.value
-            }));
-        }
-        return sensorData.map(data => ({
-            x: new Date(data.timestamp).getTime(),
-            y: data.value
-        }));
-    }, [sensorData]);
-
+const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartType = 'line' }) => {
     const series = useMemo(() => [
         {
-            name: sensorName,
-            data: processedData
+            name: title,
+            data: data
         }
-    ], [sensorName, processedData]);
+    ], [title, data]);
 
     const options: ApexOptions = useMemo(() => ({
         chart: {
-            type: 'line',
+            type: chartType,
             height: 350,
             animations: {
                 enabled: false
@@ -44,7 +26,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ sensorName, sensorDat
             foreColor: '#f0f0f0'
         },
         title: {
-            text: sensorName,
+            text: title,
             align: 'left',
             style: {
                 color: '#f0f0f0'
@@ -73,6 +55,9 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ sensorName, sensorDat
                 formatter: (value) => value.toFixed(2)
             }
         },
+        dataLabels: {
+            enabled: false
+        },
         tooltip: {
             theme: 'dark',
             style: {
@@ -85,14 +70,14 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ sensorName, sensorDat
                 format: 'dd MMM yyyy HH:mm:ss'
             }
         }
-    }), [sensorName]);
+    }), [title, chartType]);
 
-    if (!processedData || processedData.length === 0) {
+    if (!data || data.length === 0) {
         return null;
     }
 
     return (
-        <Chart options={options} series={series} type="line" height={350} />
+        <Chart options={options} series={series} type={chartType} height={350} />
     );
 };
 

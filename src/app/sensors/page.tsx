@@ -120,6 +120,21 @@ const SensorsPage: React.FC = () => {
     const sensorsWithData = useMemo(() => sensors.filter(sensor => sensorData[sensor.id]?.length > 0), [sensors, sensorData]);
     const sensorsWithoutData = useMemo(() => sensors.filter(sensor => !sensorData[sensor.id] || sensorData[sensor.id].length === 0), [sensors, sensorData]);
 
+    const processData = (data: SensorData[]) => {
+        const MAX_DATA_POINTS = 1000;
+        if (data.length > MAX_DATA_POINTS) {
+            const step = Math.ceil(data.length / MAX_DATA_POINTS);
+            return data.filter((_, index) => index % step === 0).map(d => ({
+                x: new Date(d.timestamp).getTime(),
+                y: d.value
+            }));
+        }
+        return data.map(d => ({
+            x: new Date(d.timestamp).getTime(),
+            y: d.value
+        }));
+    };
+
     if (loading) {
         return <p>Sensors loading...</p>;
     }
@@ -196,7 +211,7 @@ const SensorsPage: React.FC = () => {
                             </h3>
                         </div>
                         <div className="p-4">
-                            <TimeSeriesChart sensorName={sensor.name} sensorData={sensorData[sensor.id]} fetchData={fetchData} />
+                            <TimeSeriesChart title={sensor.name} data={processData(sensorData[sensor.id])} />
                         </div>
                     </div>
                 ))}
