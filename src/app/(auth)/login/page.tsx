@@ -37,7 +37,7 @@ const Login: React.FC = () => {
 
     return (
         <div className="flex items-center justify-center bg-gray-900 text-gray-200">
-            <div className="w-full max-w-md p-6 rounded-lg shadow-md mx-auto">
+            <div className="w-full max-w-md p-6 rounded-lg mx-auto">
                 <h1 className="text-2xl mb-4">Login</h1>
                 <p className="mb-4">New customer? <a href="/register" className="text-blue-500">Register account</a></p>
                 <form onSubmit={handleLogin}>

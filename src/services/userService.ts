@@ -109,6 +109,32 @@ const UserService = {
                 throw new Error('An unknown error occurred');
             }
         }
+    },
+
+    async resendEmailConfirmation(email: string): Promise<{ message: string }> {
+        try {
+            const response = await axiosInstance.post<{ message: string }>('/auth/resendconfirmation', { email });
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to resend email confirmation');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    async confirmEmail(email: string, code: string): Promise<{ message: string }> {
+        try {
+            const response = await axiosInstance.post<{ message: string }>('/auth/confirmemail', { email, code });
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to confirm email');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
     }
 };
 
