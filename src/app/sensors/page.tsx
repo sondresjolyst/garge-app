@@ -220,7 +220,7 @@ const SensorsPage: React.FC = () => {
                     <h2 className="text-lg sm:text-xl md:text-2xl font-bold">Sensors without data</h2>
                     <ul className="list-disc pl-5 space-y-2">
                         {sensorsWithoutData.map(sensor => (
-                            <li key={sensor.id} className="text-gray-200">{sensor.name}</li>
+                            <li key={sensor.id} className="text-gray-200 overflow-hidden">{sensor.name}</li>
                         ))}
                     </ul>
                 </div>
