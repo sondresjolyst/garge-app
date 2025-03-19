@@ -15,6 +15,7 @@ const Profile: React.FC = () => {
     const [isButtonDisabled, setIsButtonDisabled] = useState(false);
     const [countdown, setCountdown] = useState(0);
     const [verificationCode, setVerificationCode] = useState('');
+    const [isError, setIsError] = useState(false);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -47,11 +48,13 @@ const Profile: React.FC = () => {
             try {
                 const response = await UserService.resendEmailConfirmation(user.email);
                 setMessage(response.message);
+                setIsError(false);
                 setIsButtonDisabled(true);
                 setCountdown(60);
             } catch (error) {
                 console.error('Failed to resend email confirmation:', error);
                 setMessage('Failed to resend email confirmation');
+                setIsError(true);
             }
         }
     };
@@ -61,10 +64,12 @@ const Profile: React.FC = () => {
             try {
                 const response = await UserService.confirmEmail(user.email, verificationCode);
                 setMessage(response.message);
+                setIsError(false);
                 setUser({ ...user, emailConfirmed: true });
             } catch (error) {
                 console.error('Failed to confirm email:', error);
                 setMessage('Failed to confirm email');
+                setIsError(true);
             }
         }
     };
@@ -96,18 +101,18 @@ const Profile: React.FC = () => {
                             value={verificationCode}
                             onChange={(e) => setVerificationCode(e.target.value)}
                             placeholder="Enter verification code"
-                            className="border p-2 rounded"
+                            className="p-2 border border-gray-600 rounded mt-1 bg-gray-700 text-gray-200"
                         />
                         <button
                             onClick={handleConfirmEmail}
-                            className="ml-2 bg-blue-600 text-white px-4 py-2 rounded"
+                            className="ml-2 bg-gray-600 text-gray-200 p-2 rounded hover:bg-gray-500"
                         >
                             Confirm Email
                         </button>
                     </div>
                     <button
                         onClick={handleResendConfirmation}
-                        className="bg-gray-600 text-gray-200 px-4 py-2 rounded mt-4"
+                        className={`px-4 py-2 rounded mt-4 hover:bg-gray-500 ${isButtonDisabled ? 'bg-gray-800 text-gray-700' : 'bg-gray-600 text-gray-200'}`}
                         disabled={isButtonDisabled}
                     >
                         Resend Confirmation
@@ -117,9 +122,14 @@ const Profile: React.FC = () => {
                     )}
                 </>
             )}
-            {message && <p className="mt-4 text-green-500">{message}</p>}
+            {message && (
+                <p className={`mt-4 ${isError ? 'text-red-500' : 'text-green-500'}`}>
+                    {message}
+                </p>
+            )}
         </div>
     );
 };
 
 export default Profile;
+
