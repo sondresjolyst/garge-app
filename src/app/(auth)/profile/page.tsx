@@ -90,16 +90,6 @@ const Profile: React.FC = () => {
             </div>
             {!user.emailConfirmed && (
                 <>
-                    <button
-                        onClick={handleResendConfirmation}
-                        className="bg-gray-600 text-gray-200 px-4 py-2 rounded"
-                        disabled={isButtonDisabled}
-                    >
-                        Resend Confirmation
-                    </button>
-                    {isButtonDisabled && (
-                        <span className="ml-2 text-gray-500">{countdown}s</span>
-                    )}
                     <div className="mt-4">
                         <input
                             type="text"
@@ -115,6 +105,16 @@ const Profile: React.FC = () => {
                             Confirm Email
                         </button>
                     </div>
+                    <button
+                        onClick={handleResendConfirmation}
+                        className="bg-gray-600 text-gray-200 px-4 py-2 rounded mt-4"
+                        disabled={isButtonDisabled}
+                    >
+                        Resend Confirmation
+                    </button>
+                    {isButtonDisabled && (
+                        <span className="ml-2 text-gray-500">{countdown}s</span>
+                    )}
                 </>
             )}
             {message && <p className="mt-4 text-green-500">{message}</p>}
