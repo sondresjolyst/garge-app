@@ -24,7 +24,7 @@ const Register: React.FC = () => {
             setErrors({});
 
             const result = await signIn('credentials', {
-                redirect: false,
+                redirect: true,
                 email,
                 password,
             });
