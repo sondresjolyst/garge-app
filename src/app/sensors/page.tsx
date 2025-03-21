@@ -200,7 +200,7 @@ const SensorsPage: React.FC = () => {
                     <option value="1d">1 day</option>
                 </select>
             </div>
-            <button className="bg-gray-600 text-gray-200 px-4 py-2 rounded" onClick={handleFetchData}>Fetch Data</button>
+            <button className="bg-gray-600 text-gray-200 px-4 py-2 rounded hover:bg-gray-500" onClick={handleFetchData}>Fetch Data</button>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 {sensorsWithData.map(sensor => (
                     <div key={sensor.id} className="bg-gray-800 text-gray-200 shadow-md rounded-lg overflow-hidden">
@@ -220,7 +220,7 @@ const SensorsPage: React.FC = () => {
                     <h2 className="text-lg sm:text-xl md:text-2xl font-bold">Sensors without data</h2>
                     <ul className="list-disc pl-5 space-y-2">
                         {sensorsWithoutData.map(sensor => (
-                            <li key={sensor.id} className="text-gray-200">{sensor.name}</li>
+                            <li key={sensor.id} className="text-gray-200 overflow-hidden">{sensor.name}</li>
                         ))}
                     </ul>
                 </div>
