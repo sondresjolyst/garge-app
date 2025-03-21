@@ -3,6 +3,7 @@ import './globals.css';
 import Sidebar from './sidebar';
 import Content from './content';
 import Navbar from './navbar';
+import Footer from './footer';
 import SessionProviderWrapper from './SessionProviderWrapper';
 
 export default function Layout({
@@ -19,9 +20,12 @@ export default function Layout({
                 <SessionProviderWrapper>
                     <div className="flex h-screen overflow-hidden">
                         <Sidebar />
-                        <div className="flex-1 overflow-auto">
+                        <div className="flex flex-col flex-1 overflow-auto">
                             <Navbar />
-                            <Content>{children}</Content>
+                            <div className="flex-grow">
+                                <Content>{children}</Content>
+                            </div>
+                            <Footer />
                         </div>
                     </div>
                 </SessionProviderWrapper>
