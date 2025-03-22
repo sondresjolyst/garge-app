@@ -5,6 +5,14 @@ import Content from './content';
 import Navbar from './navbar';
 import Footer from './footer';
 import SessionProviderWrapper from './SessionProviderWrapper';
+import type { Metadata } from "next";
+import Script from 'next/script';
+
+export const metadata: Metadata = {
+    title: 'Garge',
+    description: 'Garge PWA',
+    manifest: '/manifest.json',
+}
 
 export default function Layout({
     children,
@@ -13,6 +21,7 @@ export default function Layout({
 }) {
     return (
         <html lang="en" className="dark">
+            <Script src='/register-sw.js' />
             <head>
                 <title>Garge</title>
             </head>

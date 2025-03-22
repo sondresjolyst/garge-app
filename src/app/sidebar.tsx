@@ -13,10 +13,10 @@ export default function Sidebar() {
                     <Link href="/" passHref>
                         <div className="cursor-pointer">
                             <div className="hidden md:block">
-                                <Image src="/garge-icon-large.png" width={130} height={70} alt="Next.js Logo" />
+                                <Image src="/garge-icon-large.png" width={130} height={70} alt="Garge Logo" />
                             </div>
                             <div className="block md:hidden">
-                                <Image src="/garge-icon-small.png" width={130} height={70} alt="Vercel Logo" />
+                                <Image src="/garge-icon-small.png" width={130} height={70} alt="Garge Logo" />
                             </div>
                         </div>
                     </Link>
