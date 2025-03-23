@@ -28,6 +28,6 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
     with:
       environment: prod
-      registry: sondresjo
+      registry: registry.hub.docker.com
       username: sondresjo
       tag: ${{ github.ref_name }}
