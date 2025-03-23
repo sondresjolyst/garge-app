@@ -19,7 +19,7 @@ jobs:
       environment: dev
       registry: registry.hub.docker.com
       username: sondresjo
-      repository: sondresjo
+      repository: sondresjo/garge-app
       tag: dev
 
   prod:
@@ -31,5 +31,5 @@ jobs:
       environment: prod
       registry: registry.hub.docker.com
       username: sondresjo
-      repository: sondresjo
+      repository: sondresjo/garge-app
       tag: ${{ github.ref_name }}
