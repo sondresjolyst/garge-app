@@ -17,8 +17,8 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
     with:
       environment: dev
-      registry: ${{ vars.DOCKER_USERNAME }}
-      username: ${{ vars.DOCKER_USERNAME }}
+      registry: ${{ secrets.DOCKER_USERNAME }}
+      username: ${{ secrets.DOCKER_USERNAME }}
       tag: dev
 
   prod:
@@ -28,6 +28,6 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
     with:
       environment: prod
-      registry: ${{ vars.DOCKER_USERNAME }}
-      username: ${{ vars.DOCKER_USERNAME }}
+      registry: ${{ secrets.DOCKER_USERNAME }}
+      username: ${{ secrets.DOCKER_USERNAME }}
       tag: ${{ github.ref_name }}
