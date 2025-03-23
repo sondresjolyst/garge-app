@@ -19,6 +19,7 @@ jobs:
       environment: dev
       registry: registry.hub.docker.com
       username: sondresjo
+      repository: sondresjo
       tag: dev
 
   prod:
@@ -30,4 +31,5 @@ jobs:
       environment: prod
       registry: registry.hub.docker.com
       username: sondresjo
+      repository: sondresjo
       tag: ${{ github.ref_name }}
