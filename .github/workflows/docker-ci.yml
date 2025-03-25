@@ -11,7 +11,7 @@ on:
 
 jobs:
   dev:
-    # if: github.ref == 'refs/heads/development'
+    if: github.ref == 'refs/heads/development'
     uses: equinor/ops-actions/.github/workflows/docker.yml@20648f341aa77c794bae98da077409faf00652a1
     secrets:
         password: ${{ secrets.DOCKER_PASSWORD }}
