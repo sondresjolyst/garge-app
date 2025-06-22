@@ -230,4 +230,3 @@ const SensorsPage: React.FC = () => {
 };
 
 export default SensorsPage;
-
