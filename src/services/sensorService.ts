@@ -48,7 +48,7 @@ const parseTimeRange = (timeRange: string): { startDate: string, endDate: string
 const SensorService = {
     async getAllSensors(): Promise<Sensor[]> {
         try {
-            const response = await axiosInstance.get<{ $values: Sensor[] }>('/sensor');
+            const response = await axiosInstance.get<{ $values: Sensor[] }>('/sensors');
             return response.data.$values;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
@@ -71,7 +71,7 @@ const SensorService = {
                 if (endDate) params.endDate = new Date(endDate).toISOString();
             }
 
-            const response = await axiosInstance.get<{ $values: SensorData[] }>(`/sensor/${sensorId}/data`, { params });
+            const response = await axiosInstance.get<{ $values: SensorData[] }>(`/sensors/${sensorId}/data`, { params });
             return response.data.$values;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
@@ -110,7 +110,7 @@ const SensorService = {
                 params.groupBy = groupBy;
             }
 
-            const response = await axiosInstance.get<{ $values: SensorData[] }>('/sensor/data', { params });
+            const response = await axiosInstance.get<{ $values: SensorData[] }>('/sensors/data', { params });
             const dataMap: Record<number, SensorData[]> = {};
 
             response.data.$values.forEach((data) => {

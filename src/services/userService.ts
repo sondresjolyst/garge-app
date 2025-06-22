@@ -56,7 +56,7 @@ const UserService = {
 
         const sub = decodedToken.sub;
         try {
-            const response = await axiosInstance.get<UserDTO>(`/user/profile/${sub}`, {
+            const response = await axiosInstance.get<UserDTO>(`/users/${sub}/profile`, {
                 headers: {
                     Authorization: `Bearer ${session.accessToken}`,
                 },
@@ -113,7 +113,7 @@ const UserService = {
 
     async resendEmailConfirmation(email: string): Promise<{ message: string }> {
         try {
-            const response = await axiosInstance.post<{ message: string }>('/auth/resendconfirmation', { email });
+            const response = await axiosInstance.post<{ message: string }>('/auth/resend-email-verification', { email });
             return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
@@ -126,7 +126,7 @@ const UserService = {
 
     async confirmEmail(email: string, code: string): Promise<{ message: string }> {
         try {
-            const response = await axiosInstance.post<{ message: string }>('/auth/confirmemail', { email, code });
+            const response = await axiosInstance.post<{ message: string }>('/auth/verify-email', { email, code });
             return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
