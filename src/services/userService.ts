@@ -64,7 +64,6 @@ const UserService = {
             return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
-                console.log(error);
                 throw new Error(error.response?.data.message || 'Failed to fetch user profile');
             } else {
                 throw new Error('An unknown error occurred');
