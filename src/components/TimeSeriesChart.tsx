@@ -10,37 +10,37 @@ interface TimeSeriesChartProps {
 
 const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartType = 'line' }) => {
     const series = useMemo(() => [
-                {
-                    name: title,
+        {
+            name: title,
             data: data
-            }
+        }
     ], [title, data]);
 
     const options: ApexOptions = useMemo(() => ({
-            chart: {
-                type: chartType,
-                height: 350,
-                animations: {
-                    enabled: false
-                },
-                foreColor: '#f0f0f0'
+        chart: {
+            type: chartType,
+            height: 350,
+            animations: {
+                enabled: false
             },
-            title: {
-                text: title,
-                align: 'left',
+            foreColor: '#f0f0f0'
+        },
+        title: {
+            text: title,
+            align: 'left',
+            style: {
+                color: '#f0f0f0'
+            }
+        },
+        xaxis: {
+            type: 'datetime',
+            labels: {
+                datetimeUTC: false,
                 style: {
-                    color: '#f0f0f0'
+                    colors: '#f0f0f0'
                 }
-            },
-            xaxis: {
-                type: 'datetime',
-                labels: {
-                    datetimeUTC: false,
-                    style: {
-                        colors: '#f0f0f0'
-                    }
-                }
-            },
+            }
+        },
         yaxis: {
             title: {
                 text: 'Value',
@@ -55,20 +55,20 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
                 formatter: (value) => value.toFixed(2)
             }
         },
-            dataLabels: {
-                enabled: false
+        dataLabels: {
+            enabled: false
+        },
+        tooltip: {
+            theme: 'dark',
+            style: {
+                fontSize: '12px',
+                fontFamily: undefined,
+                background: '#111827',
+                color: '#f0f0f0'
             },
-            tooltip: {
-                theme: 'dark',
-                style: {
-                    fontSize: '12px',
-                    fontFamily: undefined,
-                    background: '#111827',
-                    color: '#f0f0f0'
-                },
-                x: {
-                    format: 'dd MMM yyyy HH:mm:ss'
-                }
+            x: {
+                format: 'dd MMM yyyy HH:mm:ss'
+            }
         }
     }), [title, chartType]);
 

@@ -88,7 +88,7 @@ const handler = NextAuth({
                 error: "AccessTokenExpired",
             };
         },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         async session({ session, token }: { session: any, token: any }) {
             session.user = token.user;
             session.accessToken = token.accessToken;
