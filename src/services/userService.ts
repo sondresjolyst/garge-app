@@ -134,6 +134,32 @@ const UserService = {
                 throw new Error('An unknown error occurred');
             }
         }
+    },
+
+    async requestPasswordReset(data: { email: string }): Promise<{ message: string }> {
+        try {
+            const response = await axiosInstance.post<{ message: string }>('/auth/request-password-reset', data);
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to request password reset code');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    async resetPassword(data: { email: string, code: string, NewPassword: string }): Promise<{ message: string }> {
+        try {
+            const response = await axiosInstance.post<{ message: string }>('/auth/reset-password', data);
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to reset password');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
     }
 };
 

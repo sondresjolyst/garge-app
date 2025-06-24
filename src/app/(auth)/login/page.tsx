@@ -64,8 +64,9 @@ const Login: React.FC = () => {
                         />
                     </div>
 
+                    <p className="mb-4">Forgot password? <a href="/reset-password" className="text-blue-500">Reset password</a></p>
                     <div>
-                        <button className="w-full bg-gray-600 text-gray-200 p-2 rounded hover:bg-gray-500" type="submit">Login</button>
+                        <button className="w-full bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-gray-200 p-2 rounded" type="submit">Login</button>
                     </div>
                 </form>
             </div>

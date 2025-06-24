@@ -105,14 +105,14 @@ const Profile: React.FC = () => {
                         />
                         <button
                             onClick={handleConfirmEmail}
-                            className="ml-2 bg-gray-600 text-gray-200 p-2 rounded hover:bg-gray-500"
+                            className="ml-2 gargeBtnActive"
                         >
                             Confirm Email
                         </button>
                     </div>
                     <button
                         onClick={handleResendConfirmation}
-                        className={`px-4 py-2 rounded mt-4 hover:bg-gray-500 ${isButtonDisabled ? 'bg-gray-800 text-gray-700' : 'bg-gray-600 text-gray-200'}`}
+                        className={`mt-4 ${isButtonDisabled ? 'gargeBtnDisabled' : 'gargeBtnActive'}`}
                         disabled={isButtonDisabled}
                     >
                         Resend Confirmation
