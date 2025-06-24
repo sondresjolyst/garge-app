@@ -3,3 +3,11 @@
 @tailwind components;
 @tailwind utilities;
 @custom-variant dark (&:where(.dark, .dark *));
+
+.gargeBtnActive {
+    @apply bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-gray-200 px-4 py-2 rounded;
+}
+
+.gargeBtnDisabled {
+    @apply bg-gray-800 text-gray-700 px-4 py-2 rounded;
+}
