@@ -53,7 +53,6 @@ const SocketsPage: React.FC = () => {
                     // Convert array to object: { [id]: state }
                     const states: Record<number, string> = {};
                     stateResults.forEach(({ id, state }) => {
-                        console.log(`Switch ID: ${id}, State: ${state}`);
                         states[id] = state;
                     });
                     setLastStates(states);
