@@ -11,3 +11,11 @@
 .gargeBtnDisabled {
     @apply bg-gray-800 text-gray-700 px-4 py-2 rounded;
 }
+
+.gargeBtnWarning {
+    @apply bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-gray-200 px-4 py-2 rounded;
+}
+
+.gargeBtnSmall {
+    @apply px-2 py-1 text-sm;
+}
