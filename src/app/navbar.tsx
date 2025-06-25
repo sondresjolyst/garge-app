@@ -22,8 +22,8 @@ export default function Navbar() {
                         </>
                     ) : (
                         <>
-                                <Link className="ml-4 gargeBtnActive" href={`/register`}>Register</Link>
-                                <Link className="ml-4 gargeBtnActive" href={`/login`}>Login</Link>
+                            <Link className="ml-4 gargeBtnActive" href={`/register`}>Register</Link>
+                            <Link className="ml-4 gargeBtnActive" href={`/login`}>Login</Link>
                         </>
                     )}
                 </nav>
