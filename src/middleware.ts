@@ -3,8 +3,7 @@ import { getToken } from 'next-auth/jwt';
 
 const secret = process.env.NEXTAUTH_SECRET;
 
-const protectedRoutePatterns = [/^\/dashboard/, /^\/profile/, /^\/sensors/];
-const publicRoutePatterns = [/^\/login$/, /^\/register$/, /^\/$/];
+const publicRoutePatterns = [/^\/login$/, /^\/register$/, /^\/$/, /^\/api$/, /^\/reset-password$/];
 
 export default async function middleware(req: NextRequest) {
     const path = req.nextUrl.pathname;
@@ -13,15 +12,16 @@ export default async function middleware(req: NextRequest) {
         return NextResponse.next();
     }
 
-    const isProtectedRoute = protectedRoutePatterns.some((pattern) => pattern.test(path));
     const isPublicRoute = publicRoutePatterns.some((pattern) => pattern.test(path));
 
     const token = await getToken({ req, secret });
 
-    if (isProtectedRoute && !token?.accessToken) {
+    // If not public and not authenticated, redirect to login
+    if (!isPublicRoute && !token?.accessToken) {
         return NextResponse.redirect(new URL('/login', req.nextUrl));
     }
 
+    // If authenticated and trying to access login, redirect to profile
     if (isPublicRoute && token?.accessToken && path === '/login') {
         return NextResponse.redirect(new URL('/profile', req.nextUrl));
     }
