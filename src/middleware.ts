@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { publicRoutePatterns } from "@/publicRoutes";
 
 const secret = process.env.NEXTAUTH_SECRET;
-
-const publicRoutePatterns = [/^\/login$/, /^\/register$/, /^\/$/, /^\/api$/, /^\/reset-password$/];
 
 export default async function middleware(req: NextRequest) {
     const path = req.nextUrl.pathname;
