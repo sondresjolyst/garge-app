@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+﻿name: 🔨 Build and Push Docker Image
 
 on:
   workflow_dispatch:
@@ -8,6 +8,9 @@ on:
       - main
     tags:
       - '*'
+
+permissions:
+  contents: read
 
 jobs:
   dev:
