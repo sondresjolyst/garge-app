@@ -6,6 +6,9 @@ export interface Sensor {
     name: string;
     type: string;
     role: string;
+    customName: string;
+    defaultName: string;
+    registrationCode: string;
 }
 
 export interface SensorData {
@@ -130,7 +133,33 @@ const SensorService = {
                 throw new Error('An unknown error occurred');
             }
         }
-    }
+    },
+
+    async claimSensor(registrationCode: string ): Promise<{message: string}> {
+        try {
+            const response = await axiosInstance.post<{ message: string }>('/sensors/claim', { registrationCode });
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to claim sensor');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    async updateCustomName(id: number, customName: string): Promise<Sensor> {
+        try {
+            const response = await axiosInstance.patch<Sensor>(`/sensors/${id}/custom-name`, { customName });
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to update custom name');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
 };
 
 export default SensorService;
