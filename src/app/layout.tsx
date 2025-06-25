@@ -24,6 +24,13 @@ export default function Layout({
             <Script src='/register-sw.js' />
             <head>
                 <title>Garge</title>
+                <Script id="runtime-config" strategy="beforeInteractive">
+                    {`
+                        fetch('/runtime-config.json')
+                          .then(res => res.json())
+                          .then(cfg => { window.__RUNTIME_CONFIG__ = cfg; });
+                    `}
+                </Script>
             </head>
             <body className="bg-gray-900 text-gray-200">
                 <SessionProviderWrapper>
