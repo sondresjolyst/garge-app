@@ -23,13 +23,44 @@ const SensorsPage: React.FC = () => {
     const [endDate, setEndDate] = useState<string>(defaultEndDate);
     const [timeRange, setTimeRange] = useState<string>('');
 
+    const [pageNumber] = useState(1);
+    const [pageSize] = useState(1000);
+
+    const fetchAllSensorData = async (sensorIds: number[], startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string, pageSize: number = 100): Promise<SensorData[]> => {
+        let allData: SensorData[] = [];
+        let pageNumber = 1;
+        let totalCount = 0;
+
+        do {
+            const pagedResponse = await SensorService.getMultipleSensorsData(
+                sensorIds, startDate, endDate, timeRange, average, groupBy, pageNumber, pageSize
+            );
+            const pageData = pagedResponse.data.$values;
+            allData = allData.concat(pageData);
+            totalCount = pagedResponse.totalCount;
+            pageNumber++;
+
+            if (pageData.length === 0) break;
+        } while (allData.length < totalCount);
+
+        return allData;
+    };
+
     const fetchSensors = useCallback(async (startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string): Promise<void> => {
         try {
             const sensors = await SensorService.getAllSensors();
             setSensors(sensors);
 
             const sensorIds = sensors.map(sensor => sensor.id);
-            const dataMap = await SensorService.getMultipleSensorsData(sensorIds, startDate, endDate, timeRange, average, groupBy);
+            const allSensorData = await fetchAllSensorData(sensorIds, startDate, endDate, timeRange, average, groupBy, pageSize);
+
+            const dataMap: Record<number, SensorData[]> = {};
+            allSensorData.forEach((data) => {
+                if (!dataMap[data.sensorId]) {
+                    dataMap[data.sensorId] = [];
+                }
+                dataMap[data.sensorId].push(data);
+            })
 
             const validDataMap = Object.fromEntries(
                 Object.entries(dataMap).map(([key, dataArray]) => [
@@ -55,7 +86,7 @@ const SensorsPage: React.FC = () => {
             console.error(error instanceof Error ? error.message : 'An unknown error occurred');
             setLoading(false);
         }
-    }, [endDate]);
+    }, [endDate, pageNumber, pageSize]);
 
     const debouncedFetchSensors = useCallback(
         debounce((startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string) => fetchSensors(startDate, endDate, timeRange, average, groupBy), 500),
@@ -206,11 +237,11 @@ const SensorsPage: React.FC = () => {
                     <div key={sensor.id} className="bg-gray-800 text-gray-200 shadow-md rounded-lg overflow-hidden">
                         <div className="p-4">
                             <h3 className="text-lg sm:text-xl md:text-2xl font-bold">
-                                { sensor.customName ?? sensor.defaultName }
+                                {sensor.customName ?? sensor.defaultName}
                             </h3>
                         </div>
                         <div className="p-4">
-                            <TimeSeriesChart title={ sensor.customName ?? sensor.defaultName } data={processData(sensorData[sensor.id])} />
+                            <TimeSeriesChart title={sensor.customName ?? sensor.defaultName} data={processData(sensorData[sensor.id])} />
                         </div>
                     </div>
                 ))}
