@@ -7,9 +7,9 @@ import { HomeIcon, SignalIcon, BoltIcon, PlusCircleIcon } from '@heroicons/react
 
 export default function Sidebar() {
     return (
-        <div className="w-24 sm:w-24 md:w-30 lg:w-32 bg-gray-800 text-gray-200 p-4 h-screen flex flex-col">
+        <div className="w-[64px] sm:w-24 md:w-30 lg:w-32 bg-gray-800 text-gray-200 p-4 h-screen flex flex-col">
             <div className="container mx-auto flex flex-col items-center">
-                <div className="p-2 mt-2 mb-2 flex justify-center">
+                <div className="mt-2 mb-2 flex justify-center">
                     <Link href="/" passHref>
                         <div className="cursor-pointer">
                             <div className="hidden md:block">

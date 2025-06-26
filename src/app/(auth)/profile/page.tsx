@@ -181,17 +181,17 @@ const Profile: React.FC = () => {
             </div>
             {!user.emailConfirmed && (
                 <>
-                    <div className="mt-4">
+                    <div className="flex flex-col sm:flex-row gap-2">
                         <input
                             type="text"
                             value={verificationCode}
                             onChange={(e) => setVerificationCode(e.target.value)}
                             placeholder="Enter verification code"
-                            className="p-2 border border-gray-600 rounded mt-1 bg-gray-700 text-gray-200"
+                            className="p-2 border border-gray-600 rounded bg-gray-700 text-gray-200"
                         />
                         <button
                             onClick={handleConfirmEmail}
-                            className="ml-2 gargeBtnActive"
+                            className="gargeBtnActive"
                         >
                             Confirm Email
                         </button>
@@ -252,31 +252,33 @@ const Profile: React.FC = () => {
                         >
                             <span className="text-lg font-bold text-gray-100 mb-1">
                                 {editingSensorId === sensor.id ? (
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex flex-col xs:flex-row flex-wrap items-stretch gap-2 w-full">
                                         <input
                                             type="text"
                                             value={newCustomName}
                                             onChange={e => setNewCustomName(e.target.value)}
-                                            className="p-1 border border-gray-600 rounded bg-gray-700 text-gray-200"
+                                            className="p-1 border border-gray-600 rounded bg-gray-700 text-gray-200 flex-1 min-w-0"
                                             maxLength={50}
                                             disabled={editLoading}
                                         />
-                                        <button
-                                            onClick={() => handleSaveCustomName(sensor.id)}
-                                            className="gargeBtnActive gargeBtnSmall"
-                                            disabled={editLoading}
-                                        >
-                                            {editLoading ? 'Saving...' : 'Save'}
-                                        </button>
-                                        <button
-                                            onClick={cancelEditing}
-                                            className="gargeBtnWarning gargeBtnSmall"
-                                            disabled={editLoading}
-                                        >
-                                            Cancel
-                                        </button>
+                                        <div className="flex flex-row gap-2">
+                                            <button
+                                                onClick={() => handleSaveCustomName(sensor.id)}
+                                                className="gargeBtnActive gargeBtnSmall"
+                                                disabled={editLoading}
+                                            >
+                                                {editLoading ? 'Saving...' : 'Save'}
+                                            </button>
+                                            <button
+                                                onClick={cancelEditing}
+                                                className="gargeBtnWarning gargeBtnSmall"
+                                                disabled={editLoading}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
                                         {editError && (
-                                            <span className="text-red-500 text-xs">{editError}</span>
+                                            <span className="text-red-500 text-xs w-full">{editError}</span>
                                         )}
                                     </div>
                                 ) : (

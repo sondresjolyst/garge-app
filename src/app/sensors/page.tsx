@@ -241,7 +241,7 @@ const SensorsPage: React.FC = () => {
                             </h3>
                         </div>
                         <div className="p-4">
-                            <TimeSeriesChart title={sensor.customName ?? sensor.defaultName} data={processData(sensorData[sensor.id])} />
+                            <TimeSeriesChart title="" data={processData(sensorData[sensor.id])} />
                         </div>
                     </div>
                 ))}
