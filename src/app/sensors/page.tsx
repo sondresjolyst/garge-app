@@ -206,11 +206,11 @@ const SensorsPage: React.FC = () => {
                     <div key={sensor.id} className="bg-gray-800 text-gray-200 shadow-md rounded-lg overflow-hidden">
                         <div className="p-4">
                             <h3 className="text-lg sm:text-xl md:text-2xl font-bold">
-                                {sensor.name}
+                                { sensor.customName ?? sensor.defaultName }
                             </h3>
                         </div>
                         <div className="p-4">
-                            <TimeSeriesChart title={sensor.name} data={processData(sensorData[sensor.id])} />
+                            <TimeSeriesChart title={ sensor.customName ?? sensor.defaultName } data={processData(sensorData[sensor.id])} />
                         </div>
                     </div>
                 ))}
@@ -220,7 +220,7 @@ const SensorsPage: React.FC = () => {
                     <h2 className="text-lg sm:text-xl md:text-2xl font-bold">Sensors without data</h2>
                     <ul className="list-disc pl-5 space-y-2">
                         {sensorsWithoutData.map(sensor => (
-                            <li key={sensor.id} className="text-gray-200 overflow-hidden">{sensor.name}</li>
+                            <li key={sensor.id} className="text-gray-200 overflow-hidden">{sensor.customName ?? sensor.defaultName}</li>
                         ))}
                     </ul>
                 </div>
