@@ -19,7 +19,7 @@ jobs:
     secrets:
         password: ${{ secrets.DOCKER_PASSWORD }}
     with:
-      build-args: |
+      build_args: |
         NEXT_PUBLIC_API_URL=https://garge-api-dev.prod.tumogroup.com/api
       environment: dev
       registry: registry.hub.docker.com
@@ -33,7 +33,7 @@ jobs:
     secrets:
         password: ${{ secrets.DOCKER_PASSWORD }}
     with:
-      build-args: |
+      build_args: |
         NEXT_PUBLIC_API_URL=https://garge-api.prod.tumogroup.com/api
       environment: prod
       registry: registry.hub.docker.com
