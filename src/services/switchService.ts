@@ -15,35 +15,35 @@ export interface SwitchData {
     value: string;
 }
 
-const parseTimeRange = (timeRange: string): { startDate: string, endDate: string } => {
-    const now = new Date();
-    const endDate = now.toISOString();
-    const value = parseInt(timeRange.slice(0, -1), 10);
-    const unit = timeRange.slice(-1);
+//const parseTimeRange = (timeRange: string): { startDate: string, endDate: string } => {
+//    const now = new Date();
+//    const endDate = now.toISOString();
+//    const value = parseInt(timeRange.slice(0, -1), 10);
+//    const unit = timeRange.slice(-1);
 
-    switch (unit) {
-        case 'm':
-            now.setMinutes(now.getMinutes() - value);
-            break;
-        case 'h':
-            now.setHours(now.getHours() - value);
-            break;
-        case 'd':
-            now.setDate(now.getDate() - value);
-            break;
-        case 'w':
-            now.setDate(now.getDate() - value * 7);
-            break;
-        case 'y':
-            now.setFullYear(now.getFullYear() - value);
-            break;
-        default:
-            throw new Error('Invalid time range unit');
-    }
+//    switch (unit) {
+//        case 'm':
+//            now.setMinutes(now.getMinutes() - value);
+//            break;
+//        case 'h':
+//            now.setHours(now.getHours() - value);
+//            break;
+//        case 'd':
+//            now.setDate(now.getDate() - value);
+//            break;
+//        case 'w':
+//            now.setDate(now.getDate() - value * 7);
+//            break;
+//        case 'y':
+//            now.setFullYear(now.getFullYear() - value);
+//            break;
+//        default:
+//            throw new Error('Invalid time range unit');
+//    }
 
-    const startDate = now.toISOString();
-    return { startDate, endDate };
-};
+//    const startDate = now.toISOString();
+//    return { startDate, endDate };
+//};
 
 const SwitchService = {
     async getAllSwitches(): Promise<Switch[]> {

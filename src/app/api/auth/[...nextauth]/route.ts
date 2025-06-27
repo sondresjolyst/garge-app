@@ -20,6 +20,7 @@ type ExtendedUser = {
     email: string;
     accessToken: string;
     accessTokenExpires: number;
+    refreshToken: string;
 };
 
 const handler = NextAuth({
@@ -47,6 +48,7 @@ const handler = NextAuth({
                             email: credentials.email,
                             accessToken: user.token,
                             accessTokenExpires: decodedToken.exp * 1000,
+                            refreshToken: user.refreshToken
                         } as ExtendedUser;
                     }
                     return null;
@@ -72,6 +74,7 @@ const handler = NextAuth({
                 const decodedToken = jwt.decode((user as ExtendedUser).accessToken) as DecodedToken;
                 token.accessToken = (user as ExtendedUser).accessToken;
                 token.accessTokenExpires = decodedToken.exp * 1000;
+                token.refreshToken = (user as ExtendedUser).refreshToken;
                 token.user = {
                     id: user.id,
                     name: user.name,
@@ -81,6 +84,24 @@ const handler = NextAuth({
 
             if (token.accessTokenExpires && Date.now() < (token.accessTokenExpires as number)) {
                 return token;
+            }
+
+            if (token.refreshToken) {
+                try {
+                    const refreshed = await UserService.refreshToken({ token: token.accessToken, refreshToken: token.refreshToken });
+                    const decodedToken = jwt.decode(refreshed.token) as DecodedToken;
+                    return {
+                        ...token,
+                        accessToken: refreshed.token,
+                        accessTokenExpires: decodedToken.exp * 1000,
+                        refreshToken: refreshed.refreshToken,
+                    };
+                } catch (error) {
+                    return {
+                        ...token,
+                        error: error,
+                    };
+                }
             }
 
             return {

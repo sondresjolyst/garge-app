@@ -64,16 +64,16 @@ const UserService = {
             return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
-                console.log(error);
                 throw new Error(error.response?.data.message || 'Failed to fetch user profile');
             } else {
                 throw new Error('An unknown error occurred');
             }
         }
     },
-    async login(data: LoginData): Promise<{ token: string }> {
+
+    async login(data: LoginData): Promise<{ token: string, refreshToken: string }> {
         try {
-            const response = await axiosInstance.post<{ token: string }>('/auth/login', data);
+            const response = await axiosInstance.post<{ token: string, refreshToken: string }>('/auth/login', data);
             return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
@@ -84,6 +84,7 @@ const UserService = {
             }
         }
     },
+
     async register(data: RegisterData): Promise<{ message: string }> {
         const result = registerSchema.safeParse(data);
 
@@ -131,6 +132,46 @@ const UserService = {
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 throw new Error(error.response?.data.message || 'Failed to confirm email');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    async requestPasswordReset(data: { email: string }): Promise<{ message: string }> {
+        try {
+            const response = await axiosInstance.post<{ message: string }>('/auth/request-password-reset', data);
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to request password reset code');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    async resetPassword(data: { email: string, code: string, NewPassword: string }): Promise<{ message: string }> {
+        try {
+            const response = await axiosInstance.post<{ message: string }>('/auth/reset-password', data);
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to reset password');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async refreshToken(data: { token: any, refreshToken: any }): Promise<{ token: string, refreshToken: string }> {
+        try {
+            const response = await axiosInstance.post<{ token: string, refreshToken: string }>('/auth/refresh-token', data);
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to refresh token');
             } else {
                 throw new Error('An unknown error occurred');
             }
