@@ -35,6 +35,7 @@ const stateIcon = (state: string) => {
 export default function HomePage() {
     return (
         <div className="p-4 space-y-8 text-gray-200 shadow-md rounded-lg overflow-hidden">
+            {/* Welcome Section */}
             <div className="text-gray-200 p-6 flex flex-col">
                 <h1 className="text-3xl font-bold mb-2">Welcome to Garge!</h1>
                 <p className="text-lg mb-2">
@@ -42,6 +43,21 @@ export default function HomePage() {
                 </p>
             </div>
 
+            {/* Product Overview */}
+            <div className="bg-gray-800 text-gray-200 shadow-md rounded-lg p-6">
+                <h2 className="text-2xl font-bold mb-4">Product Overview</h2>
+                <p className="mb-2">
+                    <strong>Garge Sensor</strong> is a smart device designed to monitor temperature and humidity in real time, helping you maintain optimal conditions in your storage, garage, or workspace.
+                </p>
+                <p className="mb-2">
+                    <strong>Garge Voltmeter</strong> is a variant that focuses on monitoring battery voltage, providing insights into battery health and usage over time.
+                </p>
+                <p>
+                    Both variants seamlessly integrate with the Garge platform, offering reliable data visualization and remote monitoring.
+                </p>
+            </div>
+
+            {/* Key Features */}
             <div className="bg-gray-800 text-gray-200 shadow-md rounded-lg p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center h-full">
                     <div>
@@ -66,6 +82,18 @@ export default function HomePage() {
                 </div>
             </div>
 
+            {/* Benefits & Use Cases */}
+            <div className="bg-gray-800 text-gray-200 shadow-md rounded-lg p-6">
+                <h2 className="text-2xl font-bold mb-4">Benefits & Use Cases</h2>
+                <ul className="list-disc list-inside space-y-2">
+                    <li>Prevent mold and damage by monitoring humidity in storage spaces.</li>
+                    <li>Ensure optimal temperature for sensitive equipment or materials.</li>
+                    <li>Track battery voltage to monitor power status in remote devices.</li>
+                    <li>Access historical data to analyze trends and improve storage conditions.</li>
+                </ul>
+            </div>
+
+            {/* Demo */}
             <div>
                 <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-4">Demo</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -89,6 +117,31 @@ export default function HomePage() {
                                 </div>
                             ))}
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* FAQ */}
+            <div className="bg-gray-800 text-gray-200 shadow-md rounded-lg p-6">
+                <h2 className="text-2xl font-bold mb-4">Frequently Asked Questions</h2>
+                <div className="space-y-4">
+                    <div>
+                        <h3 className="font-semibold">What is the difference between Garge Sensor and Garge Voltmeter?</h3>
+                        <p>
+                            Garge Sensor monitors temperature and humidity, while Garge Voltmeter is dedicated to monitoring battery voltage.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold">How do I install a Garge device?</h3>
+                        <p>
+                            Simply place the device in your desired location and follow the setup instructions in the documentation. Both variants are designed for easy installation.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold">Can I access my data remotely?</h3>
+                        <p>
+                            Yes, all sensor data is available through the Garge web dashboard, accessible from any device with an internet connection.
+                        </p>
                     </div>
                 </div>
             </div>
