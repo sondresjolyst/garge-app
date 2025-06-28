@@ -9,6 +9,7 @@ import SensorService, { Sensor } from '@/services/sensorService';
 
 const Profile: React.FC = () => {
     const { status } = useSession();
+    const { update: updateSession } = useSession();
     const router = useRouter();
     const isAuthenticated = status === 'authenticated';
     const [user, setUser] = useState<UserDTO | null>(null);
@@ -108,6 +109,7 @@ const Profile: React.FC = () => {
             setClaimMessage('Sensor claimed successfully!');
             setClaimError(false);
             setClaimCode('');
+            await updateSession();
             // Refresh sensor list
             const userSensors = await SensorService.getAllSensors();
             setSensors(userSensors);

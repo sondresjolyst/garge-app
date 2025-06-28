@@ -24,7 +24,7 @@ const Login: React.FC = () => {
         e.preventDefault();
         setApiMessage('');
         const result = await signIn('credentials', {
-            redirect: false,
+            redirect: true,
             email,
             password,
         });
