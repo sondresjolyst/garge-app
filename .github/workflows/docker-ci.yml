@@ -12,7 +12,7 @@ on:
 jobs:
   dev:
     if: github.ref == 'refs/heads/development'
-    uses: equinor/ops-actions/.github/workflows/docker.yml@bc630418a9a5340958e5dc3aadf0ad93004f063d
+    uses: equinor/ops-actions/.github/workflows/docker.yml@7250ebf9722b3e8ed96a427b36f8eb2df7512e81
     secrets:
         password: ${{ secrets.DOCKER_PASSWORD }}
     with:
@@ -24,7 +24,7 @@ jobs:
 
   prod:
     if: github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/')
-    uses: equinor/ops-actions/.github/workflows/docker.yml@bc630418a9a5340958e5dc3aadf0ad93004f063d
+    uses: equinor/ops-actions/.github/workflows/docker.yml@7250ebf9722b3e8ed96a427b36f8eb2df7512e81
     secrets:
         password: ${{ secrets.DOCKER_PASSWORD }}
     with:
