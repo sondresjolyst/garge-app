@@ -23,17 +23,6 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
             animations: {
                 enabled: false
             },
-            toolbar: {
-                show: true,
-                tools: {
-                    download: false,
-                    zoom: true,
-                    pan: true,
-                    reset: true,
-                    zoomin: true,
-                    zoomout: true
-                }
-            },
             foreColor: '#f0f0f0'
         },
         title: {
@@ -53,12 +42,12 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
             }
         },
         yaxis: {
-            //title: {
-            //    text: 'Value',
-            //    style: {
-            //        color: '#f0f0f0'
-            //    }
-            //},
+            title: {
+                text: 'Value',
+                style: {
+                    color: '#f0f0f0'
+                }
+            },
             labels: {
                 style: {
                     colors: '#f0f0f0'

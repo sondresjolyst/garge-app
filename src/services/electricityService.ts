@@ -50,3 +50,4 @@ const ElectricityService = {
 };
 
 export default ElectricityService;
+

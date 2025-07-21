@@ -115,7 +115,7 @@ const Register: React.FC = () => {
                     </div>
 
                     <div>
-                        <button className="w-full gargeBtnActive" type="submit">Register</button>
+                        <button className="w-full bg-gray-600 text-gray-200 p-2 rounded hover:bg-gray-500" type="submit">Register</button>
                     </div>
 
                     {apiMessage && <p className="text-red-500 mt-4">{apiMessage}</p>}
