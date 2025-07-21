@@ -169,6 +169,17 @@ const SensorsPage: React.FC = () => {
         return <p>Sensors loading...</p>;
     }
 
+    if (!loading && sensors.length === 0) {
+        return (
+            <div className="mt-8 text-center text-gray-400">
+                <p>No sensors assigned yet.</p>
+                <p>
+                    You can add your own sensors on the <a href="/profile" className="text-blue-400 underline">profile page</a>.
+                </p>
+            </div>
+        );
+    }
+
     return (
         <div className="p-4">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Sensors</h1>

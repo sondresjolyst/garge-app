@@ -71,6 +71,15 @@ const SocketsPage: React.FC = () => {
         return <p>Sockets loading...</p>;
     }
 
+    if (switches.length === 0) {
+        return (
+            <div className="mt-8 text-center text-gray-400">
+                <p>No sockets assigned yet.</p>
+                <p>Please contact your administrator to get access to sockets.</p>
+            </div>
+        );
+    }
+
     return (
         <div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">

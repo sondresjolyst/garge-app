@@ -69,7 +69,7 @@ const handler = NextAuth({
         secret: process.env.NEXTAUTH_SECRET,
     },
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger }) {
             if (user) {
                 const decodedToken = jwt.decode((user as ExtendedUser).accessToken) as DecodedToken;
                 token.accessToken = (user as ExtendedUser).accessToken;
@@ -82,13 +82,20 @@ const handler = NextAuth({
                 };
             }
 
-            if (token.accessTokenExpires && Date.now() < (token.accessTokenExpires as number)) {
+            if (
+                trigger !== "update" &&
+                token.accessTokenExpires &&
+                Date.now() < (token.accessTokenExpires as number)
+            ) {
                 return token;
             }
 
             if (token.refreshToken) {
                 try {
-                    const refreshed = await UserService.refreshToken({ token: token.accessToken, refreshToken: token.refreshToken });
+                    const refreshed = await UserService.refreshToken({
+                        token: token.accessToken,
+                        refreshToken: token.refreshToken,
+                    });
                     const decodedToken = jwt.decode(refreshed.token) as DecodedToken;
                     return {
                         ...token,
@@ -114,7 +121,6 @@ const handler = NextAuth({
             session.user = token.user;
             session.accessToken = token.accessToken;
             session.error = token.error;
-
             return session;
         },
     },
