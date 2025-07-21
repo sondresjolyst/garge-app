@@ -23,44 +23,13 @@ const SensorsPage: React.FC = () => {
     const [endDate, setEndDate] = useState<string>(defaultEndDate);
     const [timeRange, setTimeRange] = useState<string>('');
 
-    const [pageNumber] = useState(1);
-    const [pageSize] = useState(1000);
-
-    const fetchAllSensorData = async (sensorIds: number[], startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string, pageSize: number = 100): Promise<SensorData[]> => {
-        let allData: SensorData[] = [];
-        let pageNumber = 1;
-        let totalCount = 0;
-
-        do {
-            const pagedResponse = await SensorService.getMultipleSensorsData(
-                sensorIds, startDate, endDate, timeRange, average, groupBy, pageNumber, pageSize
-            );
-            const pageData = pagedResponse.data.$values;
-            allData = allData.concat(pageData);
-            totalCount = pagedResponse.totalCount;
-            pageNumber++;
-
-            if (pageData.length === 0) break;
-        } while (allData.length < totalCount);
-
-        return allData;
-    };
-
     const fetchSensors = useCallback(async (startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string): Promise<void> => {
         try {
             const sensors = await SensorService.getAllSensors();
             setSensors(sensors);
 
             const sensorIds = sensors.map(sensor => sensor.id);
-            const allSensorData = await fetchAllSensorData(sensorIds, startDate, endDate, timeRange, average, groupBy, pageSize);
-
-            const dataMap: Record<number, SensorData[]> = {};
-            allSensorData.forEach((data) => {
-                if (!dataMap[data.sensorId]) {
-                    dataMap[data.sensorId] = [];
-                }
-                dataMap[data.sensorId].push(data);
-            })
+            const dataMap = await SensorService.getMultipleSensorsData(sensorIds, startDate, endDate, timeRange, average, groupBy);
 
             const validDataMap = Object.fromEntries(
                 Object.entries(dataMap).map(([key, dataArray]) => [
@@ -86,7 +55,7 @@ const SensorsPage: React.FC = () => {
             console.error(error instanceof Error ? error.message : 'An unknown error occurred');
             setLoading(false);
         }
-    }, [endDate, pageNumber, pageSize]);
+    }, [endDate]);
 
     const debouncedFetchSensors = useCallback(
         debounce((startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string) => fetchSensors(startDate, endDate, timeRange, average, groupBy), 500),
@@ -169,17 +138,6 @@ const SensorsPage: React.FC = () => {
         return <p>Sensors loading...</p>;
     }
 
-    if (!loading && sensors.length === 0) {
-        return (
-            <div className="mt-8 text-center text-gray-400">
-                <p>No sensors assigned yet.</p>
-                <p>
-                    You can add your own sensors on the <a href="/profile" className="text-blue-400 underline">profile page</a>.
-                </p>
-            </div>
-        );
-    }
-
     return (
         <div className="p-4">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Sensors</h1>
@@ -242,17 +200,17 @@ const SensorsPage: React.FC = () => {
                     <option value="1d">1 day</option>
                 </select>
             </div>
-            <button className="gargeBtnActive" onClick={handleFetchData}>Fetch Data</button>
+            <button className="bg-gray-600 text-gray-200 px-4 py-2 rounded hover:bg-gray-500" onClick={handleFetchData}>Fetch Data</button>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 {sensorsWithData.map(sensor => (
                     <div key={sensor.id} className="bg-gray-800 text-gray-200 shadow-md rounded-lg overflow-hidden">
                         <div className="p-4">
                             <h3 className="text-lg sm:text-xl md:text-2xl font-bold">
-                                {sensor.customName ?? sensor.defaultName}
+                                {sensor.name}
                             </h3>
                         </div>
                         <div className="p-4">
-                            <TimeSeriesChart title="" data={processData(sensorData[sensor.id])} />
+                            <TimeSeriesChart title={sensor.name} data={processData(sensorData[sensor.id])} />
                         </div>
                     </div>
                 ))}
@@ -262,7 +220,7 @@ const SensorsPage: React.FC = () => {
                     <h2 className="text-lg sm:text-xl md:text-2xl font-bold">Sensors without data</h2>
                     <ul className="list-disc pl-5 space-y-2">
                         {sensorsWithoutData.map(sensor => (
-                            <li key={sensor.id} className="text-gray-200 overflow-hidden">{sensor.customName ?? sensor.defaultName}</li>
+                            <li key={sensor.id} className="text-gray-200 overflow-hidden">{sensor.name}</li>
                         ))}
                     </ul>
                 </div>
@@ -272,3 +230,4 @@ const SensorsPage: React.FC = () => {
 };
 
 export default SensorsPage;
+
