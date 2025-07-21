@@ -3,13 +3,13 @@
 import Link from 'next/link';
 import React from 'react';
 import Image from 'next/image';
-import { HomeIcon, SignalIcon, BoltIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, SignalIcon, BoltIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 
 export default function Sidebar() {
     return (
-        <div className="w-24 sm:w-24 md:w-30 lg:w-32 bg-gray-800 text-gray-200 p-4 h-screen flex flex-col">
+        <div className="w-[64px] sm:w-24 md:w-30 lg:w-32 bg-gray-800 text-gray-200 p-4 h-screen flex flex-col">
             <div className="container mx-auto flex flex-col items-center">
-                <div className="p-2 mt-2 mb-2 flex justify-center">
+                <div className="mt-2 mb-2 flex justify-center">
                     <Link href="/" passHref>
                         <div className="cursor-pointer">
                             <div className="hidden md:block">
@@ -38,6 +38,14 @@ export default function Sidebar() {
                             <div className="block text-gray-200 hover:text-white p-2 flex flex-col items-center justify-center cursor-pointer">
                                 <SignalIcon className="h-8 w-8 mb-2 md:mb-0" />
                                 <span className="hidden md:block">Sensors</span>
+                            </div>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link href="/sockets" passHref>
+                            <div className="block text-gray-200 hover:text-white p-2 flex flex-col items-center justify-center cursor-pointer">
+                                <PlusCircleIcon className="h-8 w-8 mb-2 md:mb-0" />
+                                <span className="hidden md:block">Sockets</span>
                             </div>
                         </Link>
                     </li>
