@@ -31,7 +31,7 @@ const products = [
 
 export default function ShopPage() {
     return (
-        <div className="p-4 space-y-8 text-gray-200 shadow-md rounded-lg overflow-hidden">
+        <div className="p-4 space-y-8 text-gray-200 rounded-lg overflow-hidden">
             <div className="text-gray-200 p-6 flex flex-col">
                 <h1 className="text-3xl font-bold mb-2">Garge Shop</h1>
                 <p className="text-lg mb-2">
