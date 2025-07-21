@@ -5,17 +5,28 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import UserService from '@/services/userService';
 import { UserDTO } from '@/dto/UserDTO';
+import SensorService, { Sensor } from '@/services/sensorService';
 
 const Profile: React.FC = () => {
     const { status } = useSession();
+    const { update: updateSession } = useSession();
     const router = useRouter();
     const isAuthenticated = status === 'authenticated';
     const [user, setUser] = useState<UserDTO | null>(null);
-    const [message, setMessage] = useState<string | null>(null);
     const [isButtonDisabled, setIsButtonDisabled] = useState(false);
     const [countdown, setCountdown] = useState(0);
     const [verificationCode, setVerificationCode] = useState('');
-    const [isError, setIsError] = useState(false);
+    const [sensors, setSensors] = useState<Sensor[]>([]);
+    const [claimCode, setClaimCode] = useState('');
+    const [claimLoading, setClaimLoading] = useState(false);
+    const [emailMessage, setEmailMessage] = useState<string | null>(null);
+    const [emailError, setEmailError] = useState(false);
+    const [claimMessage, setClaimMessage] = useState<string | null>(null);
+    const [claimError, setClaimError] = useState(false);
+    const [editingSensorId, setEditingSensorId] = useState<number | null>(null);
+    const [newCustomName, setNewCustomName] = useState<string>('');
+    const [editLoading, setEditLoading] = useState(false);
+    const [editError, setEditError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -30,6 +41,16 @@ const Profile: React.FC = () => {
                 }
             };
             fetchUserProfile();
+
+            const fetchSensors = async () => {
+                try {
+                    const userSensors = await SensorService.getAllSensors();
+                    setSensors(userSensors);
+                } catch (error) {
+                    console.error('Failed to fetch sensors:', error);
+                }
+            };
+            fetchSensors();
         }
     }, [isAuthenticated, router]);
 
@@ -47,14 +68,14 @@ const Profile: React.FC = () => {
         if (user) {
             try {
                 const response = await UserService.resendEmailConfirmation(user.email);
-                setMessage(response.message);
-                setIsError(false);
+                setEmailMessage(response.message);
+                setEmailError(false);
                 setIsButtonDisabled(true);
                 setCountdown(60);
             } catch (error) {
                 console.error('Failed to resend email confirmation:', error);
-                setMessage('Failed to resend email confirmation');
-                setIsError(true);
+                setEmailMessage('Failed to resend email confirmation');
+                setEmailError(true);
             }
         }
     };
@@ -63,14 +84,81 @@ const Profile: React.FC = () => {
         if (user) {
             try {
                 const response = await UserService.confirmEmail(user.email, verificationCode);
-                setMessage(response.message);
-                setIsError(false);
+                setEmailMessage(response.message);
+                setEmailError(false);
                 setUser({ ...user, emailConfirmed: true });
             } catch (error) {
                 console.error('Failed to confirm email:', error);
-                setMessage('Failed to confirm email');
-                setIsError(true);
+                setEmailMessage('Failed to confirm email');
+                setEmailError(true);
             }
+        }
+    };
+
+    const handleClaimSensor = async () => {
+        if (!claimCode.trim()) {
+            setClaimMessage('Please enter a registration code.');
+            setClaimError(true);
+            return;
+        }
+        setClaimLoading(true);
+        setClaimMessage(null);
+        setClaimError(false);
+        try {
+            await SensorService.claimSensor(claimCode.trim());
+            setClaimMessage('Sensor claimed successfully!');
+            setClaimError(false);
+            setClaimCode('');
+            await updateSession();
+            // Refresh sensor list
+            const userSensors = await SensorService.getAllSensors();
+            setSensors(userSensors);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                setClaimMessage(error.message || 'Failed to claim sensor.');
+            } else {
+                setClaimMessage('Failed to claim sensor.');
+            }
+            setClaimError(true);
+        } finally {
+            setClaimLoading(false);
+        }
+    };
+
+    const startEditing = (sensor: Sensor) => {
+        setEditingSensorId(sensor.id);
+        setNewCustomName(sensor.customName ?? sensor.defaultName ?? '');
+        setEditError(null);
+    };
+
+    const cancelEditing = () => {
+        setEditingSensorId(null);
+        setNewCustomName('');
+        setEditError(null);
+    };
+
+    const handleSaveCustomName = async (sensorId: number) => {
+        if (!newCustomName.trim() || newCustomName.length > 50) {
+            setEditError('Custom name is required and must be at most 50 characters.');
+            return;
+        }
+        setEditLoading(true);
+        setEditError(null);
+        try {
+            await SensorService.updateCustomName(sensorId, newCustomName.trim());
+            // Refresh sensor list
+            const userSensors = await SensorService.getAllSensors();
+            setSensors(userSensors);
+            setEditingSensorId(null);
+            setNewCustomName('');
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                setEditError(error.message || 'Failed to update sensor name.');
+            } else {
+                setEditError('Failed to update sensor name.');
+            }
+        } finally {
+            setEditLoading(false);
         }
     };
 
@@ -95,24 +183,24 @@ const Profile: React.FC = () => {
             </div>
             {!user.emailConfirmed && (
                 <>
-                    <div className="mt-4">
+                    <div className="flex flex-col sm:flex-row gap-2">
                         <input
                             type="text"
                             value={verificationCode}
                             onChange={(e) => setVerificationCode(e.target.value)}
                             placeholder="Enter verification code"
-                            className="p-2 border border-gray-600 rounded mt-1 bg-gray-700 text-gray-200"
+                            className="p-2 border border-gray-600 rounded bg-gray-700 text-gray-200"
                         />
                         <button
                             onClick={handleConfirmEmail}
-                            className="ml-2 bg-gray-600 text-gray-200 p-2 rounded hover:bg-gray-500"
+                            className="gargeBtnActive"
                         >
                             Confirm Email
                         </button>
                     </div>
                     <button
                         onClick={handleResendConfirmation}
-                        className={`px-4 py-2 rounded mt-4 hover:bg-gray-500 ${isButtonDisabled ? 'bg-gray-800 text-gray-700' : 'bg-gray-600 text-gray-200'}`}
+                        className={`mt-4 ${isButtonDisabled ? 'gargeBtnDisabled' : 'gargeBtnActive'}`}
                         disabled={isButtonDisabled}
                     >
                         Resend Confirmation
@@ -122,10 +210,103 @@ const Profile: React.FC = () => {
                     )}
                 </>
             )}
-            {message && (
-                <p className={`mt-4 ${isError ? 'text-red-500' : 'text-green-500'}`}>
-                    {message}
+            {emailMessage && (
+                <p className={`mt-4 ${emailError ? 'text-red-500' : 'text-green-500'}`}>
+                    {emailMessage}
                 </p>
+            )}
+
+            <div className="mb-6 mt-4">
+                <h2 className="text-lg font-semibold mb-2">Claim a New Sensor</h2>
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                        type="text"
+                        value={claimCode}
+                        onChange={e => setClaimCode(e.target.value)}
+                        placeholder="Enter registration code"
+                        className="p-2 border border-gray-600 rounded bg-gray-700 text-gray-200"
+                        disabled={claimLoading}
+                    />
+                    <button
+                        onClick={handleClaimSensor}
+                        className="gargeBtnActive "
+                        disabled={claimLoading}
+                    >
+                        {claimLoading ? 'Claiming...' : 'Claim Sensor'}
+                    </button>
+                </div>
+                {claimMessage && (
+                    <p className={`mt-4 ${claimError ? 'text-red-500' : 'text-green-500'}`}>
+                        {claimMessage}
+                    </p>
+                )}
+            </div>
+
+            <h2 className="text-xl font-semibold mt-6 mb-2">Your Sensors</h2>
+            {!sensors.length ? (
+                <p>No sensors found.</p>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {sensors.map(sensor => (
+                        <div
+                            key={sensor.id}
+                            className="bg-gray-800 rounded-lg shadow p-4 flex flex-col"
+                        >
+                            <span className="text-lg font-bold text-gray-100 mb-1">
+                                {editingSensorId === sensor.id ? (
+                                    <div className="flex flex-col xs:flex-row flex-wrap items-stretch gap-2 w-full">
+                                        <input
+                                            type="text"
+                                            value={newCustomName}
+                                            onChange={e => setNewCustomName(e.target.value)}
+                                            className="p-1 border border-gray-600 rounded bg-gray-700 text-gray-200 flex-1 min-w-0"
+                                            maxLength={50}
+                                            disabled={editLoading}
+                                        />
+                                        <div className="flex flex-row gap-2">
+                                            <button
+                                                onClick={() => handleSaveCustomName(sensor.id)}
+                                                className="gargeBtnActive gargeBtnSmall"
+                                                disabled={editLoading}
+                                            >
+                                                {editLoading ? 'Saving...' : 'Save'}
+                                            </button>
+                                            <button
+                                                onClick={cancelEditing}
+                                                className="gargeBtnWarning gargeBtnSmall"
+                                                disabled={editLoading}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                        {editError && (
+                                            <span className="text-red-500 text-xs w-full">{editError}</span>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        {sensor.customName ?? sensor.defaultName}
+                                        <button
+                                            onClick={() => startEditing(sensor)}
+                                                className="gargeBtnActive gargeBtnSmall"
+                                        >
+                                            Edit
+                                        </button>
+                                    </div>
+                                )}
+                            </span>
+                            <span className="text-gray-400 text-sm mb-2">
+                                Type: {sensor.type}
+                            </span>
+                            <span className="text-gray-500 text-xs">
+                                Registration Code: {sensor.registrationCode}
+                            </span>
+                            <span className="text-gray-500 text-xs">
+                                Original Name: {sensor.defaultName}
+                            </span>
+                        </div>
+                    ))}
+                </div>
             )}
         </div>
     );
