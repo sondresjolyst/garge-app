@@ -6,7 +6,7 @@
   "display": "standalone",
   "scope": "/",
   "start_url": "/",
-  "description": "Garge PWA",
+  "description": "Smart garage system",
   "icons": [
     {
       "src": "icon-512x512.png",
