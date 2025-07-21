@@ -78,6 +78,7 @@ const SocketsPage: React.FC = () => {
                     <div key={sw.id} className="bg-gray-800 text-gray-200 shadow-md rounded-lg overflow-hidden flex items-center p-4">
                         <div className="flex-1">
                             <h3 className="text-lg sm:text-xl md:text-2xl font-bold">{sw.name}</h3>
+                            <span className="block text-sm text-gray-400">Status: {lastStates[sw.id]}</span>
                         </div>
                         <div>
                             {stateIcon(lastStates[sw.id] || 'UNKNOWN')}
