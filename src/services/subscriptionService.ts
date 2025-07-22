@@ -16,8 +16,8 @@ export interface Subscription {
 const subscriptionService = {
     async getAllSubscriptions(): Promise<Subscription[]> {
         try {
-            const response = await axiosInstance.get<Subscription[]>('/subscriptions');
-            return Array.isArray(response.data) ? response.data : response.data.$values ?? response.data.data ?? [];
+            const response = await axiosInstance.get<{ $values: Subscription[] }>('/subscriptions');
+            return response.data.$values;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 throw new Error(error.response?.data.message || 'Failed to fetch subscriptions');
