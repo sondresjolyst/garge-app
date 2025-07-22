@@ -5,6 +5,8 @@ import Image from 'next/image';
 import productService, { Product } from '@/services/productService';
 import subscriptionService, { Subscription } from '@/services/subscriptionService';
 import { PresentationChartLineIcon } from '@heroicons/react/24/outline';
+import { useCart } from '@/context/CartContext';
+import { formatPrice } from '@/utils/formatPrice';
 
 const DEFAULT_IMAGE = '/garge-box-v1.1/liz-sensor-v1.1-box-transparent.png';
 
@@ -12,6 +14,7 @@ export default function ShopPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [loading, setLoading] = useState(true);
+    const { addProduct, addSubscription } = useCart();
 
     useEffect(() => {
         Promise.all([
@@ -49,9 +52,9 @@ export default function ShopPage() {
                         <h2 className="text-xl font-semibold mb-2">{product.name}</h2>
                         <p className="mb-4 text-center">{product.description}</p>
                         <span className="block mb-4 font-bold">
-                            {product.price} {product.currency}
+                            {formatPrice(product.price, product.currency)}
                         </span>
-                        <button className="gargeBtnActive">
+                        <button className="gargeBtnActive" onClick={() => addProduct(product)}>
                             Buy {product.name}
                         </button>
                     </div>
@@ -62,9 +65,9 @@ export default function ShopPage() {
                         <h2 className="text-xl font-semibold mb-2">{subscription.name}</h2>
                         <p className="mb-4 text-center">{subscription.description}</p>
                         <span className="block mb-4 font-bold">
-                            {subscription.price} {subscription.currency} / {subscription.durationMonths} month{subscription.durationMonths > 1 ? 's' : ''}
+                            {formatPrice(subscription.price, subscription.currency)} / {subscription.durationMonths} month{subscription.durationMonths > 1 ? 's' : ''}
                         </span>
-                        <button className="gargeBtnActive">
+                        <button className="gargeBtnActive" onClick={() => addSubscription(subscription)}>
                             Subscribe
                         </button>
                     </div>

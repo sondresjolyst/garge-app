@@ -7,6 +7,7 @@ import Footer from './footer';
 import SessionProviderWrapper from './SessionProviderWrapper';
 import type { Metadata } from "next";
 import Script from 'next/script';
+import { CartProvider } from '@/context/CartContext';
 
 export const metadata: Metadata = {
     title: 'Garge',
@@ -27,18 +28,20 @@ export default function Layout({
             </head>
             <body className="bg-gray-900 text-gray-200">
                 <SessionProviderWrapper>
-                    <div className="flex h-screen overflow-hidden">
-                        <Sidebar />
-                        <div className="flex flex-col flex-1 overflow-auto">
-                            <Navbar />
-                            <div className="flex-grow">
-                                <Content>{children}</Content>
+                    <CartProvider>
+                        <div className="flex h-screen overflow-hidden">
+                            <Sidebar />
+                            <div className="flex flex-col flex-1 overflow-auto">
+                                <Navbar />
+                                <div className="flex-grow">
+                                    <Content>{children}</Content>
+                                </div>
+                                <Footer />
                             </div>
-                            <Footer />
                         </div>
-                    </div>
+                    </CartProvider>
                 </SessionProviderWrapper>
             </body>
         </html>
     );
-};
+}
