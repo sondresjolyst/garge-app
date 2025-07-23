@@ -19,3 +19,7 @@
 .gargeBtnSmall {
     @apply px-2 py-1 text-sm;
 }
+
+.gargeInput {
+    @apply p-2 border border-gray-600 rounded bg-gray-700 text-gray-200;
+}

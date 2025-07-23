@@ -189,7 +189,7 @@ const Profile: React.FC = () => {
                             value={verificationCode}
                             onChange={(e) => setVerificationCode(e.target.value)}
                             placeholder="Enter verification code"
-                            className="p-2 border border-gray-600 rounded bg-gray-700 text-gray-200"
+                            className="gargeInput"
                         />
                         <button
                             onClick={handleConfirmEmail}
@@ -224,7 +224,7 @@ const Profile: React.FC = () => {
                         value={claimCode}
                         onChange={e => setClaimCode(e.target.value)}
                         placeholder="Enter registration code"
-                        className="p-2 border border-gray-600 rounded bg-gray-700 text-gray-200"
+                        className="gargeInput"
                         disabled={claimLoading}
                     />
                     <button
@@ -259,7 +259,7 @@ const Profile: React.FC = () => {
                                             type="text"
                                             value={newCustomName}
                                             onChange={e => setNewCustomName(e.target.value)}
-                                            className="p-1 border border-gray-600 rounded bg-gray-700 text-gray-200 flex-1 min-w-0"
+                                            className="gargeInput flex-1 min-w-0"
                                             maxLength={50}
                                             disabled={editLoading}
                                         />

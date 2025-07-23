@@ -4,9 +4,11 @@ import React from 'react';
 import { useCart } from '@/context/CartContext';
 import { XCircleIcon, MinusCircleIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 import { formatPrice } from '@/utils/formatPrice';
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
     const { cart, removeItem, increaseQuantity, decreaseQuantity, setQuantity } = useCart();
+    const router = useRouter();
 
     const total = cart.reduce((sum, item) => {
         if (item.type === 'product') {
@@ -89,7 +91,7 @@ export default function CartPage() {
                         <div className="flex justify-end">
                             <button
                                 className="gargeBtnActive"
-                                onClick={() => alert('Checkout not implemented yet')}
+                                onClick={() => router.push("/checkout")}
                             >
                                 Checkout
                             </button>
