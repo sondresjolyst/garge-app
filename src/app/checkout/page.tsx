@@ -73,6 +73,7 @@ export default function CheckoutPage() {
             });
             clearCart();
             router.push("/shop");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             alert(err.message || "Order failed");
         }

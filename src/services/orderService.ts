@@ -22,6 +22,7 @@ export interface CreateOrderRequest {
 }
 
 const orderService = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async createOrder(order: CreateOrderRequest): Promise<any> {
         try {
             const response = await axiosInstance.post('/orders', order);
