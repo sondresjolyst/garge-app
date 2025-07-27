@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import AuthService from '@/services/userService';
 
 const Register: React.FC = () => {
@@ -14,6 +14,16 @@ const Register: React.FC = () => {
     const [errors, setErrors] = useState<{ userName?: string[]; firstName?: string[]; lastName?: string[]; email?: string[]; password?: string[] }>({});
     const [apiMessage, setApiMessage] = useState<string>('');
     const router = useRouter();
+
+    useEffect(() => {
+        const checkSession = async () => {
+            const session = await getSession();
+            if (session) {
+                router.push('/profile');
+            }
+        };
+        checkSession();
+    }, [router]);
 
     const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
