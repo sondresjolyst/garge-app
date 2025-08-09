@@ -14,7 +14,7 @@ const initialForm: CreateAutomationRuleDto = {
     targetId: 0,
     sensorType: '',
     sensorId: 0,
-    condition: 'Turn on',
+    condition: '==',
     threshold: 0,
     action: 'on',
 };
@@ -123,7 +123,7 @@ const AutomationsPage: React.FC = () => {
             targetId: rule.targetId,
             sensorType: rule.sensorType,
             sensorId: rule.sensorId,
-            condition: conditionOptions.find(opt => opt.value === rule.action)?.label || 'Turn on',
+            condition: rule.condition,
             threshold: rule.threshold,
             action: rule.action,
         });
@@ -139,11 +139,7 @@ const AutomationsPage: React.FC = () => {
         if (editingId && editForm) {
             setError('');
             try {
-                const updatedForm = {
-                    ...editForm,
-                    action: conditionOptions.find(opt => opt.label === editForm.condition)?.value || 'on',
-                };
-                await AutomationService.updateRule(editingId, updatedForm);
+                await AutomationService.updateRule(editingId, editForm);
                 cancelEdit();
                 fetchRules();
             } catch (error: unknown) {
