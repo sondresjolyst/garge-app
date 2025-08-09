@@ -20,8 +20,16 @@ const initialForm: CreateAutomationRuleDto = {
 };
 
 const conditionOptions = [
-    { label: 'Turn on', value: 'on' },
-    { label: 'Turn off', value: 'off' },
+    { label: 'Equals', value: '==' },
+    { label: 'Less than', value: '<' },
+    { label: 'Greater than', value: '>' },
+    { label: 'Less than or equal', value: '<=' },
+    { label: 'Greater than or equal', value: '>=' },
+];
+
+const actionOptions = [
+    { label: 'On', value: 'on' },
+    { label: 'Off', value: 'off' },
 ];
 
 const AutomationsPage: React.FC = () => {
@@ -162,15 +170,6 @@ const AutomationsPage: React.FC = () => {
         });
     };
 
-    const handleConditionChange = (label: string) => {
-        const value = conditionOptions.find(opt => opt.label === label)?.value || 'on';
-        setForm({
-            ...form,
-            condition: label,
-            action: value,
-        });
-    };
-
     return (
         <div className="p-4">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6">Automations</h1>
@@ -214,12 +213,12 @@ const AutomationsPage: React.FC = () => {
                         <label className="block mb-2">Condition</label>
                         <select
                             value={form.condition}
-                            onChange={e => handleConditionChange(e.target.value)}
+                            onChange={e => setForm({ ...form, condition: e.target.value })}
                             required
                             className="gargeDropdown"
                         >
                             {conditionOptions.map(opt => (
-                                <option key={opt.value} value={opt.label}>{opt.label}</option>
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
                             ))}
                         </select>
                     </div>
@@ -233,6 +232,19 @@ const AutomationsPage: React.FC = () => {
                             onChange={e => setForm({ ...form, threshold: Number(e.target.value) })}
                             required
                         />
+                    </div>
+                    <div>
+                        <label className="block mb-2">Action</label>
+                        <select
+                            value={form.action}
+                            onChange={e => setForm({ ...form, action: e.target.value })}
+                            required
+                            className="gargeDropdown"
+                        >
+                            {actionOptions.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                        </select>
                     </div>
                     <button type="submit" className="gargeBtnActive w-full">Create</button>
                 </form>
@@ -317,20 +329,12 @@ const AutomationsPage: React.FC = () => {
                                                     <label className="block mb-2">Condition</label>
                                                     <select
                                                         value={editForm.condition}
-                                                        onChange={e => {
-                                                            const label = e.target.value;
-                                                            const value = conditionOptions.find(opt => opt.label === label)?.value || 'on';
-                                                            setEditForm({
-                                                                ...editForm,
-                                                                condition: label,
-                                                                action: value,
-                                                            });
-                                                        }}
+                                                        onChange={e => setEditForm({ ...editForm, condition: e.target.value })}
                                                         className="gargeDropdown"
                                                         required
                                                     >
                                                         {conditionOptions.map(opt => (
-                                                            <option key={opt.value} value={opt.label}>{opt.label}</option>
+                                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
                                                         ))}
                                                     </select>
                                                 </div>
@@ -343,6 +347,19 @@ const AutomationsPage: React.FC = () => {
                                                         onChange={e => setEditForm({ ...editForm, threshold: Number(e.target.value) })}
                                                         required
                                                     />
+                                                </div>
+                                                <div>
+                                                    <label className="block mb-2">Action</label>
+                                                    <select
+                                                        value={editForm.action}
+                                                        onChange={e => setEditForm({ ...editForm, action: e.target.value })}
+                                                        className="gargeDropdown"
+                                                        required
+                                                    >
+                                                        {actionOptions.map(opt => (
+                                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                        ))}
+                                                    </select>
                                                 </div>
                                                 <div className="flex items-center justify-between gap-2">
                                                     <div className="flex gap-2">
