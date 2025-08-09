@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import React from 'react';
 import Image from 'next/image';
-import { HomeIcon, SignalIcon, BoltIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, SignalIcon, BoltIcon, PlusCircleIcon, WrenchScrewdriverIcon } from '@heroicons/react/24/outline';
 
 export default function Sidebar() {
     return (
@@ -54,6 +54,14 @@ export default function Sidebar() {
                             <div className="block text-gray-200 hover:text-white p-2 flex flex-col items-center justify-center cursor-pointer">
                                 <BoltIcon className="h-8 w-8 mb-2 md:mb-0" />
                                 <span className="hidden md:block">Electricity</span>
+                            </div>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link href="/automations" passHref>
+                            <div className="block text-gray-200 hover:text-white p-2 flex flex-col items-center justify-center cursor-pointer">
+                                <WrenchScrewdriverIcon className="h-8 w-8 mb-2 md:mb-0" />
+                                <span className="hidden md:block">Automations</span>
                             </div>
                         </Link>
                     </li>
