@@ -24,6 +24,11 @@ const SocketsPage: React.FC = () => {
         const fetchSwitchesAndLastStates = async () => {
             try {
                 const allSwitches = await SwitchService.getAllSwitches();
+                allSwitches.sort((a, b) => {
+                    const nameA = (a.name ?? '').toLowerCase();
+                    const nameB = (b.name ?? '').toLowerCase();
+                    return nameA.localeCompare(nameB);
+                });
                 setSwitches(allSwitches);
 
                 if (allSwitches.length > 0) {
