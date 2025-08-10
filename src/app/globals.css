@@ -19,3 +19,7 @@
 .gargeBtnSmall {
     @apply px-2 py-1 text-sm;
 }
+
+.gargeDropdown {
+    @apply block w-full p-2 border rounded bg-gray-800 text-gray-200;
+}

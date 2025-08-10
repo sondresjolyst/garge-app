@@ -49,6 +49,11 @@ const SensorsPage: React.FC = () => {
     const fetchSensors = useCallback(async (startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string): Promise<void> => {
         try {
             const sensors = await SensorService.getAllSensors();
+            sensors.sort((a, b) => {
+                const nameA = (a.customName ?? a.defaultName ?? '').toLowerCase();
+                const nameB = (b.customName ?? b.defaultName ?? '').toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
             setSensors(sensors);
 
             const sensorIds = sensors.map(sensor => sensor.id);

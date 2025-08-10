@@ -27,6 +27,15 @@ const Profile: React.FC = () => {
     const [newCustomName, setNewCustomName] = useState<string>('');
     const [editLoading, setEditLoading] = useState(false);
     const [editError, setEditError] = useState<string | null>(null);
+    const [sensorsLoading, setSensorsLoading] = useState(true);
+
+    function sortSensorsByName(sensors: Sensor[]): Sensor[] {
+        return [...sensors].sort((a, b) => {
+            const nameA = (a.customName ?? a.defaultName ?? '').toLowerCase();
+            const nameB = (b.customName ?? b.defaultName ?? '').toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+    }
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -43,11 +52,14 @@ const Profile: React.FC = () => {
             fetchUserProfile();
 
             const fetchSensors = async () => {
+                setSensorsLoading(true);
                 try {
                     const userSensors = await SensorService.getAllSensors();
-                    setSensors(userSensors);
+                    setSensors(sortSensorsByName(userSensors));
                 } catch (error) {
                     console.error('Failed to fetch sensors:', error);
+                } finally {
+                    setSensorsLoading(false);
                 }
             };
             fetchSensors();
@@ -112,7 +124,7 @@ const Profile: React.FC = () => {
             await updateSession();
             // Refresh sensor list
             const userSensors = await SensorService.getAllSensors();
-            setSensors(userSensors);
+            setSensors(sortSensorsByName(userSensors));
         } catch (error: unknown) {
             if (error instanceof Error) {
                 setClaimMessage(error.message || 'Failed to claim sensor.');
@@ -148,7 +160,7 @@ const Profile: React.FC = () => {
             await SensorService.updateCustomName(sensorId, newCustomName.trim());
             // Refresh sensor list
             const userSensors = await SensorService.getAllSensors();
-            setSensors(userSensors);
+            setSensors(sortSensorsByName(userSensors));
             setEditingSensorId(null);
             setNewCustomName('');
         } catch (error: unknown) {
@@ -162,58 +174,62 @@ const Profile: React.FC = () => {
         }
     };
 
-    if (status === 'loading' || !user) {
-        return <p>Loading...</p>;
-    }
+    const isUserLoading = status === 'loading' || !user;
 
     return (
         <div className="p-4">
             <h1 className="text-2xl font-bold mb-4">Profile</h1>
-            <p className="mb-2"><strong>Email:</strong> {user.email}</p>
-            <p className="mb-2"><strong>First Name:</strong> {user.firstName}</p>
-            <p className="mb-2"><strong>Last Name:</strong> {user.lastName}</p>
-            <div className="mb-2">
-                <strong>Email Confirmed:</strong>
-                <input
-                    type="checkbox"
-                    checked={user.emailConfirmed}
-                    readOnly
-                    className="ml-2"
-                />
-            </div>
-            {!user.emailConfirmed && (
+            {isUserLoading ? (
+                <p>Loading profile...</p>
+            ) : (
                 <>
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <p className="mb-2"><strong>Email:</strong> {user.email}</p>
+                    <p className="mb-2"><strong>First Name:</strong> {user.firstName}</p>
+                    <p className="mb-2"><strong>Last Name:</strong> {user.lastName}</p>
+                    <div className="mb-2">
+                        <strong>Email Confirmed:</strong>
                         <input
-                            type="text"
-                            value={verificationCode}
-                            onChange={(e) => setVerificationCode(e.target.value)}
-                            placeholder="Enter verification code"
-                            className="p-2 border border-gray-600 rounded bg-gray-700 text-gray-200"
+                            type="checkbox"
+                            checked={user.emailConfirmed}
+                            readOnly
+                            className="ml-2"
                         />
-                        <button
-                            onClick={handleConfirmEmail}
-                            className="gargeBtnActive"
-                        >
-                            Confirm Email
-                        </button>
                     </div>
-                    <button
-                        onClick={handleResendConfirmation}
-                        className={`mt-4 ${isButtonDisabled ? 'gargeBtnDisabled' : 'gargeBtnActive'}`}
-                        disabled={isButtonDisabled}
-                    >
-                        Resend Confirmation
-                    </button>
-                    {isButtonDisabled && (
-                        <span className="ml-2 text-gray-500">{countdown}s</span>
+                    {!user.emailConfirmed && (
+                        <>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <input
+                                    type="text"
+                                    value={verificationCode}
+                                    onChange={(e) => setVerificationCode(e.target.value)}
+                                    placeholder="Enter verification code"
+                                    className="p-2 border border-gray-600 rounded bg-gray-700 text-gray-200"
+                                />
+                                <button
+                                    onClick={handleConfirmEmail}
+                                    className="gargeBtnActive"
+                                >
+                                    Confirm Email
+                                </button>
+                            </div>
+                            <button
+                                onClick={handleResendConfirmation}
+                                className={`mt-4 ${isButtonDisabled ? 'gargeBtnDisabled' : 'gargeBtnActive'}`}
+                                disabled={isButtonDisabled}
+                            >
+                                Resend Confirmation
+                            </button>
+                            {isButtonDisabled && (
+                                <span className="ml-2 text-gray-500">{countdown}s</span>
+                            )}
+                        </>
+                    )}
+                    {emailMessage && (
+                        <p className={`mt-4 ${emailError ? 'text-red-500' : 'text-green-500'}`}>
+                            {emailMessage}
+                        </p>
                     )}
                 </>
-            )}
-            {emailMessage && (
-                <p className={`mt-4 ${emailError ? 'text-red-500' : 'text-green-500'}`}>
-                    {emailMessage}
-                </p>
             )}
 
             <div className="mb-6 mt-4">
@@ -242,8 +258,11 @@ const Profile: React.FC = () => {
                 )}
             </div>
 
+
             <h2 className="text-xl font-semibold mt-6 mb-2">Your Sensors</h2>
-            {!sensors.length ? (
+            {sensorsLoading ? (
+                <p>Loading sensors...</p>
+            ) : !sensors.length ? (
                 <p>No sensors found.</p>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -288,7 +307,7 @@ const Profile: React.FC = () => {
                                         {sensor.customName ?? sensor.defaultName}
                                         <button
                                             onClick={() => startEditing(sensor)}
-                                                className="gargeBtnActive gargeBtnSmall"
+                                            className="gargeBtnActive gargeBtnSmall"
                                         >
                                             Edit
                                         </button>

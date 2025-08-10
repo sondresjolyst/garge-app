@@ -10,7 +10,7 @@ import Script from 'next/script';
 
 export const metadata: Metadata = {
     title: 'Garge',
-    description: 'Garge PWA',
+    description: 'Smart garage system',
     manifest: '/manifest.json',
 }
 
