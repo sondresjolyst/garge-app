@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/sondresjolyst/garge-app/compare/v1.1.0...v1.2.0) (2025-08-10)
+
+
+### Features
+
+* automations ([#74](https://github.com/sondresjolyst/garge-app/issues/74)) ([68e121e](https://github.com/sondresjolyst/garge-app/commit/68e121ef8aae4378c7cb982339815045ba985b07))
+
 ## [1.1.0](https://github.com/sondresjolyst/garge-app/compare/v1.0.0...v1.1.0) (2025-07-21)
 
 
