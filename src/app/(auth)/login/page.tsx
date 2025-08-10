@@ -24,7 +24,7 @@ const Login: React.FC = () => {
         e.preventDefault();
         setApiMessage('');
         const result = await signIn('credentials', {
-            redirect: true,
+            redirect: false,
             email,
             password,
         });
@@ -32,7 +32,20 @@ const Login: React.FC = () => {
         if (result?.error) {
             setApiMessage(result.error);
         } else {
-            router.push('/profile');
+            // Wait for session to be available before redirecting
+            const checkSession = async () => {
+                let session = await getSession();
+                let retries = 0;
+                while (!session && retries < 5) {
+                    await new Promise(res => setTimeout(res, 200));
+                    session = await getSession();
+                    retries++;
+                }
+                if (session) {
+                    router.push('/profile');
+                }
+            };
+            checkSession();
         }
     };
 
@@ -42,7 +55,6 @@ const Login: React.FC = () => {
                 <h1 className="text-2xl mb-4">Login</h1>
                 <p className="mb-4">New customer? <a href="/register" className="text-blue-500">Register account</a></p>
                 <form onSubmit={handleLogin}>
-                    {apiMessage && <p className="text-red-500">{apiMessage}</p>}
                     <div className="mb-4">
                         <label className="block text-gray-400">Email</label>
                         <input
@@ -64,7 +76,7 @@ const Login: React.FC = () => {
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
-
+                    {apiMessage && <p className="text-red-500">{apiMessage}</p>}
                     <p className="mb-4">Forgot password? <a href="/reset-password" className="text-blue-500">Reset password</a></p>
                     <div>
                         <button className="w-full bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-gray-200 p-2 rounded" type="submit">Login</button>
