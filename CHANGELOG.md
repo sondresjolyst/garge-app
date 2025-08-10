@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/sondresjolyst/garge-app/compare/v1.2.0...v1.2.1) (2025-08-10)
+
+
+### Bug Fixes
+
+* sidebar redirecting not working after login ([#79](https://github.com/sondresjolyst/garge-app/issues/79)) ([015565c](https://github.com/sondresjolyst/garge-app/commit/015565c35c425ebd3db8039ed762c3efb9237105))
+
 ## [1.2.0](https://github.com/sondresjolyst/garge-app/compare/v1.1.0...v1.2.0) (2025-08-10)
 
 
