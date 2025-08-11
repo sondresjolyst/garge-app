@@ -43,6 +43,7 @@ const Login: React.FC = () => {
                 }
                 if (session) {
                     router.push('/profile');
+                    router.refresh();
                 }
             };
             checkSession();
