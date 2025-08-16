@@ -50,11 +50,15 @@ const ElectricityPage = () => {
             const endDate = getDate('tomorrow');
             const fetchedData = await ElectricityService.getElectricityData(frequency, 'NO2', endDate.toISOString());
             const filteredData = fetchedData.filter((d: any) => new Date(d.time) >= startDate && new Date(d.time) < endDate);
-            const processedData = filteredData.map((d: any) => ({
-                x: new Date(d.time).getTime(),
-                y: d.price / 1000
-            }));
+            const processedData = filteredData.map((d: any) => {
+                const ts = d.time.endsWith('Z') ? d.time : d.time + 'Z';
+                return {
+                    x: new Date(ts).getTime(),
+                    y: d.price / 1000
+                }
+            });
             setData(processedData);
+            console.log('Processed data:', processedData);
         } catch {
             setError(`Failed to fetch ${type} electricity data`);
         }

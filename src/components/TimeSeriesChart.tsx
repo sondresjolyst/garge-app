@@ -66,6 +66,10 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
                 formatter: (value) => value.toFixed(2)
             }
         },
+        stroke: {
+            curve: 'smooth',
+            width: 3
+        },
         dataLabels: {
             enabled: false
         },
