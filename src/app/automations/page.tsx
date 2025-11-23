@@ -8,14 +8,19 @@ import { AutomationRuleDto } from '@/dto/Automation/AutomationRuleDto';
 import { CreateAutomationRuleDto } from '@/dto/Automation/CreateAutomationRuleDto';
 import { UpdateAutomationRuleDto } from '@/dto/Automation/UpdateAutomationRuleDto';
 import { AxiosError } from 'axios';
+import AutomationRuleForm from './AutomationRuleForm';
 
-const initialForm: CreateAutomationRuleDto = {
-    targetType: '',
-    targetId: 0,
+const initialCondition = {
     sensorType: '',
     sensorId: 0,
     condition: '==',
     threshold: 0,
+};
+
+const initialForm: CreateAutomationRuleDto = {
+    targetType: '',
+    targetId: 0,
+    conditions: [initialCondition],
     action: 'on',
 };
 
@@ -46,7 +51,71 @@ const AutomationsPage: React.FC = () => {
         fetchRules();
         fetchSwitches();
         fetchSensors();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Creation form handlers
+    const addCondition = () => {
+        setForm({
+            ...form,
+            conditions: Array.isArray(form.conditions)
+                ? [...form.conditions, { ...initialCondition }]
+                : [{ ...initialCondition }],
+        });
+    };
+
+    const removeCondition = (index: number) => {
+        setForm({
+            ...form,
+            conditions: Array.isArray(form.conditions)
+                ? form.conditions.filter((_, i) => i !== index)
+                : [],
+        });
+    };
+
+    const updateCondition = (index: number, updated: Partial<typeof initialCondition>) => {
+        setForm({
+            ...form,
+            conditions: Array.isArray(form.conditions)
+                ? form.conditions.map((cond, i) =>
+                    i === index ? { ...cond, ...updated } : cond
+                )
+                : [],
+        });
+    };
+
+    // Edit form handlers
+    const addEditCondition = () => {
+        if (!editForm) return;
+        setEditForm({
+            ...editForm,
+            conditions: Array.isArray(editForm.conditions)
+                ? [...editForm.conditions, { ...initialCondition }]
+                : [{ ...initialCondition }],
+        });
+    };
+
+    const removeEditCondition = (index: number) => {
+        if (!editForm) return;
+        setEditForm({
+            ...editForm,
+            conditions: Array.isArray(editForm.conditions)
+                ? editForm.conditions.filter((_, i) => i !== index)
+                : [],
+        });
+    };
+
+    const updateEditCondition = (index: number, updated: Partial<typeof initialCondition>) => {
+        if (!editForm) return;
+        setEditForm({
+            ...editForm,
+            conditions: Array.isArray(editForm.conditions)
+                ? editForm.conditions.map((cond, i) =>
+                    i === index ? { ...cond, ...updated } : cond
+                )
+                : [],
+        });
+    };
 
     const sortedSwitches = [...switches].sort((a, b) => {
         const nameA = (a.name ?? `Switch ${a.id}`).toLowerCase();
@@ -121,10 +190,7 @@ const AutomationsPage: React.FC = () => {
         setEditForm({
             targetType: rule.targetType,
             targetId: rule.targetId,
-            sensorType: rule.sensorType,
-            sensorId: rule.sensorId,
-            condition: rule.condition,
-            threshold: rule.threshold,
+            conditions: Array.isArray(rule.conditions) ? rule.conditions : [],
             action: rule.action,
         });
     };
@@ -148,103 +214,24 @@ const AutomationsPage: React.FC = () => {
         }
     };
 
-    const handleTargetChange = (id: number) => {
-        const selected = switches.find(sw => sw.id === id);
-        setForm({
-            ...form,
-            targetId: id,
-            targetType: selected?.type || '',
-        });
-    };
-
-    const handleSensorChange = (id: number) => {
-        const selected = sensors.find(s => s.id === id);
-        setForm({
-            ...form,
-            sensorId: id,
-            sensorType: selected?.type || '',
-        });
-    };
-
     return (
         <div className="p-4">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6">Automations</h1>
             {error && <p className="text-red-500 mb-4">{error}</p>}
 
             <div className="my-4">
-                <form onSubmit={handleCreate} className="space-y-4">
-                    <div>
-                        <label className="block mb-2">Target</label>
-                        <select
-                            value={form.targetId}
-                            onChange={e => handleTargetChange(Number(e.target.value))}
-                            required
-                            className="gargeDropdown"
-                        >
-                            <option value={0}>Select Target</option>
-                            {sortedSwitches.map(sw => (
-                                <option key={sw.id} value={sw.id}>
-                                    {sw.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block mb-2">Sensor</label>
-                        <select
-                            value={form.sensorId}
-                            onChange={e => handleSensorChange(Number(e.target.value))}
-                            required
-                            className="gargeDropdown"
-                        >
-                            <option value={0}>Select Sensor</option>
-                            {sortedSensors.map(s => (
-                                <option key={s.id} value={s.id}>
-                                    {s.customName ?? s.defaultName}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block mb-2">Condition</label>
-                        <select
-                            value={form.condition}
-                            onChange={e => setForm({ ...form, condition: e.target.value })}
-                            required
-                            className="gargeDropdown"
-                        >
-                            {conditionOptions.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block mb-2">Threshold</label>
-                        <input
-                            className="block w-full p-2 border rounded bg-gray-800 text-gray-200"
-                            type="number"
-                            placeholder="Threshold"
-                            value={form.threshold}
-                            step="0.1"
-                            onChange={e => setForm({ ...form, threshold: Number(e.target.value) })}
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2">Action</label>
-                        <select
-                            value={form.action}
-                            onChange={e => setForm({ ...form, action: e.target.value })}
-                            required
-                            className="gargeDropdown"
-                        >
-                            {actionOptions.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <button type="submit" className="gargeBtnActive w-full">Create</button>
-                </form>
+                <AutomationRuleForm
+                    form={form}
+                    setForm={setForm}
+                    onSubmit={handleCreate}
+                    switches={sortedSwitches}
+                    sensors={sortedSensors}
+                    conditionOptions={conditionOptions}
+                    actionOptions={actionOptions}
+                    addCondition={addCondition}
+                    removeCondition={removeCondition}
+                    updateCondition={updateCondition}
+                />
             </div>
 
             <div className="my-4">
@@ -255,130 +242,58 @@ const AutomationsPage: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {rules.map(rule => {
                             const switchObj = switches.find(sw => sw.id === rule.targetId);
-                            const sensorObj = sensors.find(s => s.id === rule.sensorId);
                             const isEditing = editingId === rule.id && editForm;
                             return (
                                 <div key={rule.id} className="bg-gray-800 rounded-lg shadow p-4 flex flex-col">
-                                    <span className="text-lg font-bold text-gray-100 mb-1">
-                                        {switchObj?.name ?? `Switch ${rule.targetId}`} &rarr; {rule.action}
-                                    </span>
-                                    <span className="text-gray-400 text-sm mb-2">
-                                        Sensor: {sensorObj?.customName ?? sensorObj?.defaultName}
-                                    </span>
-                                    <span className="text-gray-500 text-xs mb-1">
-                                        Condition: {conditionOptions.find(opt => opt.value === rule.condition)?.label ?? rule.condition}
-                                    </span>
-                                    <span className="text-gray-500 text-xs mb-1">
-                                        Threshold: {rule.threshold}
-                                    </span>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-lg font-bold text-gray-100">
+                                            {switchObj?.name ?? `Switch ${rule.targetId}`} &rarr; {rule.action}
+                                        </span>
+                                        {!isEditing && (
+                                            <button
+                                                className="gargeBtnActive gargeBtnSmall ml-2"
+                                                onClick={() => startEdit(rule)}
+                                            >
+                                                Edit
+                                            </button>
+                                        )}
+                                    </div>
+                                    {(Array.isArray(rule.conditions) ? rule.conditions : []).map(
+                                        (
+                                            cond: {
+                                                sensorType: string;
+                                                sensorId: number;
+                                                condition: string;
+                                                threshold: number;
+                                            },
+                                            idx: number
+                                        ) => (
+                                            <span key={idx} className="text-gray-500 text-xs mb-1 block">
+                                                Sensor: {sensors.find(s => s.id === cond.sensorId)?.customName ?? sensors.find(s => s.id === cond.sensorId)?.defaultName} |
+                                                Condition: {conditionOptions.find(opt => opt.value === cond.condition)?.label ?? cond.condition} |
+                                                Threshold: {cond.threshold}
+                                            </span>
+                                        )
+                                    )}
                                     {isEditing ? (
                                         <div className="flex flex-col gap-2 mt-2">
-                                            <form onSubmit={handleUpdate} className="space-y-2">
-                                                <div>
-                                                    <label className="block mb-2">Target</label>
-                                                    <select
-                                                        value={editForm.targetId}
-                                                        onChange={e => {
-                                                            const id = Number(e.target.value);
-                                                            const selected = switches.find(sw => sw.id === id);
-                                                            setEditForm({
-                                                                ...editForm,
-                                                                targetId: id,
-                                                                targetType: selected?.type || '',
-                                                            });
-                                                        }}
-                                                        className="gargeDropdown"
-                                                        required
-                                                    >
-                                                        <option value={0}>Select Target</option>
-                                                        {sortedSwitches.map(sw => (
-                                                            <option key={sw.id} value={sw.id}>
-                                                                {sw.name}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label className="block mb-2">Sensor</label>
-                                                    <select
-                                                        value={editForm.sensorId}
-                                                        onChange={e => {
-                                                            const id = Number(e.target.value);
-                                                            const selected = sensors.find(s => s.id === id);
-                                                            setEditForm({
-                                                                ...editForm,
-                                                                sensorId: id,
-                                                                sensorType: selected?.type || '',
-                                                            });
-                                                        }}
-                                                        className="gargeDropdown"
-                                                        required
-                                                    >
-                                                        <option value={0}>Select Sensor</option>
-                                                        {sortedSensors.map(s => (
-                                                            <option key={s.id} value={s.id}>
-                                                                {s.customName ?? s.defaultName}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label className="block mb-2">Condition</label>
-                                                    <select
-                                                        value={editForm.condition}
-                                                        onChange={e => setEditForm({ ...editForm, condition: e.target.value })}
-                                                        className="gargeDropdown"
-                                                        required
-                                                    >
-                                                        {conditionOptions.map(opt => (
-                                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label className="block mb-2">Threshold</label>
-                                                    <input
-                                                        className="block w-full p-2 border rounded bg-gray-800 text-gray-200"
-                                                        type="number"
-                                                        value={editForm.threshold}
-                                                        step="0.1"
-                                                        onChange={e => setEditForm({ ...editForm, threshold: Number(e.target.value) })}
-                                                        required
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block mb-2">Action</label>
-                                                    <select
-                                                        value={editForm.action}
-                                                        onChange={e => setEditForm({ ...editForm, action: e.target.value })}
-                                                        className="gargeDropdown"
-                                                        required
-                                                    >
-                                                        {actionOptions.map(opt => (
-                                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <div className="flex gap-2">
-                                                        <button type="submit" className="gargeBtnActive gargeBtnSmall">Save</button>
-                                                        <button type="button" className="gargeBtnWarning gargeBtnSmall" onClick={cancelEdit}>Cancel</button>
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        className="gargeBtnWarning gargeBtnSmall"
-                                                        onClick={() => handleDelete(rule.id)}
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </form>
+                                            <AutomationRuleForm
+                                                form={editForm}
+                                                setForm={setEditForm}
+                                                onSubmit={handleUpdate}
+                                                switches={sortedSwitches}
+                                                sensors={sortedSensors}
+                                                conditionOptions={conditionOptions}
+                                                actionOptions={actionOptions}
+                                                addCondition={addEditCondition}
+                                                removeCondition={removeEditCondition}
+                                                updateCondition={updateEditCondition}
+                                                isEditing={true}
+                                                cancelEdit={cancelEdit}
+                                                onDelete={() => handleDelete(rule.id)}
+                                            />
                                         </div>
-                                    ) : (
-                                        <div className="flex gap-2 mt-2">
-                                            <button className="gargeBtnActive gargeBtnSmall" onClick={() => startEdit(rule)}>Edit</button>
-                                        </div>
-                                    )}
+                                    ) : null}
                                 </div>
                             );
                         })}
