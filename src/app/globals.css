@@ -23,3 +23,7 @@
 .gargeDropdown {
     @apply block w-full p-2 border rounded bg-gray-800 text-gray-200;
 }
+
+.gargeSecond {
+    @apply bg-gray-800 rounded-lg shadow p-4
+}

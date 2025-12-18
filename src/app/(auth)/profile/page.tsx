@@ -269,7 +269,7 @@ const Profile: React.FC = () => {
                     {sensors.map(sensor => (
                         <div
                             key={sensor.id}
-                            className="bg-gray-800 rounded-lg shadow p-4 flex flex-col"
+                            className="gargeSecond flex flex-col"
                         >
                             <span className="text-lg font-bold text-gray-100 mb-1">
                                 {editingSensorId === sensor.id ? (
@@ -278,7 +278,7 @@ const Profile: React.FC = () => {
                                             type="text"
                                             value={newCustomName}
                                             onChange={e => setNewCustomName(e.target.value)}
-                                            className="p-1 border border-gray-600 rounded bg-gray-700 text-gray-200 flex-1 min-w-0"
+                                            className="p-2 border border-gray-600 rounded bg-gray-700 text-gray-200 flex-1 min-w-0"
                                             maxLength={50}
                                             disabled={editLoading}
                                         />
