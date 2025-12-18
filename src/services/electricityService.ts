@@ -9,6 +9,26 @@ export interface ElectricityData {
 }
 
 const ElectricityService = {
+    async getCurrentPrice(area = 'NO2', currency = 'NOK'): Promise<number> {
+        try {
+            const now = new Date().toISOString();
+            const data = await this.getElectricityData('HOURLY', area, now, currency);
+            // Get the most recent price (current hour)
+            const currentHour = new Date();
+            currentHour.setMinutes(0, 0, 0);
+            
+            const currentPrice = data.find(item => {
+                const itemTime = new Date(item.time);
+                return itemTime.getTime() <= currentHour.getTime();
+            });
+            
+            return currentPrice ? currentPrice.price / 1000 : 0; // Convert to NOK/kWh
+        } catch (error) {
+            console.error('Failed to get current electricity price:', error);
+            throw new Error('Failed to get current electricity price');
+        }
+    },
+
     async getElectricityData(type: string, area: string, date: string, currency = 'NOK') {
         try {
             const params: {
