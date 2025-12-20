@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/sondresjolyst/garge-app/compare/v1.2.1...v1.2.2) (2025-12-12)
+
+
+### Bug Fixes
+
+* **deps:** bump next in the npm_and_yarn group across 1 directory ([#91](https://github.com/sondresjolyst/garge-app/issues/91)) ([1961374](https://github.com/sondresjolyst/garge-app/commit/1961374242974c9ac4b8cc9b00a111d1ec4bdeca))
+
 ## [1.2.1](https://github.com/sondresjolyst/garge-app/compare/v1.2.0...v1.2.1) (2025-08-10)
 
 
