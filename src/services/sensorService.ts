@@ -9,6 +9,7 @@ export interface Sensor {
     customName: string;
     defaultName: string;
     registrationCode: string;
+    parentName: string;
 }
 
 export interface SensorData {
@@ -16,6 +17,18 @@ export interface SensorData {
     sensorId: number;
     timestamp: string;
     value: number;
+}
+
+export interface BatteryHealthData {
+    id: number;
+    sensorId: number;
+    status: string;
+    baseline: number;
+    lastCharge: number;
+    dropPct: number;
+    chargesRecorded: number;
+    timestamp: string;
+    lastChargedAt: string | null;
 }
 
 export interface PagedResponse<T> {
@@ -148,6 +161,19 @@ const SensorService = {
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 throw new Error(error.response?.data.message || 'Failed to update custom name');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    async getBatteryHealthLatest(sensorName: string): Promise<BatteryHealthData> {
+        try {
+            const response = await axiosInstance.get<BatteryHealthData>(`/battery-health/name/${sensorName}/latest`);
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to fetch battery health');
             } else {
                 throw new Error('An unknown error occurred');
             }
