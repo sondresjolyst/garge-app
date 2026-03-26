@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/sondresjolyst/garge-app/compare/v1.2.2...v1.3.0) (2026-03-26)
+
+
+### Features
+
+* show battery health badge and last charged date on sensors page ([#113](https://github.com/sondresjolyst/garge-app/issues/113)) ([3e557c4](https://github.com/sondresjolyst/garge-app/commit/3e557c4b9d89464cd4498e695eca4a7e2f3da2a7))
+
 ## [1.2.2](https://github.com/sondresjolyst/garge-app/compare/v1.2.1...v1.2.2) (2025-12-12)
 
 
