@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/sondresjolyst/garge-app/compare/v1.3.0...v1.3.1) (2026-03-27)
+
+
+### Bug Fixes
+
+* log battery health fetch errors instead of silently dropping them ([#116](https://github.com/sondresjolyst/garge-app/issues/116)) ([4670c3f](https://github.com/sondresjolyst/garge-app/commit/4670c3ff4970c9c72a3beac935734e557695aa90))
+
 ## [1.3.0](https://github.com/sondresjolyst/garge-app/compare/v1.2.2...v1.3.0) (2026-03-26)
 
 
