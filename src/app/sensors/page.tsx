@@ -82,8 +82,8 @@ const SensorsPage: React.FC = () => {
                 try {
                     const health = await SensorService.getBatteryHealthLatest(s.name);
                     healthMap[s.parentName] = health;
-                } catch {
-                    // No health data yet — badge will be omitted
+                } catch (err) {
+                    console.error(`Failed to fetch battery health for sensor "${s.name}":`, err);
                 }
             }));
             setBatteryHealthMap(healthMap);
