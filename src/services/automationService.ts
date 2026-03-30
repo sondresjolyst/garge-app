@@ -7,8 +7,8 @@ import { AxiosError } from 'axios';
 const AutomationService = {
     async getRules(): Promise<AutomationRuleDto[]> {
         try {
-            const response = await axiosInstance.get<{ $values: AutomationRuleDto[] }>('/automation');
-            return response.data.$values;
+            const response = await axiosInstance.get<AutomationRuleDto[]>('/automation');
+            return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 throw new Error(error.response?.data?.message || 'Failed to fetch automation rules');
