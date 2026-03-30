@@ -1,15 +1,32 @@
 "use client"
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import SensorService, { Sensor, SensorData } from '@/services/sensorService';
+import SensorService, { Sensor, SensorData, BatteryHealthData } from '@/services/sensorService';
 import dynamic from 'next/dynamic';
 import debounce from 'lodash/debounce';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
 
+const statusConfig: Record<string, { color: string; label: string }> = {
+    good:      { color: 'bg-green-600',  label: 'Battery good' },
+    attention: { color: 'bg-yellow-500', label: 'Battery attention' },
+    replace:   { color: 'bg-red-600',    label: 'Replace battery' },
+    learning:  { color: 'bg-gray-500',   label: 'Battery learning' },
+};
+
+const BatteryHealthBadge: React.FC<{ health: BatteryHealthData }> = ({ health }) => {
+    const cfg = statusConfig[health.status] ?? statusConfig.learning;
+    return (
+        <span className={`ml-2 inline-block text-xs font-normal px-2 py-0.5 rounded-full text-white ${cfg.color}`}>
+            {cfg.label}{health.status !== 'learning' && health.dropPct > 0 ? ` (${health.dropPct.toFixed(1)}% drop)` : ''}
+        </span>
+    );
+};
+
 const SensorsPage: React.FC = () => {
     const [sensors, setSensors] = useState<Sensor[]>([]);
     const [sensorData, setSensorData] = useState<Record<number, SensorData[]>>({});
+    const [batteryHealthMap, setBatteryHealthMap] = useState<Record<string, BatteryHealthData>>({});
     const [loading, setLoading] = useState(true);
     const [interval, setInterval] = useState<number>(60000 * 5);
     const [timeRangeError, setTimeRangeError] = useState<string | null>(null);
@@ -48,15 +65,30 @@ const SensorsPage: React.FC = () => {
 
     const fetchSensors = useCallback(async (startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string): Promise<void> => {
         try {
-            const sensors = await SensorService.getAllSensors();
-            sensors.sort((a, b) => {
+            const allSensors = await SensorService.getAllSensors();
+            allSensors.sort((a, b) => {
                 const nameA = (a.customName ?? a.defaultName ?? '').toLowerCase();
                 const nameB = (b.customName ?? b.defaultName ?? '').toLowerCase();
                 return nameA.localeCompare(nameB);
             });
-            setSensors(sensors);
 
-            const sensorIds = sensors.map(sensor => sensor.id);
+            const batterySensors = allSensors.filter(s => s.type === 'battery');
+            const displaySensors = allSensors.filter(s => s.type !== 'battery');
+            setSensors(displaySensors);
+
+            // Fetch latest battery health per battery sensor, keyed by parentName for badge lookup
+            const healthMap: Record<string, BatteryHealthData> = {};
+            await Promise.all(batterySensors.map(async s => {
+                try {
+                    const health = await SensorService.getBatteryHealthLatest(s.name);
+                    healthMap[s.parentName] = health;
+                } catch (err) {
+                    console.error(`Failed to fetch battery health for sensor "${s.name}":`, err);
+                }
+            }));
+            setBatteryHealthMap(healthMap);
+
+            const sensorIds = displaySensors.map(sensor => sensor.id);
             const allSensorData = await fetchAllSensorData(sensorIds, startDate, endDate, timeRange, average, groupBy, pageSize);
 
             const dataMap: Record<number, SensorData[]> = {};
@@ -254,7 +286,15 @@ const SensorsPage: React.FC = () => {
                         <div className="p-4">
                             <h3 className="text-lg sm:text-xl md:text-2xl font-bold">
                                 {sensor.customName ?? sensor.defaultName}
+                                {batteryHealthMap[sensor.parentName] && (
+                                    <BatteryHealthBadge health={batteryHealthMap[sensor.parentName]} />
+                                )}
                             </h3>
+                            {batteryHealthMap[sensor.parentName]?.lastChargedAt && (
+                                <p className="text-xs text-gray-400 mt-1">
+                                    Last charged: {new Date(batteryHealthMap[sensor.parentName].lastChargedAt!).toLocaleString()}
+                                </p>
+                            )}
                         </div>
                         <div className="p-4">
                             <TimeSeriesChart title="" data={processData(sensorData[sensor.id])} />

@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.3.1](https://github.com/sondresjolyst/garge-app/compare/v1.3.0...v1.3.1) (2026-03-27)
+
+
+### Bug Fixes
+
+* log battery health fetch errors instead of silently dropping them ([#116](https://github.com/sondresjolyst/garge-app/issues/116)) ([4670c3f](https://github.com/sondresjolyst/garge-app/commit/4670c3ff4970c9c72a3beac935734e557695aa90))
+
+## [1.3.0](https://github.com/sondresjolyst/garge-app/compare/v1.2.2...v1.3.0) (2026-03-26)
+
+
+### Features
+
+* show battery health badge and last charged date on sensors page ([#113](https://github.com/sondresjolyst/garge-app/issues/113)) ([3e557c4](https://github.com/sondresjolyst/garge-app/commit/3e557c4b9d89464cd4498e695eca4a7e2f3da2a7))
+
+## [1.2.2](https://github.com/sondresjolyst/garge-app/compare/v1.2.1...v1.2.2) (2025-12-12)
+
+
+### Bug Fixes
+
+* **deps:** bump next in the npm_and_yarn group across 1 directory ([#91](https://github.com/sondresjolyst/garge-app/issues/91)) ([1961374](https://github.com/sondresjolyst/garge-app/commit/1961374242974c9ac4b8cc9b00a111d1ec4bdeca))
+
+## [1.2.1](https://github.com/sondresjolyst/garge-app/compare/v1.2.0...v1.2.1) (2025-08-10)
+
+
+### Bug Fixes
+
+* sidebar redirecting not working after login ([#79](https://github.com/sondresjolyst/garge-app/issues/79)) ([015565c](https://github.com/sondresjolyst/garge-app/commit/015565c35c425ebd3db8039ed762c3efb9237105))
+
 ## [1.2.0](https://github.com/sondresjolyst/garge-app/compare/v1.1.0...v1.2.0) (2025-08-10)
 
 

@@ -12,6 +12,7 @@ function SessionWatcher({ children }: { children: React.ReactNode }) {
     const isPublicRoute = publicRoutePatterns.some(pattern => pattern.test(pathname));
 
     useEffect(() => {
+        if (status === "loading") return; // Don't redirect while loading
         if (status === "unauthenticated" && !isPublicRoute) {
             signOut({ callbackUrl: "/auth/login" });
         }
