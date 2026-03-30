@@ -48,8 +48,8 @@ export interface SwitchData {
 const SwitchService = {
     async getAllSwitches(): Promise<Switch[]> {
         try {
-            const response = await axiosInstance.get<{ $values: Switch[] }>('/switches');
-            return response.data.$values;
+            const response = await axiosInstance.get<Switch[]>('/switches');
+            return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 throw new Error(error.response?.data.message || 'Failed to fetch switches');
@@ -63,8 +63,8 @@ const SwitchService = {
         try {
             const params: Record<string, string> = { timeRange };
 
-            const response = await axiosInstance.get<{ $values: SwitchData[] }>(`/switches/${switchId}/data`, { params });
-            return response.data.$values;
+            const response = await axiosInstance.get<SwitchData[]>(`/switches/${switchId}/data`, { params });
+            return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 throw new Error(error.response?.data.message || 'Failed to fetch switch data');
@@ -104,10 +104,10 @@ const SwitchService = {
                 params.groupBy = groupBy;
             }
 
-            const response = await axiosInstance.get<{ $values: SwitchData[] }>('/switches/data', { params });
+            const response = await axiosInstance.get<SwitchData[]>('/switches/data', { params });
             const dataMap: Record<number, SwitchData[]> = {};
 
-            response.data.$values.forEach((data) => {
+            response.data.forEach((data) => {
                 if (!dataMap[data.switchId]) {
                     dataMap[data.switchId] = [];
                 }

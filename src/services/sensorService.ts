@@ -35,7 +35,7 @@ export interface PagedResponse<T> {
     totalCount: number;
     pageNumber: number;
     pageSize: number;
-    data: { $values: T[] };
+    data: T[];
 }
 
 const parseTimeRange = (timeRange: string): { startDate: string, endDate: string } => {
@@ -71,8 +71,8 @@ const parseTimeRange = (timeRange: string): { startDate: string, endDate: string
 const SensorService = {
     async getAllSensors(): Promise<Sensor[]> {
         try {
-            const response = await axiosInstance.get<{ $values: Sensor[] }>('/sensors');
-            return response.data.$values;
+            const response = await axiosInstance.get<Sensor[]>('/sensors');
+            return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 throw new Error(error.response?.data.message || 'Failed to fetch sensors');
@@ -105,7 +105,7 @@ const SensorService = {
         }
     },
 
-    async getMultipleSensorsData( sensorIds: number[], startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string, pageNumber: number = 1, pageSize: number = 100): Promise<PagedResponse<SensorData>> {
+    async getMultipleSensorsData( sensorIds: number[], startDate?: string, endDate?: string, timeRange?: string, groupBy?: string, pageNumber: number = 1, pageSize: number = 100): Promise<PagedResponse<SensorData>> {
         try {
             const params: Record<string, string | number> = { pageNumber, pageSize };
             if (timeRange) {
@@ -125,7 +125,6 @@ const SensorService = {
                 params[`sensorIds[${index}]`] = id.toString();
             });
 
-            if (average !== undefined) params.average = average.toString();
             if (groupBy) params.groupBy = groupBy;
 
             const response = await axiosInstance.get<PagedResponse<SensorData>>('/sensors/data', { params });

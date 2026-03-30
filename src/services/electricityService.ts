@@ -25,7 +25,7 @@ const ElectricityService = {
                 params.date = new Date(date).toISOString();
             }
             const response = await axiosInstance.get('/electricity/prices', { params });
-            const data = response.data.areas[area].values.$values;
+            const data = response.data.areas[area].values;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return data.map((item: any) => {
                 let price = item.value;
