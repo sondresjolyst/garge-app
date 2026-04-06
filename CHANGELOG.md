@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.4.0](https://github.com/sondresjolyst/garge-app/compare/v1.3.1...v1.4.0) (2026-04-06)
+
+
+### Features
+
+* default date range to 7 days ([b9a671d](https://github.com/sondresjolyst/garge-app/commit/b9a671d131a6652e0529e32a5c2d3e510ac3319c))
+
+
+### Bug Fixes
+
+* update date filtering logic in ElectricityPage to handle timezone correctly ([7462b32](https://github.com/sondresjolyst/garge-app/commit/7462b321394ea32f406d20d1deefc8fa5ca1dc80))
+
+
+### Performance Improvements
+
+* sensor data performance improvements ([#126](https://github.com/sondresjolyst/garge-app/issues/126)) ([592e281](https://github.com/sondresjolyst/garge-app/commit/592e281ca7e9aa528daecbf814d8dd2a752b130a))
+
 ## [1.3.1](https://github.com/sondresjolyst/garge-app/compare/v1.3.0...v1.3.1) (2026-03-27)
 
 
