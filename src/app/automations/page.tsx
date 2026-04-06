@@ -225,6 +225,7 @@ const AutomationsPage: React.FC = () => {
                             type="number"
                             placeholder="Threshold"
                             value={form.threshold}
+                            step="0.1"
                             onChange={e => setForm({ ...form, threshold: Number(e.target.value) })}
                             required
                         />
@@ -265,7 +266,7 @@ const AutomationsPage: React.FC = () => {
                                         Sensor: {sensorObj?.customName ?? sensorObj?.defaultName}
                                     </span>
                                     <span className="text-gray-500 text-xs mb-1">
-                                        Condition: {rule.condition}
+                                        Condition: {conditionOptions.find(opt => opt.value === rule.condition)?.label ?? rule.condition}
                                     </span>
                                     <span className="text-gray-500 text-xs mb-1">
                                         Threshold: {rule.threshold}
@@ -340,6 +341,7 @@ const AutomationsPage: React.FC = () => {
                                                         className="block w-full p-2 border rounded bg-gray-800 text-gray-200"
                                                         type="number"
                                                         value={editForm.threshold}
+                                                        step="0.1"
                                                         onChange={e => setEditForm({ ...editForm, threshold: Number(e.target.value) })}
                                                         required
                                                     />

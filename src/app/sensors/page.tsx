@@ -4,6 +4,8 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import SensorService, { Sensor, SensorData, BatteryHealthData } from '@/services/sensorService';
 import dynamic from 'next/dynamic';
 import debounce from 'lodash/debounce';
+import DatePicker from '@/components/DatePicker';
+import { formatDateTime } from '@/lib/dateUtils';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
 
@@ -30,29 +32,28 @@ const SensorsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [interval, setInterval] = useState<number>(60000 * 5);
     const [timeRangeError, setTimeRangeError] = useState<string | null>(null);
-    const [average, setAverage] = useState<boolean>(true);
     const [groupBy, setGroupBy] = useState<string>('5m');
 
     const defaultEndDate = new Date().toISOString().split('T')[0];
-    const defaultStartDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const defaultStartDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     const [startDate, setStartDate] = useState<string>(defaultStartDate);
     const [endDate, setEndDate] = useState<string>(defaultEndDate);
     const [timeRange, setTimeRange] = useState<string>('');
 
     const [pageNumber] = useState(1);
-    const [pageSize] = useState(1000);
+    const [pageSize] = useState(5000);
 
-    const fetchAllSensorData = async (sensorIds: number[], startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string, pageSize: number = 100): Promise<SensorData[]> => {
+    const fetchAllSensorData = async (sensorIds: number[], startDate?: string, endDate?: string, timeRange?: string, groupBy?: string, pageSize: number = 100): Promise<SensorData[]> => {
         let allData: SensorData[] = [];
         let pageNumber = 1;
         let totalCount = 0;
 
         do {
             const pagedResponse = await SensorService.getMultipleSensorsData(
-                sensorIds, startDate, endDate, timeRange, average, groupBy, pageNumber, pageSize
+                sensorIds, startDate, endDate, timeRange, groupBy, pageNumber, pageSize
             );
-            const pageData = pagedResponse.data.$values;
+            const pageData = pagedResponse.data;
             allData = allData.concat(pageData);
             totalCount = pagedResponse.totalCount;
             pageNumber++;
@@ -63,7 +64,7 @@ const SensorsPage: React.FC = () => {
         return allData;
     };
 
-    const fetchSensors = useCallback(async (startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string): Promise<void> => {
+    const fetchSensors = useCallback(async (startDate?: string, endDate?: string, timeRange?: string, groupBy?: string): Promise<void> => {
         try {
             const allSensors = await SensorService.getAllSensors();
             allSensors.sort((a, b) => {
@@ -89,7 +90,7 @@ const SensorsPage: React.FC = () => {
             setBatteryHealthMap(healthMap);
 
             const sensorIds = displaySensors.map(sensor => sensor.id);
-            const allSensorData = await fetchAllSensorData(sensorIds, startDate, endDate, timeRange, average, groupBy, pageSize);
+            const allSensorData = await fetchAllSensorData(sensorIds, startDate, endDate, timeRange, groupBy, pageSize);
 
             const dataMap: Record<number, SensorData[]> = {};
             allSensorData.forEach((data) => {
@@ -126,16 +127,16 @@ const SensorsPage: React.FC = () => {
     }, [endDate, pageNumber, pageSize]);
 
     const debouncedFetchSensors = useCallback(
-        debounce((startDate?: string, endDate?: string, timeRange?: string, average?: boolean, groupBy?: string) => fetchSensors(startDate, endDate, timeRange, average, groupBy), 500),
+        debounce((startDate?: string, endDate?: string, timeRange?: string, groupBy?: string) => fetchSensors(startDate, endDate, timeRange, groupBy), 500),
         [fetchSensors]
     );
 
     const fetchData = useCallback((): Promise<void> => {
         return new Promise((resolve) => {
-            debouncedFetchSensors(startDate, endDate, timeRange, average, groupBy);
+            debouncedFetchSensors(startDate, endDate, timeRange, groupBy);
             resolve();
         });
-    }, [debouncedFetchSensors, startDate, endDate, timeRange, average, groupBy]);
+    }, [debouncedFetchSensors, startDate, endDate, timeRange, groupBy]);
 
     useEffect(() => {
         fetchData();
@@ -147,7 +148,7 @@ const SensorsPage: React.FC = () => {
         return () => {
             window.clearInterval(intervalId);
         };
-    }, [interval, startDate, endDate, timeRange, average, groupBy, fetchData]);
+    }, [interval, startDate, endDate, timeRange, groupBy, fetchData]);
 
     const handleIntervalChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newInterval = parseInt(e.target.value, 10);
@@ -176,10 +177,6 @@ const SensorsPage: React.FC = () => {
         }
     };
 
-    const handleAverageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setAverage(e.target.value === 'true');
-    };
-
     const handleGroupByChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setGroupBy(e.target.value);
     };
@@ -188,7 +185,7 @@ const SensorsPage: React.FC = () => {
     const sensorsWithoutData = useMemo(() => sensors.filter(sensor => !sensorData[sensor.id] || sensorData[sensor.id].length === 0), [sensors, sensorData]);
 
     const processData = (data: SensorData[]) => {
-        const MAX_DATA_POINTS = 1000;
+        const MAX_DATA_POINTS = 750;
         if (data.length > MAX_DATA_POINTS) {
             const step = Math.ceil(data.length / MAX_DATA_POINTS);
             return data.filter((_, index) => index % step === 0).map(d => ({
@@ -230,22 +227,20 @@ const SensorsPage: React.FC = () => {
             </div>
             <div className="my-4">
                 <label htmlFor="start-date" className="block mb-2">Start Date:</label>
-                <input
-                    type="date"
+                <DatePicker
                     id="start-date"
                     className="block w-full p-2 border rounded bg-gray-800 text-gray-200"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={setStartDate}
                 />
             </div>
             <div className="my-4">
                 <label htmlFor="end-date" className="block mb-2">End Date:</label>
-                <input
-                    type="date"
+                <DatePicker
                     id="end-date"
                     className="block w-full p-2 border rounded bg-gray-800 text-gray-200"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    onChange={setEndDate}
                 />
             </div>
             <div className="my-4">
@@ -259,13 +254,6 @@ const SensorsPage: React.FC = () => {
                     onChange={handleTimeRangeChange}
                 />
                 {timeRangeError && <p className="text-red-500">{timeRangeError}</p>}
-            </div>
-            <div className="my-4">
-                <label htmlFor="average-select" className="block mb-2">Enable average:</label>
-                <select id="average-select" className="block w-full p-2 border rounded bg-gray-800 text-gray-200" onChange={handleAverageChange} value={average ? 'true' : 'false'}>
-                    <option value="true">true</option>
-                    <option value="false">false</option>
-                </select>
             </div>
             <div className="my-4">
                 <label htmlFor="groupby-select" className="block mb-2">Group by:</label>
@@ -292,7 +280,7 @@ const SensorsPage: React.FC = () => {
                             </h3>
                             {batteryHealthMap[sensor.parentName]?.lastChargedAt && (
                                 <p className="text-xs text-gray-400 mt-1">
-                                    Last charged: {new Date(batteryHealthMap[sensor.parentName].lastChargedAt!).toLocaleString()}
+                                    Last charged: {formatDateTime(batteryHealthMap[sensor.parentName].lastChargedAt!)}
                                 </p>
                             )}
                         </div>
