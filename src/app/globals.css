@@ -23,3 +23,41 @@
 .gargeDropdown {
     @apply block w-full p-2 border rounded bg-gray-800 text-gray-200;
 }
+
+/* react-datepicker dark theme */
+.dark .react-datepicker {
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #e5e7eb;
+    font-family: inherit;
+}
+.dark .react-datepicker__header {
+    background-color: #111827;
+    border-bottom-color: #374151;
+}
+.dark .react-datepicker__current-month,
+.dark .react-datepicker__day-name,
+.dark .react-datepicker-time__header {
+    color: #e5e7eb;
+}
+.dark .react-datepicker__day {
+    color: #e5e7eb;
+}
+.dark .react-datepicker__day:hover {
+    background-color: #374151;
+    color: #000;
+}
+.dark .react-datepicker__day--selected,
+.dark .react-datepicker__day--keyboard-selected {
+    background-color: #0284c7;
+    color: #fff;
+}
+.dark .react-datepicker__day--outside-month {
+    color: #6b7280;
+}
+.dark .react-datepicker__navigation-icon::before {
+    border-color: #9ca3af;
+}
+.dark .react-datepicker__triangle {
+    display: none;
+}

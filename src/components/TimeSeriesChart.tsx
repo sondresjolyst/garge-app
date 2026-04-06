@@ -82,7 +82,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
                 color: '#f0f0f0'
             },
             x: {
-                format: 'dd MMM yyyy HH:mm:ss'
+                format: 'dd.MM.yyyy HH:mm:ss'
             }
         }
     }), [title, chartType]);
