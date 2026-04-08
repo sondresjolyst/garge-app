@@ -73,16 +73,16 @@ const SensorsPage: React.FC = () => {
                 return nameA.localeCompare(nameB);
             });
 
-            const batterySensors = allSensors.filter(s => s.type === 'battery');
             const displaySensors = allSensors.filter(s => s.type !== 'battery');
             setSensors(displaySensors);
 
-            // Fetch latest battery health per battery sensor, keyed by parentName for badge lookup
+            // Fetch latest battery health for voltage sensors, keyed by sensor name for badge lookup
             const healthMap: Record<string, BatteryHealthData> = {};
-            await Promise.all(batterySensors.map(async s => {
+            const voltageSensors = allSensors.filter(s => s.type === 'voltage');
+            await Promise.all(voltageSensors.map(async s => {
                 try {
                     const health = await SensorService.getBatteryHealthLatest(s.name);
-                    healthMap[s.parentName] = health;
+                    healthMap[s.name] = health;
                 } catch (err) {
                     console.error(`Failed to fetch battery health for sensor "${s.name}":`, err);
                 }
@@ -274,13 +274,13 @@ const SensorsPage: React.FC = () => {
                         <div className="p-4">
                             <h3 className="text-lg sm:text-xl md:text-2xl font-bold">
                                 {sensor.customName ?? sensor.defaultName}
-                                {batteryHealthMap[sensor.parentName] && (
-                                    <BatteryHealthBadge health={batteryHealthMap[sensor.parentName]} />
+                                {batteryHealthMap[sensor.name] && (
+                                    <BatteryHealthBadge health={batteryHealthMap[sensor.name]} />
                                 )}
                             </h3>
-                            {batteryHealthMap[sensor.parentName]?.lastChargedAt && (
+                            {batteryHealthMap[sensor.name]?.lastChargedAt && (
                                 <p className="text-xs text-gray-400 mt-1">
-                                    Last charged: {formatDateTime(batteryHealthMap[sensor.parentName].lastChargedAt!)}
+                                    Last charged: {formatDateTime(batteryHealthMap[sensor.name].lastChargedAt!)}
                                 </p>
                             )}
                         </div>
