@@ -4,6 +4,8 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import SensorService, { Sensor, SensorData, BatteryHealthData } from '@/services/sensorService';
 import dynamic from 'next/dynamic';
 import debounce from 'lodash/debounce';
+import DatePicker from '@/components/DatePicker';
+import { formatDateTime } from '@/lib/dateUtils';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
 
@@ -33,7 +35,7 @@ const SensorsPage: React.FC = () => {
     const [groupBy, setGroupBy] = useState<string>('5m');
 
     const defaultEndDate = new Date().toISOString().split('T')[0];
-    const defaultStartDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const defaultStartDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     const [startDate, setStartDate] = useState<string>(defaultStartDate);
     const [endDate, setEndDate] = useState<string>(defaultEndDate);
@@ -81,8 +83,8 @@ const SensorsPage: React.FC = () => {
                 try {
                     const health = await SensorService.getBatteryHealthLatest(s.name);
                     healthMap[s.parentName] = health;
-                } catch {
-                    // No health data yet — badge will be omitted
+                } catch (err) {
+                    console.error(`Failed to fetch battery health for sensor "${s.name}":`, err);
                 }
             }));
             setBatteryHealthMap(healthMap);
@@ -225,22 +227,20 @@ const SensorsPage: React.FC = () => {
             </div>
             <div className="my-4">
                 <label htmlFor="start-date" className="block mb-2">Start Date:</label>
-                <input
-                    type="date"
+                <DatePicker
                     id="start-date"
                     className="block w-full p-2 border rounded bg-gray-800 text-gray-200"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={setStartDate}
                 />
             </div>
             <div className="my-4">
                 <label htmlFor="end-date" className="block mb-2">End Date:</label>
-                <input
-                    type="date"
+                <DatePicker
                     id="end-date"
                     className="block w-full p-2 border rounded bg-gray-800 text-gray-200"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    onChange={setEndDate}
                 />
             </div>
             <div className="my-4">
@@ -280,7 +280,7 @@ const SensorsPage: React.FC = () => {
                             </h3>
                             {batteryHealthMap[sensor.parentName]?.lastChargedAt && (
                                 <p className="text-xs text-gray-400 mt-1">
-                                    Last charged: {new Date(batteryHealthMap[sensor.parentName].lastChargedAt!).toLocaleString()}
+                                    Last charged: {formatDateTime(batteryHealthMap[sensor.parentName].lastChargedAt!)}
                                 </p>
                             )}
                         </div>
