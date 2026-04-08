@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.2](https://github.com/sondresjolyst/garge-app/compare/v1.4.1...v1.4.2) (2026-04-08)
+
+
+### Bug Fixes
+
+* use result.error.issues instead of deprecated .errors (Zod v4) ([#137](https://github.com/sondresjolyst/garge-app/issues/137)) ([5b66c77](https://github.com/sondresjolyst/garge-app/commit/5b66c77fe34f706f1514dc1fb3b2547363c3f333))
+
 ## [1.4.1](https://github.com/sondresjolyst/garge-app/compare/v1.4.0...v1.4.1) (2026-04-08)
 
 
