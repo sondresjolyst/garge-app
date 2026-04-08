@@ -89,7 +89,7 @@ const UserService = {
         const result = registerSchema.safeParse(data);
 
         if (!result.success) {
-            const errors = result.error.errors.reduce((acc, error) => {
+            const errors = result.error.issues.reduce((acc, error) => {
                 const path = error.path[0] as string;
                 if (!acc[path]) {
                     acc[path] = [];
