@@ -4,17 +4,13 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import SensorService, { Sensor, SensorData, BatteryHealthData } from '@/services/sensorService';
 import dynamic from 'next/dynamic';
 import { formatDateTime } from '@/lib/dateUtils';
-import { ChevronRightIcon, Battery0Icon, Battery50Icon, Battery100Icon } from '@heroicons/react/24/outline';
+import { BATTERY_STATUS_CONFIG as statusConfig } from '@/lib/typeConfig';
+import { RANGE_OPTIONS, type RangeIndex } from '@/lib/constants';
+import { unitForType } from '@/lib/typeUtils';
+import LoadingDots from '@/components/LoadingDots';
+import CollapsibleSection from '@/components/CollapsibleSection';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
-
-// ── Battery badge ──────────────────────────────────────────────────────────────
-const statusConfig: Record<string, { color: string; label: string; Icon: React.FC<React.SVGProps<SVGSVGElement>> }> = {
-    good:      { color: 'text-green-400',  label: 'Good',      Icon: Battery100Icon },
-    attention: { color: 'text-yellow-400', label: 'Attention', Icon: Battery50Icon  },
-    replace:   { color: 'text-red-400',    label: 'Replace',   Icon: Battery0Icon   },
-    learning:  { color: 'text-gray-500',   label: 'Learning',  Icon: Battery50Icon  },
-};
 
 const BatteryHealthIcon: React.FC<{ health: BatteryHealthData }> = ({ health }) => {
     const cfg = statusConfig[health.status] ?? statusConfig.learning;
@@ -43,35 +39,11 @@ const BatteryHealthIcon: React.FC<{ health: BatteryHealthData }> = ({ health }) 
 };
 
 // ── Range presets ──────────────────────────────────────────────────────────────
-const RANGE_OPTIONS = [
-    { label: 'Day',   timeRange: '1d',   groupBy: '30m' },
-    { label: 'Week',  timeRange: '1w',   groupBy: '2h'  },
-    { label: 'Month', timeRange: '30d',  groupBy: '1d'  },
-    { label: 'Year',  timeRange: '365d', groupBy: '1d'  },
-] as const;
-
-type RangeIndex = 0 | 1 | 2 | 3;
 
 // Default display range for each card
 const DEFAULT_RANGE: RangeIndex = 2; // Month
 
-const unitForType = (type: string) => {
-    if (type === 'temperature') return '°C';
-    if (type === 'humidity')    return '%';
-    if (type === 'voltage')     return 'V';
-    return '';
-};
-
 // ── Loading dots ───────────────────────────────────────────────────────────────
-const LoadingDots: React.FC<{ height?: string }> = ({ height = 'h-[220px]' }) => (
-    <div className={`${height} flex items-center justify-center`}>
-        <div className="flex gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-sky-500 animate-bounce [animation-delay:0ms]" />
-            <span className="w-2 h-2 rounded-full bg-sky-500 animate-bounce [animation-delay:150ms]" />
-            <span className="w-2 h-2 rounded-full bg-sky-500 animate-bounce [animation-delay:300ms]" />
-        </div>
-    </div>
-);
 
 // ── SensorCard ─────────────────────────────────────────────────────────────────
 interface SensorCardProps {
@@ -184,38 +156,6 @@ const SensorCard: React.FC<SensorCardProps> = ({ sensor, batteryHealth }) => {
     );
 };
 
-// ── Collapsible section ────────────────────────────────────────────────────────
-interface CollapsibleSectionProps {
-    label: string;
-    count: number;
-    children: React.ReactNode;
-}
-
-const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ label, count, children }) => {
-    const [open, setOpen] = useState(false);
-    return (
-        <div className="mt-8">
-            <button
-                onClick={() => setOpen(o => !o)}
-                className="flex items-center gap-2 text-gray-400 hover:text-gray-200 transition-colors w-full text-left group"
-            >
-                <ChevronRightIcon
-                    className={`h-4 w-4 transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
-                />
-                <span className="text-sm font-medium">{label}</span>
-                <span className="ml-1 text-xs bg-gray-700 text-gray-400 rounded-full px-2 py-0.5 group-hover:bg-gray-600 transition-colors">
-                    {count}
-                </span>
-            </button>
-            {open && (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
-                    {children}
-                </div>
-            )}
-        </div>
-    );
-};
-
 // ── Main page ──────────────────────────────────────────────────────────────────
 const SensorsPage: React.FC = () => {
     const [sensors, setSensors] = useState<Sensor[]>([]);
@@ -303,13 +243,15 @@ const SensorsPage: React.FC = () => {
 
             {inactiveSensors.length > 0 && (
                 <CollapsibleSection label="No recent data" count={inactiveSensors.length}>
-                    {inactiveSensors.map(sensor => (
-                        <SensorCard
-                            key={sensor.id}
-                            sensor={sensor}
-                            batteryHealth={batteryHealthMap[sensor.name]}
-                        />
-                    ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {inactiveSensors.map(sensor => (
+                            <SensorCard
+                                key={sensor.id}
+                                sensor={sensor}
+                                batteryHealth={batteryHealthMap[sensor.name]}
+                            />
+                        ))}
+                    </div>
                 </CollapsibleSection>
             )}
         </div>

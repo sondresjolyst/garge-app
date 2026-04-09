@@ -6,6 +6,8 @@ import { signIn, getSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { inputClass } from '@/components/TextInput';
+import Alert from '@/components/Alert';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -58,7 +60,7 @@ const Login: React.FC = () => {
                         <div>
                             <label className="block text-xs font-medium text-gray-400 mb-1.5">Email</label>
                             <input
-                                className="w-full px-3 py-2.5 bg-gray-900/60 border border-gray-700/50 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60 focus:ring-1 focus:ring-sky-500/30 transition-all text-sm"
+                                className={inputClass}
                                 type="email"
                                 placeholder="you@example.com"
                                 value={email}
@@ -70,7 +72,7 @@ const Login: React.FC = () => {
                             <label className="block text-xs font-medium text-gray-400 mb-1.5">Password</label>
                             <div className="relative">
                                 <input
-                                    className="w-full px-3 py-2.5 pr-10 bg-gray-900/60 border border-gray-700/50 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60 focus:ring-1 focus:ring-sky-500/30 transition-all text-sm"
+                                    className={`${inputClass} pr-10`}
                                     type={showPassword ? 'text' : 'password'}
                                     placeholder="••••••••"
                                     value={password}
@@ -88,7 +90,7 @@ const Login: React.FC = () => {
                         </div>
 
                         {apiMessage && (
-                            <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">{apiMessage}</p>
+                            <Alert variant="error">{apiMessage}</Alert>
                         )}
 
                         <Link href="/reset-password" className="block text-xs text-gray-500 hover:text-gray-300 transition-colors">

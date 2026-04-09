@@ -5,8 +5,8 @@ import AuthService from '@/services/userService';
 import Image from 'next/image';
 import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-
-const inputClass = "w-full px-3 py-2.5 bg-gray-900/60 border border-gray-700/50 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60 focus:ring-1 focus:ring-sky-500/30 transition-all text-sm";
+import { inputClass } from '@/components/TextInput';
+import Alert from '@/components/Alert';
 
 const ResetPassword: React.FC = () => {
     const [step, setStep] = useState<1 | 2>(1);
@@ -71,7 +71,7 @@ const ResetPassword: React.FC = () => {
                                 <label className="block text-xs font-medium text-gray-400 mb-1.5">Email</label>
                                 <input className={inputClass} type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} />
                             </div>
-                            {apiMessage && <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">{apiMessage}</p>}
+                            {apiMessage && <Alert variant="error">{apiMessage}</Alert>}
                             <button className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all text-sm" type="submit" disabled={loading}>
                                 {loading ? 'Sending…' : 'Send reset code'}
                             </button>
@@ -102,7 +102,7 @@ const ResetPassword: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
-                            {apiMessage && <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">{apiMessage}</p>}
+                            {apiMessage && <Alert variant="error">{apiMessage}</Alert>}
                             <button className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all text-sm" type="submit" disabled={loading}>
                                 {loading ? 'Resetting…' : 'Reset password'}
                             </button>

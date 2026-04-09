@@ -6,66 +6,12 @@ import { useSession } from 'next-auth/react';
 import UserService from '@/services/userService';
 import { UserDTO } from '@/dto/UserDTO';
 import SensorService, { Sensor } from '@/services/sensorService';
-import { PencilIcon, CheckIcon, XMarkIcon, TrashIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-
-function LoadingDots() {
-    return (
-        <div className="flex items-center gap-1.5 py-2">
-            {[0, 1, 2].map(i => (
-                <div key={i} className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-            ))}
-        </div>
-    );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-    return (
-        <div className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-6 shadow-lg">
-            <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">{title}</h2>
-            {children}
-        </div>
-    );
-}
-
-function ConfirmModal({ sensorName, onConfirm, onCancel, loading }: { sensorName: string; onConfirm: () => void; onCancel: () => void; loading: boolean }) {
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
-            <div className="relative bg-gray-800 border border-gray-700/60 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center flex-shrink-0">
-                        <ExclamationTriangleIcon className="h-5 w-5 text-red-400" />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-semibold text-gray-100">Remove sensor</h3>
-                        <p className="text-xs text-gray-400">This cannot be undone</p>
-                    </div>
-                </div>
-                <p className="text-sm text-gray-300 mb-6">
-                    Are you sure you want to remove <span className="font-medium text-gray-100">{sensorName}</span> from your account? You can re-add it later using the registration code.
-                </p>
-                <div className="flex gap-3">
-                    <button
-                        onClick={onCancel}
-                        disabled={loading}
-                        className="flex-1 py-2 rounded-xl bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm font-medium transition-all disabled:opacity-50"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={onConfirm}
-                        disabled={loading}
-                        className="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-all disabled:opacity-50"
-                    >
-                        {loading ? 'Removing…' : 'Remove'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-const inputClass = "w-full px-3 py-2.5 bg-gray-900/60 border border-gray-700/50 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60 focus:ring-1 focus:ring-sky-500/30 transition-all text-sm";
+import { PencilIcon, CheckIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
+import ConfirmModal from '@/components/ConfirmModal';
+import LoadingDots from '@/components/LoadingDots';
+import Section from '@/components/Section';
+import { inputClass } from '@/components/TextInput';
+import Alert from '@/components/Alert';
 
 const Profile: React.FC = () => {
     const { status } = useSession();
@@ -90,7 +36,6 @@ const Profile: React.FC = () => {
     const [editError, setEditError] = useState<string | null>(null);
     const [sensorsLoading, setSensorsLoading] = useState(true);
     const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
-    const [deleteLoading, setDeleteLoading] = useState(false);
 
     function sortSensorsByName(sensors: Sensor[]): Sensor[] {
         return [...sensors].sort((a, b) =>
@@ -167,16 +112,9 @@ const Profile: React.FC = () => {
 
     const handleUnclaimSensor = async () => {
         if (confirmDeleteId === null) return;
-        setDeleteLoading(true);
-        try {
-            await SensorService.unclaimSensor(confirmDeleteId);
-            setConfirmDeleteId(null);
-            await refreshSensors();
-        } catch (error: unknown) {
-            console.error(error instanceof Error ? error.message : 'Failed to remove sensor.');
-        } finally {
-            setDeleteLoading(false);
-        }
+        await SensorService.unclaimSensor(confirmDeleteId);
+        setConfirmDeleteId(null);
+        await refreshSensors();
     };
 
     const startEditing = (sensor: Sensor) => {
@@ -213,10 +151,11 @@ const Profile: React.FC = () => {
         <>
             {confirmDeleteId !== null && confirmSensor && (
                 <ConfirmModal
-                    sensorName={confirmSensor.customName ?? confirmSensor.defaultName}
+                    title="Remove sensor"
+                    message={<>Are you sure you want to remove <span className="font-medium text-gray-100">{confirmSensor.customName ?? confirmSensor.defaultName}</span> from your account? You can re-add it later using the registration code.</>}
+                    confirmLabel="Remove"
                     onConfirm={handleUnclaimSensor}
                     onCancel={() => setConfirmDeleteId(null)}
-                    loading={deleteLoading}
                 />
             )}
 
@@ -270,9 +209,9 @@ const Profile: React.FC = () => {
                             )}
 
                             {emailMessage && (
-                                <p className={`text-sm px-3 py-2 rounded-xl ${emailError ? 'text-red-400 bg-red-500/10 border border-red-500/20' : 'text-green-400 bg-green-500/10 border border-green-500/20'}`}>
-                                    {emailMessage}
-                                </p>
+                                emailError
+                                    ? <Alert variant="error">{emailMessage}</Alert>
+                                    : <Alert variant="success">{emailMessage}</Alert>
                             )}
                         </div>
                     )}
@@ -299,9 +238,9 @@ const Profile: React.FC = () => {
                         </button>
                     </div>
                     {claimMessage && (
-                        <p className={`mt-3 text-sm px-3 py-2 rounded-xl ${claimError ? 'text-red-400 bg-red-500/10 border border-red-500/20' : 'text-green-400 bg-green-500/10 border border-green-500/20'}`}>
-                            {claimMessage}
-                        </p>
+                        claimError
+                            ? <Alert variant="error" className="mt-3">{claimMessage}</Alert>
+                            : <Alert variant="success" className="mt-3">{claimMessage}</Alert>
                     )}
                 </Section>
 

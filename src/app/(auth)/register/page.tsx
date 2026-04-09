@@ -7,6 +7,8 @@ import AuthService from '@/services/userService';
 import Image from 'next/image';
 import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { inputClass } from '@/components/TextInput';
+import Alert from '@/components/Alert';
 
 const Register: React.FC = () => {
     const [userName, setUserName] = useState('');
@@ -42,8 +44,6 @@ const Register: React.FC = () => {
             setLoading(false);
         }
     };
-
-    const inputClass = "w-full px-3 py-2.5 bg-gray-900/60 border border-gray-700/50 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60 focus:ring-1 focus:ring-sky-500/30 transition-all text-sm";
 
     return (
         <div className="min-h-[80vh] flex items-center justify-center px-4 py-8">
@@ -108,7 +108,7 @@ const Register: React.FC = () => {
                         </div>
 
                         {apiMessage && (
-                            <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">{apiMessage}</p>
+                            <Alert variant="error">{apiMessage}</Alert>
                         )}
 
                         <button
