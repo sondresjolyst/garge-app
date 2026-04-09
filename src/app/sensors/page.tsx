@@ -4,24 +4,41 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import SensorService, { Sensor, SensorData, BatteryHealthData } from '@/services/sensorService';
 import dynamic from 'next/dynamic';
 import { formatDateTime } from '@/lib/dateUtils';
-import { ChevronRightIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, Battery0Icon, Battery50Icon, Battery100Icon } from '@heroicons/react/24/outline';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
 
 // ── Battery badge ──────────────────────────────────────────────────────────────
-const statusConfig: Record<string, { color: string; label: string }> = {
-    good:      { color: 'bg-green-600',  label: 'Good' },
-    attention: { color: 'bg-yellow-500', label: 'Attention' },
-    replace:   { color: 'bg-red-600',    label: 'Replace' },
-    learning:  { color: 'bg-gray-500',   label: 'Learning' },
+const statusConfig: Record<string, { color: string; label: string; Icon: React.FC<React.SVGProps<SVGSVGElement>> }> = {
+    good:      { color: 'text-green-400',  label: 'Good',      Icon: Battery100Icon },
+    attention: { color: 'text-yellow-400', label: 'Attention', Icon: Battery50Icon  },
+    replace:   { color: 'text-red-400',    label: 'Replace',   Icon: Battery0Icon   },
+    learning:  { color: 'text-gray-500',   label: 'Learning',  Icon: Battery50Icon  },
 };
 
-const BatteryHealthBadge: React.FC<{ health: BatteryHealthData }> = ({ health }) => {
+const BatteryHealthIcon: React.FC<{ health: BatteryHealthData }> = ({ health }) => {
     const cfg = statusConfig[health.status] ?? statusConfig.learning;
+    const Icon = cfg.Icon;
+    const chargedText = health.lastChargedAt
+        ? `Charged ${formatDateTime(health.lastChargedAt)}`
+        : 'No charge recorded yet';
+    const dropText = health.status !== 'learning' && health.dropPct > 0
+        ? ` · ${health.dropPct.toFixed(1)}% drop`
+        : '';
+
     return (
-        <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full text-white ${cfg.color}`}>
-            {cfg.label}{health.status !== 'learning' && health.dropPct > 0 ? ` · ${health.dropPct.toFixed(1)}%↓` : ''}
-        </span>
+        <div className="relative group flex-shrink-0">
+            <Icon className={`h-5 w-5 ${cfg.color}`} />
+
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col items-center pointer-events-none z-20">
+                <div className="bg-gray-900 border border-gray-700/60 rounded-xl px-3 py-2 shadow-xl text-xs whitespace-nowrap space-y-0.5">
+                    <p className={`font-semibold ${cfg.color}`}>{cfg.label}{dropText}</p>
+                    <p className="text-gray-400">{chargedText}</p>
+                </div>
+                <div className="w-2 h-2 bg-gray-900 border-r border-b border-gray-700/60 rotate-45 -mt-1" />
+            </div>
+        </div>
     );
 };
 
@@ -111,20 +128,15 @@ const SensorCard: React.FC<SensorCardProps> = ({ sensor, batteryHealth }) => {
     const unit = unitForType(sensor.type);
 
     return (
-        <div className="bg-gray-800/60 border border-gray-700/40 rounded-2xl overflow-hidden backdrop-blur-sm shadow-lg flex flex-col">
+        <div className="bg-gray-800/60 border border-gray-700/40 rounded-2xl backdrop-blur-sm shadow-lg flex flex-col">
             {/* Header */}
-            <div className="px-5 pt-5 pb-3 flex items-start justify-between">
-                <div className="flex-1 min-w-0 pr-3">
-                    <h3 className="text-base font-semibold text-gray-100 truncate">
-                        {sensor.customName ?? sensor.defaultName}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                        {batteryHealth && <BatteryHealthBadge health={batteryHealth} />}
-                        {batteryHealth?.lastChargedAt && (
-                            <span className="text-xs text-gray-500">
-                                Charged {formatDateTime(batteryHealth.lastChargedAt)}
-                            </span>
-                        )}
+            <div className="px-5 pt-5 pb-3 flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                        <h3 className="text-base font-semibold text-gray-100 truncate">
+                            {sensor.customName ?? sensor.defaultName}
+                        </h3>
+                        {batteryHealth && <BatteryHealthIcon health={batteryHealth} />}
                     </div>
                 </div>
                 {latestValue !== null && (
