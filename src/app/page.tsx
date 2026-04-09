@@ -2,149 +2,133 @@
 
 import React from 'react';
 import Image from 'next/image';
-import TimeSeriesChart from '@/components/TimeSeriesChart';
-import { PlusCircleIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { SignalIcon, BoltIcon, CpuChipIcon, ChartBarIcon, DevicePhoneMobileIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 
-const demoData = [
-    { x: Math.floor(new Date('2024-01-01').getTime()), y: 12 },
-    { x: Math.floor(new Date('2024-02-01').getTime()), y: 19 },
-    { x: Math.floor(new Date('2024-03-01').getTime()), y: 3 },
-    { x: Math.floor(new Date('2024-04-01').getTime()), y: 5 },
-    { x: Math.floor(new Date('2024-05-01').getTime()), y: 2 },
-    { x: Math.floor(new Date('2024-06-01').getTime()), y: 3 },
+const features = [
+    {
+        icon: SignalIcon,
+        title: 'Real-time monitoring',
+        description: 'Temperature, humidity, and battery voltage updated continuously from your devices.',
+    },
+    {
+        icon: ChartBarIcon,
+        title: 'Historical trends',
+        description: 'Browse Day, Week, Month, and Year views to understand patterns over time.',
+    },
+    {
+        icon: BoltIcon,
+        title: 'Smart sockets',
+        description: 'Control and monitor your WiZ smart plugs directly from the dashboard.',
+    },
+    {
+        icon: CpuChipIcon,
+        title: 'Automations',
+        description: 'Create rules that trigger actions automatically based on sensor readings.',
+    },
+    {
+        icon: DevicePhoneMobileIcon,
+        title: 'Any device',
+        description: 'Fully responsive web app — works great on phone, tablet, and desktop.',
+    },
+    {
+        icon: ShieldCheckIcon,
+        title: 'Secure & private',
+        description: 'Your data is tied to your account. Only you can see your sensors.',
+    },
 ];
 
-const demoSockets = [
-    { name: 'Wiz Socket 1', state: 'ON' },
-    { name: 'Wiz Socket 2', state: 'OFF' },
-    { name: 'Wiz Socket 3', state: 'ON' },
-    { name: 'Wiz Socket 4', state: 'UNKNOWN' },
+const faqs = [
+    {
+        q: 'What is the difference between Garge Sensor and Garge Voltmeter?',
+        a: 'Garge Sensor monitors temperature and humidity. Garge Voltmeter is dedicated to monitoring battery voltage — useful for tracking the health of remote battery-powered devices.',
+    },
+    {
+        q: 'How do I add a device to my account?',
+        a: 'Go to your Profile page and enter the registration code printed on your device under "Add a device". The sensor will appear in your dashboard immediately.',
+    },
+    {
+        q: 'Can I access my data remotely?',
+        a: 'Yes — the Garge dashboard is a web app accessible from any device with an internet connection.',
+    },
+    {
+        q: 'Can I rename my sensors?',
+        a: 'Yes. On your Profile page, each sensor has an edit button so you can give it a custom name that makes sense to you.',
+    },
 ];
-
-const stateIcon = (state: string) => {
-    switch (state) {
-        case 'ON':
-            return <PlusCircleIcon className="h-8 w-8 fill-green-400" title="On" />;
-        case 'OFF':
-            return <PlusCircleIcon className="h-8 w-8 fill-red-400" title="Off" />;
-        default:
-            return <PlusCircleIcon className="h-8 w-8 fill-zinc-400" title="Unknown" />;
-    }
-};
 
 export default function HomePage() {
     return (
-        <div className="p-4 space-y-8 text-gray-200 shadow-md rounded-lg overflow-hidden">
-            {/* Welcome Section */}
-            <div className="text-gray-200 p-6 flex flex-col">
-                <h1 className="text-3xl font-bold mb-2">Welcome to Garge!</h1>
-                <p className="text-lg mb-2">
-                    Monitor temperature, humidity, and battery voltage.
-                </p>
-            </div>
+        <div className="max-w-5xl mx-auto px-4 py-8 space-y-16 text-gray-200">
 
-            {/* Product Overview */}
-            <div className="bg-gray-800 text-gray-200 shadow-md rounded-lg p-6">
-                <h2 className="text-2xl font-bold mb-4">Product Overview</h2>
-                <p className="mb-2">
-                    <strong>Garge Sensor</strong> is a smart device designed to monitor temperature and humidity in real time, helping you maintain optimal conditions in your storage, garage, or workspace.
-                </p>
-                <p className="mb-2">
-                    <strong>Garge Voltmeter</strong> is a variant that focuses on monitoring battery voltage, providing insights into battery health and usage over time.
-                </p>
-                <p>
-                    Both variants seamlessly integrate with the Garge platform, offering reliable data visualization and remote monitoring.
-                </p>
-            </div>
+            {/* Hero */}
+            <section className="flex flex-col items-center text-center pt-4 pb-2 gap-6">
+                <Image src="/garge-icon-large.png" height={80} width={0} style={{ width: 'auto' }} alt="Garge" priority />
+                <div>
+                    <h1 className="text-4xl sm:text-5xl font-bold text-gray-100 leading-tight mb-3">
+                        Know what's happening<br className="hidden sm:block" /> in your space
+                    </h1>
+                    <p className="text-lg text-gray-400 max-w-xl mx-auto">
+                        Garge monitors temperature, humidity, and voltage in real time — so you're always in the loop, wherever you are.
+                    </p>
+                </div>
+                <div className="flex gap-3 flex-wrap justify-center">
+                    <Link href="/sensors" className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-medium rounded-xl transition-all text-sm">
+                        View sensors
+                    </Link>
+                    <Link href="/profile" className="px-5 py-2.5 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/50 text-gray-200 font-medium rounded-xl transition-all text-sm">
+                        Add a device
+                    </Link>
+                </div>
+            </section>
 
-            {/* Key Features */}
-            <div className="bg-gray-800 text-gray-200 shadow-md rounded-lg p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center h-full">
-                    <div>
-                        <h2 className="text-2xl font-bold mb-2">Key Features</h2>
-                        <ul className="list-disc list-inside space-y-1">
-                            <li>Real-time temperature monitoring</li>
-                            <li>Humidity tracking for optimal storage</li>
-                            <li>Battery voltage monitoring</li>
-                        </ul>
-                    </div>
-
-                    <div className="flex flex-col md:flex-row gap-4 justify-center items-center h-full">
-                        <div className="bg-gray-700 text-gray-200 shadow-md rounded-lg p-4 flex flex-col items-center">
-                            <Image className="object-cover" width={256} height={256} src="/garge-box-v1.1/liz-sensor-v1.1-box-transparent.png" alt="Garge Sensor" />
-                            <span className="mt-2 text-sm">Assembled Garge Sensor</span>
-                        </div>
-                        <div className="bg-gray-700 text-gray-200 shadow-md rounded-lg p-4 flex flex-col items-center">
-                            <Image className="object-cover" width={256} height={256} src="/garge-box-v1.1/liz-sensor-v1.1-box-explode-transparent.png" alt="Garge Sensor Exploded" />
-                            <span className="mt-2 text-sm">Exploded view of the Garge Sensor</span>
-                        </div>
+            {/* Product images */}
+            <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-6 flex flex-col items-center gap-3">
+                    <Image src="/garge-box-v1.1/liz-sensor-v1.1-box-transparent.png" width={200} height={200} alt="Garge Sensor" className="object-contain" />
+                    <div className="text-center">
+                        <p className="text-sm font-semibold text-gray-100">Garge Sensor</p>
+                        <p className="text-xs text-gray-400 mt-0.5">Temperature & humidity monitoring</p>
                     </div>
                 </div>
-            </div>
-
-            {/* Benefits & Use Cases */}
-            <div className="bg-gray-800 text-gray-200 shadow-md rounded-lg p-6">
-                <h2 className="text-2xl font-bold mb-4">Benefits & Use Cases</h2>
-                <ul className="list-disc list-inside space-y-2">
-                    <li>Prevent mold and damage by monitoring humidity in storage spaces.</li>
-                    <li>Ensure optimal temperature for sensitive equipment or materials.</li>
-                    <li>Track battery voltage to monitor power status in remote devices.</li>
-                    <li>Access historical data to analyze trends and improve storage conditions.</li>
-                </ul>
-            </div>
-
-            {/* Demo */}
-            <div>
-                <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-4">Demo</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="bg-gray-800 text-gray-200 shadow-md rounded-lg p-6">
-                        <h4 className="text-xl font-semibold mb-2">Demo Sensor</h4>
-                        <TimeSeriesChart title="Demo Data" data={demoData} />
-                    </div>
-                    <div className="text-gray-200 p-6">
-                        <h4 className="text-xl font-semibold mb-2">Demo Sockets</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {demoSockets.map((socket, idx) => (
-                                <div
-                                    key={idx}
-                                    className="bg-gray-800 text-gray-200 shadow-md rounded-lg overflow-hidden flex items-center p-4"
-                                >
-                                    <div className="flex-1">
-                                        <h5 className="text-lg font-bold">{socket.name}</h5>
-                                        <span className="block text-sm text-gray-400">Status: {socket.state}</span>
-                                    </div>
-                                    {stateIcon(socket.state)}
-                                </div>
-                            ))}
-                        </div>
+                <div className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-6 flex flex-col items-center gap-3">
+                    <Image src="/garge-box-v1.1/liz-sensor-v1.1-box-explode-transparent.png" width={200} height={200} alt="Garge Sensor Exploded" className="object-contain" />
+                    <div className="text-center">
+                        <p className="text-sm font-semibold text-gray-100">Inside the Garge Sensor</p>
+                        <p className="text-xs text-gray-400 mt-0.5">Compact, low-power, wireless</p>
                     </div>
                 </div>
-            </div>
+            </section>
+
+            {/* Features */}
+            <section>
+                <h2 className="text-2xl font-bold text-gray-100 mb-6 text-center">Everything you need</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {features.map(({ icon: Icon, title, description }) => (
+                        <div key={title} className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-5">
+                            <div className="w-9 h-9 rounded-xl bg-sky-600/20 flex items-center justify-center mb-3">
+                                <Icon className="h-5 w-5 text-sky-400" />
+                            </div>
+                            <h3 className="text-sm font-semibold text-gray-100 mb-1">{title}</h3>
+                            <p className="text-xs text-gray-400 leading-relaxed">{description}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
 
             {/* FAQ */}
-            <div className="bg-gray-800 text-gray-200 shadow-md rounded-lg p-6">
-                <h2 className="text-2xl font-bold mb-4">Frequently Asked Questions</h2>
-                <div className="space-y-4">
-                    <div>
-                        <h3 className="font-semibold">What is the difference between Garge Sensor and Garge Voltmeter?</h3>
-                        <p>
-                            Garge Sensor monitors temperature and humidity, while Garge Voltmeter is dedicated to monitoring battery voltage.
-                        </p>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold">How do I install a Garge device?</h3>
-                        <p>
-                            Simply place the device in your desired location and follow the setup instructions in the documentation. Both variants are designed for easy installation.
-                        </p>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold">Can I access my data remotely?</h3>
-                        <p>
-                            Yes, all sensor data is available through the Garge web dashboard, accessible from any device with an internet connection.
-                        </p>
-                    </div>
+            <section>
+                <h2 className="text-2xl font-bold text-gray-100 mb-6 text-center">Frequently asked questions</h2>
+                <div className="space-y-3">
+                    {faqs.map(({ q, a }) => (
+                        <div key={q} className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-5">
+                            <h3 className="text-sm font-semibold text-gray-100 mb-2">{q}</h3>
+                            <p className="text-sm text-gray-400 leading-relaxed">{a}</p>
+                        </div>
+                    ))}
                 </div>
-            </div>
+            </section>
+
         </div>
     );
 }
