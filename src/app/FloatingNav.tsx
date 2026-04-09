@@ -4,16 +4,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     HomeIcon,
-    SignalIcon,
     BoltIcon,
-    PlusCircleIcon,
     WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline';
 
 const navItems = [
-    { href: '/',            label: 'Home',        Icon: HomeIcon },
-    { href: '/sensors',     label: 'Sensors',     Icon: SignalIcon },
-    { href: '/sockets',     label: 'Sockets',     Icon: PlusCircleIcon },
+    { href: '/',            label: 'Devices',     Icon: HomeIcon },
     { href: '/electricity', label: 'Electricity', Icon: BoltIcon },
     { href: '/automations', label: 'Auto',        Icon: WrenchScrewdriverIcon },
 ];
