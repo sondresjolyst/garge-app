@@ -44,7 +44,7 @@ const Login: React.FC = () => {
         <div className="min-h-[80vh] flex items-center justify-center px-4">
             <div className="w-full max-w-sm">
                 <div className="flex justify-center mb-8">
-                    <Image src="/garge-icon-large.png" height={72} width={0} style={{ width: 'auto' }} alt="Garge" priority />
+                    <Image src="/garge-icon-large.png" width={0} height={0} className="h-20 sm:h-28 md:h-36 w-auto" unoptimized alt="Garge" priority />
                 </div>
 
                 <div className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-8 shadow-xl">
