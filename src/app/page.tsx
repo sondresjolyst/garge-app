@@ -63,7 +63,7 @@ export default function HomePage() {
 
             {/* Hero */}
             <section className="flex flex-col items-center text-center pt-4 pb-2 gap-6">
-                <Image src="/garge-icon-large.png" height={80} width={0} style={{ width: 'auto' }} alt="Garge" priority />
+                <Image src="/garge-icon-large.png" height={80} width={0} style={{ width: 'auto' }} alt="Garge" priority  unoptimized/>
                 <div>
                     <h1 className="text-4xl sm:text-5xl font-bold text-gray-100 leading-tight mb-3">
                         Know what's happening<br className="hidden sm:block" /> in your space
