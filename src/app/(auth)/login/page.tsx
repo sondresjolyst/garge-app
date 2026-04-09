@@ -18,7 +18,7 @@ const Login: React.FC = () => {
     const router = useRouter();
 
     useEffect(() => {
-        getSession().then(s => { if (s) router.push('/profile'); });
+        getSession().then(s => { if (s) router.push('/'); });
     }, [router]);
 
     const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -37,7 +37,7 @@ const Login: React.FC = () => {
                 session = await getSession();
                 retries++;
             }
-            if (session) { router.push('/profile'); router.refresh(); }
+            if (session) { router.push('/'); router.refresh(); }
             else setLoading(false);
         }
     };
