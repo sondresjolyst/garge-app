@@ -61,7 +61,7 @@ const UserService = {
                     Authorization: `Bearer ${session.accessToken}`,
                 },
             });
-            return response.data;
+            return { ...response.data, id: sub };
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 throw new Error(error.response?.data.message || 'Failed to fetch user profile');
@@ -176,7 +176,20 @@ const UserService = {
                 throw new Error('An unknown error occurred');
             }
         }
-    }
+    },
+
+    async updatePreferences(userId: string, priceZone: string): Promise<UserDTO> {
+        try {
+            const response = await axiosInstance.put<UserDTO>(`/users/${userId}/preferences`, { priceZone });
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to update preferences');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
 };
 
 export default UserService;

@@ -106,11 +106,16 @@ const DeviceCard: React.FC<{ device: UnifiedDevice; onClick: () => void }> = ({ 
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${cfg.iconBg}`}>
                     <cfg.Icon className={`h-5 w-5 ${cfg.iconColor}`} />
                 </div>
-                <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                    device.isActive
-                        ? 'bg-green-400 shadow-[0_0_6px_2px_rgba(74,222,128,0.35)]'
-                        : 'bg-gray-600'
-                }`} />
+                <div className="flex items-center gap-1 mt-1.5 flex-shrink-0">
+                    <span className={`w-2 h-2 rounded-full ${
+                        device.isActive
+                            ? 'bg-green-400 shadow-[0_0_6px_2px_rgba(74,222,128,0.35)]'
+                            : 'bg-gray-600'
+                    }`} />
+                    <span className={`text-[10px] font-medium ${device.isActive ? 'text-green-400' : 'text-gray-600'}`}>
+                        {device.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                </div>
             </div>
 
             {/* Name + type */}
