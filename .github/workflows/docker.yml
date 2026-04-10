@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag for the Docker image'
+        description: "Tag for the Docker image"
         required: true
   release:
     types:
@@ -20,28 +20,28 @@ permissions:
 jobs:
   dev:
     if: github.ref == 'refs/heads/development'
-    uses: equinor/ops-actions/.github/workflows/docker.yml@ecbe5190dbfb866ebd36d850cd68e01b873f969c
+    uses: equinor/ops-actions/.github/workflows/docker.yml@6f3c4901194b286f11800f60fc034417e2c8480a # v9.36.0
     secrets:
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     with:
-      build_args: |
-        NEXT_PUBLIC_API_URL=https://garge-api-dev.prod.tumogroup.com/api
+      build_args: '{"NEXT_PUBLIC_API_URL":"https://garge-api-dev.prod.tumogroup.com/api"}'
       environment: dev
       registry: registry.hub.docker.com
       username: sondresjo
       repository: sondresjo/garge-app
       tag: dev
+      tag_latest: false
 
   prod:
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
-    uses: equinor/ops-actions/.github/workflows/docker.yml@ecbe5190dbfb866ebd36d850cd68e01b873f969c
+    uses: equinor/ops-actions/.github/workflows/docker.yml@6f3c4901194b286f11800f60fc034417e2c8480a # v9.36.0
     secrets:
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     with:
-      build_args: |
-        NEXT_PUBLIC_API_URL=https://garge-api.prod.tumogroup.com/api
+      build_args: '{"NEXT_PUBLIC_API_URL":"https://garge-api.prod.tumogroup.com/api"}'
       environment: prod
       registry: registry.hub.docker.com
       username: sondresjo
       repository: sondresjo/garge-app
       tag: ${{ github.event.release.tag_name || github.event.inputs.tag }}
+      tag_latest: true
