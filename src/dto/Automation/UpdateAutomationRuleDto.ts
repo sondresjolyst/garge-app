@@ -6,4 +6,5 @@ export interface UpdateAutomationRuleDto {
     condition: string;
     threshold: number;
     action: string;
+    isEnabled: boolean;
 }

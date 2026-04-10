@@ -4,137 +4,125 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn, getSession } from 'next-auth/react';
 import AuthService from '@/services/userService';
+import Image from 'next/image';
+import Link from 'next/link';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { inputClass } from '@/components/TextInput';
+import Alert from '@/components/Alert';
 
 const Register: React.FC = () => {
-    const [userName, setUserName] = useState<string>('');
-    const [firstName, setFirstName] = useState<string>('');
-    const [lastName, setLastName] = useState<string>('');
-    const [email, setEmail] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
+    const [userName, setUserName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState<{ userName?: string[]; firstName?: string[]; lastName?: string[]; email?: string[]; password?: string[] }>({});
-    const [apiMessage, setApiMessage] = useState<string>('');
+    const [apiMessage, setApiMessage] = useState('');
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
-        const checkSession = async () => {
-            const session = await getSession();
-            if (session) {
-                router.push('/profile');
-            }
-        };
-        checkSession();
+        getSession().then(s => { if (s) router.push('/profile'); });
     }, [router]);
 
     const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
+        setLoading(true);
         try {
-            const response = await AuthService.register({ userName, firstName, lastName, email, password });
-            setApiMessage(response.message);
+            await AuthService.register({ userName, firstName, lastName, email, password });
             setErrors({});
-
-            const result = await signIn('credentials', {
-                redirect: true,
-                email,
-                password,
-            });
-
-            if (result?.error) {
-                setApiMessage(result.error);
-            } else {
-                router.push('/profile');
-            }
+            const result = await signIn('credentials', { redirect: true, email, password });
+            if (result?.error) { setApiMessage(result.error); setLoading(false); }
+            else router.push('/profile');
         } catch (error: unknown) {
             if (error instanceof Error) {
-                try {
-                    const parsedErrors = JSON.parse(error.message);
-                    setErrors(parsedErrors);
-                } catch {
-                    setApiMessage(error.message);
-                }
+                try { setErrors(JSON.parse(error.message)); } catch { setApiMessage(error.message); }
             } else {
                 setApiMessage('An unknown error occurred');
             }
+            setLoading(false);
         }
     };
 
     return (
-        <div className="flex items-center justify-center bg-gray-900 text-gray-200">
-            <div className="w-full max-w-md p-6 rounded-lg mx-auto">
-                <h1 className="text-2xl mb-4">Register account</h1>
-                <p className="mb-4">Already a customer? <a href="/login" className="text-blue-500">Login</a></p>
-                <form onSubmit={handleRegister}>
-                    <div className="mb-4">
-                        <label className="block text-gray-400">Username</label>
-                        <input
-                            className="w-full p-2 border border-gray-600 rounded mt-1 bg-gray-700 text-gray-200"
-                            type="text"
-                            placeholder="Username"
-                            value={userName}
-                            onChange={(e) => setUserName(e.target.value)}
-                        />
-                        {errors.userName && errors.userName.map((error, index) => <p key={index} className="text-red-500">{error}</p>)}
-                    </div>
+        <div className="min-h-[80vh] flex items-center justify-center px-4 py-8">
+            <div className="w-full max-w-sm">
+                <div className="flex justify-center mb-8">
+                    <Image src="/garge-icon-large.png" width={0} height={0} className="h-20 sm:h-28 md:h-36 w-auto" unoptimized alt="Garge" priority />
+                </div>
 
-                    <div className="mb-4">
-                        <label className="block text-gray-400">First Name</label>
-                        <input
-                            className="w-full p-2 border border-gray-600 rounded mt-1 bg-gray-700 text-gray-200"
-                            type="text"
-                            placeholder="First Name"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                        />
-                        {errors.firstName && errors.firstName.map((error, index) => <p key={index} className="text-red-500">{error}</p>)}
-                    </div>
+                <div className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-8 shadow-xl">
+                    <h1 className="text-xl font-semibold text-gray-100 mb-1">Create account</h1>
+                    <p className="text-sm text-gray-400 mb-6">
+                        Already have one?{' '}
+                        <Link href="/login" className="text-sky-400 hover:text-sky-300 transition-colors">Sign in</Link>
+                    </p>
 
-                    <div className="mb-4">
-                        <label className="block text-gray-400">Last Name</label>
-                        <input
-                            className="w-full p-2 border border-gray-600 rounded mt-1 bg-gray-700 text-gray-200"
-                            type="text"
-                            placeholder="Last Name"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                        />
-                        {errors.lastName && errors.lastName.map((error, index) => <p key={index} className="text-red-500">{error}</p>)}
-                    </div>
+                    <form onSubmit={handleRegister} className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-medium text-gray-400 mb-1.5">Username</label>
+                            <input className={inputClass} type="text" placeholder="username" value={userName} onChange={e => setUserName(e.target.value)} />
+                            {errors.userName?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
+                        </div>
 
-                    <div className="mb-4">
-                        <label className="block text-gray-400">Email</label>
-                        <input
-                            className="w-full p-2 border border-gray-600 rounded mt-1 bg-gray-700 text-gray-200"
-                            type="email"
-                            placeholder="Email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        {errors.email && errors.email.map((error, index) => <p key={index} className="text-red-500">{error}</p>)}
-                    </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-xs font-medium text-gray-400 mb-1.5">First name</label>
+                                <input className={inputClass} type="text" placeholder="First" value={firstName} onChange={e => setFirstName(e.target.value)} />
+                                {errors.firstName?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-400 mb-1.5">Last name</label>
+                                <input className={inputClass} type="text" placeholder="Last" value={lastName} onChange={e => setLastName(e.target.value)} />
+                                {errors.lastName?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
+                            </div>
+                        </div>
 
-                    <div className="mb-4">
-                        <label className="block text-gray-400">Password</label>
-                        <input
-                            className="w-full p-2 border border-gray-600 rounded mt-1 bg-gray-700 text-gray-200"
-                            type="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                        {errors.password && errors.password.map((error, index) => <p key={index} className="text-red-500">{error}</p>)}
-                    </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-400 mb-1.5">Email</label>
+                            <input className={inputClass} type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} />
+                            {errors.email?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
+                        </div>
 
-                    <div>
-                        <button className="w-full gargeBtnActive" type="submit">Register</button>
-                    </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-400 mb-1.5">Password</label>
+                            <div className="relative">
+                                <input
+                                    className={`${inputClass} pr-10`}
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(v => !v)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+                                    tabIndex={-1}
+                                >
+                                    {showPassword ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                                </button>
+                            </div>
+                            {errors.password?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
+                        </div>
 
-                    {apiMessage && <p className="text-red-500 mt-4">{apiMessage}</p>}
-                </form>
+                        {apiMessage && (
+                            <Alert variant="error">{apiMessage}</Alert>
+                        )}
+
+                        <button
+                            className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all text-sm"
+                            type="submit"
+                            disabled={loading}
+                        >
+                            {loading ? 'Creating account…' : 'Create account'}
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     );
 };
 
 export default Register;
-
-

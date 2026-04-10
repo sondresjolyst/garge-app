@@ -1,6 +1,6 @@
 import React from 'react';
 import './globals.css';
-import Sidebar from './sidebar';
+import FloatingNav from './FloatingNav';
 import Content from './content';
 import Navbar from './navbar';
 import Footer from './footer';
@@ -27,15 +27,13 @@ export default function Layout({
             </head>
             <body className="bg-gray-900 text-gray-200">
                 <SessionProviderWrapper>
-                    <div className="flex h-screen overflow-hidden">
-                        <Sidebar />
-                        <div className="flex flex-col flex-1 overflow-auto">
-                            <Navbar />
-                            <div className="flex-grow">
-                                <Content>{children}</Content>
-                            </div>
-                            <Footer />
-                        </div>
+                    <div className="min-h-screen flex flex-col">
+                        <Navbar />
+                        <main className="flex-1 pb-28">
+                            <Content>{children}</Content>
+                        </main>
+                        <Footer />
+                        <FloatingNav />
                     </div>
                 </SessionProviderWrapper>
             </body>
