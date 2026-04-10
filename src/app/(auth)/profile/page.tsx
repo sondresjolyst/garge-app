@@ -22,6 +22,7 @@ const Profile: React.FC = () => {
     const [user, setUser] = useState<UserDTO | null>(null);
     const [priceZone, setPriceZone] = useState<string>('NO2');
     const [priceZoneSaving, setPriceZoneSaving] = useState(false);
+    const [profileLoading, setProfileLoading] = useState(true);
     const [isButtonDisabled, setIsButtonDisabled] = useState(false);
     const [countdown, setCountdown] = useState(0);
     const [verificationCode, setVerificationCode] = useState('');
@@ -53,7 +54,7 @@ const Profile: React.FC = () => {
 
     useEffect(() => {
         if (!isAuthenticated) { router.push('/login'); return; }
-        UserService.getUserProfile().then(u => { setUser(u); setPriceZone(u.priceZone ?? 'NO2'); }).catch(console.error);
+        UserService.getUserProfile().then(u => { setUser(u); setPriceZone(u.priceZone ?? 'NO2'); }).catch(console.error).finally(() => setProfileLoading(false));
         setSensorsLoading(true);
         refreshSensors().catch(console.error).finally(() => setSensorsLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -327,17 +328,28 @@ const Profile: React.FC = () => {
                             <p className="text-xs text-gray-500 mt-0.5">Used on the Electricity page. Norway price zones NO1–NO5.</p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <select
-                                value={priceZone}
-                                onChange={e => handlePriceZoneChange(e.target.value)}
-                                disabled={priceZoneSaving}
-                                className="bg-gray-900/70 border border-gray-700/60 rounded-xl text-gray-200 text-sm px-3 py-2 focus:outline-none focus:border-sky-500 transition-colors disabled:opacity-50"
-                            >
-                                {['NO1', 'NO2', 'NO3', 'NO4', 'NO5'].map(z => (
-                                    <option key={z} value={z}>{z}</option>
-                                ))}
-                            </select>
-                            {priceZoneSaving && <span className="text-xs text-gray-500">Saving…</span>}
+                            {profileLoading ? (
+                                <div className="w-8 h-8 flex items-center justify-center">
+                                    <svg className="animate-spin h-4 w-4 text-sky-500" viewBox="0 0 24 24" fill="none">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                                    </svg>
+                                </div>
+                            ) : (
+                                <>
+                                    <select
+                                        value={priceZone}
+                                        onChange={e => handlePriceZoneChange(e.target.value)}
+                                        disabled={priceZoneSaving}
+                                        className="bg-gray-900/70 border border-gray-700/60 rounded-xl text-gray-200 text-sm px-3 py-2 focus:outline-none focus:border-sky-500 transition-colors disabled:opacity-50"
+                                    >
+                                        {['NO1', 'NO2', 'NO3', 'NO4', 'NO5'].map(z => (
+                                            <option key={z} value={z}>{z}</option>
+                                        ))}
+                                    </select>
+                                    {priceZoneSaving && <span className="text-xs text-gray-500">Saving…</span>}
+                                </>
+                            )}
                         </div>
                     </div>
                 </Section>
