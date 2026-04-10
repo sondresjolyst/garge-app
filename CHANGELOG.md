@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.5.0](https://github.com/sondresjolyst/garge-app/compare/v1.4.2...v1.5.0) (2026-04-10)
+
+
+### Features
+
+* **groups:** vehicle grouping with setup wizard ([7a02781](https://github.com/sondresjolyst/garge-app/commit/7a027816100aa61cc0fb09b4a4c46a6da734b7da))
+* **groups:** vehicle grouping with setup wizard ([#140](https://github.com/sondresjolyst/garge-app/issues/140)) ([7a02781](https://github.com/sondresjolyst/garge-app/commit/7a027816100aa61cc0fb09b4a4c46a6da734b7da))
+* **legal:** add contact, terms of service, privacy policy and cookie policy pages ([7a02781](https://github.com/sondresjolyst/garge-app/commit/7a027816100aa61cc0fb09b4a4c46a6da734b7da))
+* **nav:** remove sensors and sockets pages, simplify nav to 3 items ([7a02781](https://github.com/sondresjolyst/garge-app/commit/7a027816100aa61cc0fb09b4a4c46a6da734b7da))
+* **nav:** replace sidebar with floating bottom navigation pill ([7a02781](https://github.com/sondresjolyst/garge-app/commit/7a027816100aa61cc0fb09b4a4c46a6da734b7da))
+* **sensors:** replace battery health badge with icon tooltip showing status and last charged date ([7a02781](https://github.com/sondresjolyst/garge-app/commit/7a027816100aa61cc0fb09b4a4c46a6da734b7da))
+* UX improvements batch ([#141](https://github.com/sondresjolyst/garge-app/issues/141)) ([6ce1745](https://github.com/sondresjolyst/garge-app/commit/6ce17459da39b36b6e50027e6dff28bce541b5da))
+
+
+### Bug Fixes
+
+* **auth:** redirect to devices page after login instead of profile ([7a02781](https://github.com/sondresjolyst/garge-app/commit/7a027816100aa61cc0fb09b4a4c46a6da734b7da))
+* **auth:** use unoptimized responsive icon on login, register and reset-password ([7a02781](https://github.com/sondresjolyst/garge-app/commit/7a027816100aa61cc0fb09b4a4c46a6da734b7da))
+* **ui:** mobile polish, inactive devices, and UX improvements ([7a02781](https://github.com/sondresjolyst/garge-app/commit/7a027816100aa61cc0fb09b4a4c46a6da734b7da))
+* **ui:** remove unoptimized from navbar-sized icons to prevent oversizing ([7a02781](https://github.com/sondresjolyst/garge-app/commit/7a027816100aa61cc0fb09b4a4c46a6da734b7da))
+* use result.error.issues instead of deprecated .errors (Zod v4) ([7a02781](https://github.com/sondresjolyst/garge-app/commit/7a027816100aa61cc0fb09b4a4c46a6da734b7da))
+
 ## [1.4.2](https://github.com/sondresjolyst/garge-app/compare/v1.4.1...v1.4.2) (2026-04-08)
 
 
