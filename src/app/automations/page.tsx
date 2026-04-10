@@ -228,9 +228,9 @@ const AutomationsPage: React.FC = () => {
                 </Select>
             </div>
             <div className="flex items-center gap-2 pt-1">
-                <button type="submit" className="gargeBtnActive gargeBtnSmall flex-1">Save</button>
-                <button type="button" className="gargeBtnDisabled gargeBtnSmall flex-1" onClick={cancelEdit}>Cancel</button>
-                <button type="button" className="gargeBtnWarning gargeBtnSmall" onClick={() => handleDelete(rule.id)}>Delete</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white text-sm font-medium rounded-xl transition-all">Save</button>
+                <button type="button" className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium rounded-xl transition-all" onClick={cancelEdit}>Cancel</button>
+                <button type="button" className="px-4 py-2 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white text-sm font-medium rounded-xl transition-all" onClick={() => handleDelete(rule.id)}>Delete</button>
             </div>
         </form>
     );
@@ -245,7 +245,7 @@ const AutomationsPage: React.FC = () => {
                 <h1 className="text-2xl sm:text-3xl font-bold">Automations</h1>
                 <button
                     onClick={() => setFormOpen(o => !o)}
-                    className="flex items-center gap-1.5 gargeBtnActive gargeBtnSmall"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white text-sm font-medium rounded-xl transition-all"
                 >
                     <PlusIcon className="h-4 w-4" />
                     New Rule
@@ -297,8 +297,8 @@ const AutomationsPage: React.FC = () => {
                             </Select>
                         </div>
                         <div className="flex gap-2 pt-1">
-                            <button type="submit" className="gargeBtnActive gargeBtnSmall flex-1">Create</button>
-                            <button type="button" className="gargeBtnDisabled gargeBtnSmall" onClick={() => setFormOpen(false)}>Cancel</button>
+                            <button type="submit" className="flex-1 px-4 py-2 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white text-sm font-medium rounded-xl transition-all">Create</button>
+                            <button type="button" className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium rounded-xl transition-all" onClick={() => setFormOpen(false)}>Cancel</button>
                         </div>
                     </form>
                 </div>
