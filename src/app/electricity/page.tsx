@@ -61,16 +61,16 @@ const ElectricityPage = () => {
     const [cache, setCache] = useState<Partial<Record<TabKey, { x: number; y: number }[]>>>({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [priceZone, setPriceZone] = useState<string>('NO2');
+    const [priceZone, setPriceZone] = useState<string | null>(null);
 
     useEffect(() => {
         UserService.getUserProfile().then(u => {
-            if (u.priceZone) setPriceZone(u.priceZone);
-        }).catch(() => {});
+            setPriceZone(u.priceZone || 'NO2');
+        }).catch(() => { setPriceZone('NO2'); });
     }, []);
 
     const loadTab = useCallback(async (tab: TabKey) => {
-        if (cache[tab]) return;
+        if (!priceZone || cache[tab]) return;
         setLoading(true);
         setError(null);
         try {
@@ -110,7 +110,12 @@ const ElectricityPage = () => {
                 {/* Header */}
                 <div className="px-5 pt-5 pb-3 flex items-start justify-between">
                     <div>
-                        <h2 className="text-base font-semibold text-gray-100">{priceZone} · NOK / kWh</h2>
+                        <h2 className="text-base font-semibold text-gray-100">
+                            {priceZone
+                                ? <>{priceZone} · NOK / kWh</>
+                                : <span className="inline-block w-24 h-4 bg-gray-700/60 rounded animate-pulse" />
+                            }
+                        </h2>
                         {currentPrice !== null && (
                             <p className="text-xs text-gray-500 mt-0.5">Current hour</p>
                         )}
