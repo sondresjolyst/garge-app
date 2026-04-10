@@ -7,8 +7,10 @@ import SensorService, { Sensor } from '@/services/sensorService';
 import { AutomationRuleDto } from '@/dto/Automation/AutomationRuleDto';
 import { CreateAutomationRuleDto } from '@/dto/Automation/CreateAutomationRuleDto';
 import { UpdateAutomationRuleDto } from '@/dto/Automation/UpdateAutomationRuleDto';
+import { unitForType } from '@/lib/typeUtils';
+import { formatDateTime } from '@/lib/dateUtils';
 import { AxiosError } from 'axios';
-import { PlusIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { PlusIcon } from '@heroicons/react/24/outline';
 
 const initialForm: CreateAutomationRuleDto = {
     targetType: '',
@@ -18,6 +20,7 @@ const initialForm: CreateAutomationRuleDto = {
     condition: '==',
     threshold: 0,
     action: 'on',
+    isEnabled: true,
 };
 
 const conditionOptions = [
@@ -29,17 +32,18 @@ const conditionOptions = [
 ];
 
 const conditionSymbol: Record<string, string> = {
-    '==': '=',
-    '<':  '<',
-    '>':  '>',
-    '<=': '≤',
-    '>=': '≥',
+    '==': '=', '<': '<', '>': '>', '<=': '≤', '>=': '≥',
 };
 
 const actionOptions = [
     { label: 'Turn On',  value: 'on'  },
     { label: 'Turn Off', value: 'off' },
 ];
+
+const formatTriggered = (iso: string | null): string | null => {
+    if (!iso) return null;
+    return formatDateTime(iso);
+};
 
 // ── Field components ──────────────────────────────────────────────────────────
 const FieldLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -133,12 +137,26 @@ const AutomationsPage: React.FC = () => {
         catch (e) { handleError(e, 'Failed to delete automation'); }
     };
 
+    const handleToggleEnabled = async (rule: AutomationRuleDto) => {
+        setError('');
+        try {
+            await AutomationService.updateRule(rule.id, {
+                targetType: rule.targetType, targetId: rule.targetId,
+                sensorType: rule.sensorType, sensorId: rule.sensorId,
+                condition: rule.condition, threshold: rule.threshold,
+                action: rule.action, isEnabled: !rule.isEnabled,
+            });
+            fetchRules();
+        } catch (e) { handleError(e, 'Failed to update automation'); }
+    };
+
     const startEdit = (rule: AutomationRuleDto) => {
         setEditingId(rule.id);
         setEditForm({
             targetType: rule.targetType, targetId: rule.targetId,
             sensorType: rule.sensorType, sensorId: rule.sensorId,
-            condition: rule.condition, threshold: rule.threshold, action: rule.action,
+            condition: rule.condition, threshold: rule.threshold,
+            action: rule.action, isEnabled: rule.isEnabled,
         });
     };
 
@@ -165,6 +183,9 @@ const AutomationsPage: React.FC = () => {
     };
 
     // ── Inline edit form ─────────────────────────────────────────────────────
+    const editSensorObj = sensors.find(s => s.id === editForm?.sensorId);
+    const editUnit = editSensorObj ? unitForType(editSensorObj.type) : '';
+
     const renderEditForm = (rule: AutomationRuleDto) => (
         <form onSubmit={handleUpdate} className="space-y-3 mt-3 pt-3 border-t border-gray-700/50">
             <div>
@@ -195,7 +216,7 @@ const AutomationsPage: React.FC = () => {
                     </Select>
                 </div>
                 <div>
-                    <FieldLabel>Threshold</FieldLabel>
+                    <FieldLabel>Threshold{editUnit ? ` (${editUnit})` : ''}</FieldLabel>
                     <NumberInput value={editForm!.threshold} step="0.1" required
                         onChange={e => setEditForm({ ...editForm!, threshold: Number(e.target.value) })} />
                 </div>
@@ -213,6 +234,10 @@ const AutomationsPage: React.FC = () => {
             </div>
         </form>
     );
+
+    // ── Threshold unit for create form ────────────────────────────────────────
+    const createSensorObj = sensors.find(s => s.id === form.sensorId);
+    const createUnit = createSensorObj ? unitForType(createSensorObj.type) : '';
 
     return (
         <div className="p-4 max-w-7xl mx-auto">
@@ -260,7 +285,7 @@ const AutomationsPage: React.FC = () => {
                                 </Select>
                             </div>
                             <div>
-                                <FieldLabel>Threshold</FieldLabel>
+                                <FieldLabel>Threshold{createUnit ? ` (${createUnit})` : ''}</FieldLabel>
                                 <NumberInput value={form.threshold} step="0.1" placeholder="0" required
                                     onChange={e => setForm({ ...form, threshold: Number(e.target.value) })} />
                             </div>
@@ -294,13 +319,20 @@ const AutomationsPage: React.FC = () => {
                         const sensorObj = sensors.find(s => s.id === rule.sensorId);
                         const isEditing = editingId === rule.id && editForm;
                         const sym = conditionSymbol[rule.condition] ?? rule.condition;
+                        const unit = sensorObj ? unitForType(sensorObj.type) : '';
+                        const triggered = formatTriggered(rule.lastTriggeredAt);
 
                         return (
-                            <div key={rule.id} className="bg-gray-800/60 border border-gray-700/40 rounded-2xl backdrop-blur-sm shadow-lg p-5 flex flex-col">
+                            <div
+                                key={rule.id}
+                                className={`bg-gray-800/60 border rounded-2xl backdrop-blur-sm shadow-lg p-5 flex flex-col transition-opacity ${
+                                    rule.isEnabled ? 'border-gray-700/40' : 'border-gray-700/20 opacity-60'
+                                }`}
+                            >
                                 {/* Rule summary */}
                                 <div className="flex items-start justify-between mb-3">
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-base font-semibold text-gray-100 truncate">
+                                        <h3 className={`text-base font-semibold truncate ${rule.isEnabled ? 'text-gray-100' : 'text-gray-400'}`}>
                                             {switchObj?.name ?? `Switch ${rule.targetId}`}
                                         </h3>
                                         <span className={`inline-flex items-center text-xs font-medium mt-1 px-2 py-0.5 rounded-full ${
@@ -311,14 +343,28 @@ const AutomationsPage: React.FC = () => {
                                             Turn {rule.action}
                                         </span>
                                     </div>
-                                    {!isEditing && (
+                                    <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                                        {/* Enable/disable toggle */}
                                         <button
-                                            className="ml-2 flex-shrink-0 text-xs text-gray-500 hover:text-gray-200 transition-colors px-2 py-1 rounded-lg hover:bg-gray-700/50"
-                                            onClick={() => startEdit(rule)}
+                                            title={rule.isEnabled ? 'Disable rule' : 'Enable rule'}
+                                            onClick={() => handleToggleEnabled(rule)}
+                                            className={`relative w-9 h-5 rounded-full transition-colors focus:outline-none ${
+                                                rule.isEnabled ? 'bg-sky-600' : 'bg-gray-600'
+                                            }`}
                                         >
-                                            Edit
+                                            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                                                rule.isEnabled ? 'translate-x-4' : 'translate-x-0'
+                                            }`} />
                                         </button>
-                                    )}
+                                        {!isEditing && (
+                                            <button
+                                                className="text-xs text-gray-500 hover:text-gray-200 transition-colors px-2 py-1 rounded-lg hover:bg-gray-700/50"
+                                                onClick={() => startEdit(rule)}
+                                            >
+                                                Edit
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Condition pill */}
@@ -328,8 +374,15 @@ const AutomationsPage: React.FC = () => {
                                         {sensorObj?.customName ?? sensorObj?.defaultName ?? `Sensor ${rule.sensorId}`}
                                     </span>{' '}
                                     <span className="text-sky-400 font-mono">{sym}</span>{' '}
-                                    <span className="text-white font-medium">{rule.threshold}</span>
+                                    <span className="text-white font-medium">{rule.threshold}{unit ? ` ${unit}` : ''}</span>
                                 </div>
+
+                                {/* Last triggered */}
+                                {triggered && (
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        Last triggered: <span className="text-gray-400">{triggered}</span>
+                                    </p>
+                                )}
 
                                 {isEditing && renderEditForm(rule)}
                             </div>

@@ -225,7 +225,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                     <div className="space-y-5">
                         <div>
                             <h2 className="text-xl font-bold text-gray-100 mb-1">Add a sensor</h2>
-                            <p className="text-sm text-gray-400">Enter the registration code for your sensor.</p>
+                            <p className="text-sm text-gray-400">Enter the device code for your sensor.</p>
                         </div>
                         <div className="space-y-3">
                             <input

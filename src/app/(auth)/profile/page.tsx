@@ -20,6 +20,8 @@ const Profile: React.FC = () => {
     const isAuthenticated = status === 'authenticated';
 
     const [user, setUser] = useState<UserDTO | null>(null);
+    const [priceZone, setPriceZone] = useState<string>('NO2');
+    const [priceZoneSaving, setPriceZoneSaving] = useState(false);
     const [isButtonDisabled, setIsButtonDisabled] = useState(false);
     const [countdown, setCountdown] = useState(0);
     const [verificationCode, setVerificationCode] = useState('');
@@ -51,7 +53,7 @@ const Profile: React.FC = () => {
 
     useEffect(() => {
         if (!isAuthenticated) { router.push('/login'); return; }
-        UserService.getUserProfile().then(setUser).catch(console.error);
+        UserService.getUserProfile().then(u => { setUser(u); setPriceZone(u.priceZone ?? 'NO2'); }).catch(console.error);
         setSensorsLoading(true);
         refreshSensors().catch(console.error).finally(() => setSensorsLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -77,6 +79,16 @@ const Profile: React.FC = () => {
         }
     };
 
+    const handlePriceZoneChange = async (zone: string) => {
+        if (!user?.id) return;
+        setPriceZone(zone);
+        setPriceZoneSaving(true);
+        try {
+            await UserService.updatePreferences(user.id, zone);
+        } catch { /* silent fail — zone is still set locally */ }
+        finally { setPriceZoneSaving(false); }
+    };
+
     const handleConfirmEmail = async () => {
         if (!user) return;
         try {
@@ -91,7 +103,7 @@ const Profile: React.FC = () => {
     };
 
     const handleClaimSensor = async () => {
-        if (!claimCode.trim()) { setClaimMessage('Please enter a registration code.'); setClaimError(true); return; }
+        if (!claimCode.trim()) { setClaimMessage('Please enter a device code.'); setClaimError(true); return; }
         setClaimLoading(true);
         setClaimMessage(null);
         setClaimError(false);
@@ -152,7 +164,7 @@ const Profile: React.FC = () => {
             {confirmDeleteId !== null && confirmSensor && (
                 <ConfirmModal
                     title="Remove sensor"
-                    message={<>Are you sure you want to remove <span className="font-medium text-gray-100">{confirmSensor.customName ?? confirmSensor.defaultName}</span> from your account? You can re-add it later using the registration code.</>}
+                    message={<>Are you sure you want to remove <span className="font-medium text-gray-100">{confirmSensor.customName ?? confirmSensor.defaultName}</span> from your account? You can re-add it later using the device code.</>}
                     confirmLabel="Remove"
                     onConfirm={handleUnclaimSensor}
                     onCancel={() => setConfirmDeleteId(null)}
@@ -219,13 +231,13 @@ const Profile: React.FC = () => {
 
                 {/* Claim Sensor */}
                 <Section title="Add a device">
-                    <p className="text-sm text-gray-400 mb-3">Enter the registration code found on your device to add it to your account.</p>
+                    <p className="text-sm text-gray-400 mb-3">Enter the device code for your sensor to add it to your account.</p>
                     <div className="flex gap-2">
                         <input
                             type="text"
                             value={claimCode}
                             onChange={e => setClaimCode(e.target.value)}
-                            placeholder="Registration code"
+                            placeholder="Device code"
                             className={inputClass}
                             disabled={claimLoading}
                         />
@@ -287,7 +299,7 @@ const Profile: React.FC = () => {
                                             </div>
                                             <div className="space-y-0.5 mb-4">
                                                 <p className="text-xs text-gray-400">Type: {sensor.type}</p>
-                                                <p className="text-xs text-gray-500">Code: {sensor.registrationCode}</p>
+                                        <p className="text-xs text-gray-500">Device code: {sensor.registrationCode}</p>
                                                 {sensor.customName && <p className="text-xs text-gray-500">Default: {sensor.defaultName}</p>}
                                             </div>
                                             <button
@@ -304,6 +316,29 @@ const Profile: React.FC = () => {
                             ))}
                         </div>
                     )}
+                </Section>
+
+                {/* Settings */}
+                <Section title="Settings">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-100 font-medium">Electricity price zone</p>
+                            <p className="text-xs text-gray-500 mt-0.5">Used on the Electricity page. Norway price zones NO1–NO5.</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <select
+                                value={priceZone}
+                                onChange={e => handlePriceZoneChange(e.target.value)}
+                                disabled={priceZoneSaving}
+                                className="bg-gray-900/70 border border-gray-700/60 rounded-xl text-gray-200 text-sm px-3 py-2 focus:outline-none focus:border-sky-500 transition-colors disabled:opacity-50"
+                            >
+                                {['NO1', 'NO2', 'NO3', 'NO4', 'NO5'].map(z => (
+                                    <option key={z} value={z}>{z}</option>
+                                ))}
+                            </select>
+                            {priceZoneSaving && <span className="text-xs text-gray-500">Saving…</span>}
+                        </div>
+                    </div>
                 </Section>
             </div>
         </>

@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import ElectricityService from '@/services/electricityService';
+import UserService from '@/services/userService';
 import dynamic from 'next/dynamic';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
@@ -38,10 +39,10 @@ const getDate = (type: string) => {
     return date;
 };
 
-const fetchTabData = async (frequency: string, dateType: string): Promise<{ x: number; y: number }[]> => {
+const fetchTabData = async (frequency: string, dateType: string, zone: string): Promise<{ x: number; y: number }[]> => {
     const tomorrow = getDate('tomorrow');
     const startDate = getDate(dateType);
-    const raw = await ElectricityService.getElectricityData(frequency, 'NO2', tomorrow.toISOString());
+    const raw = await ElectricityService.getElectricityData(frequency, zone, tomorrow.toISOString());
     return raw
         .filter((d: any) => {
             const ts = d.time.endsWith('Z') ? d.time : d.time + 'Z';
@@ -59,6 +60,13 @@ const ElectricityPage = () => {
     const [cache, setCache] = useState<Partial<Record<TabKey, { x: number; y: number }[]>>>({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [priceZone, setPriceZone] = useState<string>('NO2');
+
+    useEffect(() => {
+        UserService.getUserProfile().then(u => {
+            if (u.priceZone) setPriceZone(u.priceZone);
+        }).catch(() => {});
+    }, []);
 
     const loadTab = useCallback(async (tab: TabKey) => {
         if (cache[tab]) return;
@@ -66,14 +74,18 @@ const ElectricityPage = () => {
         setError(null);
         try {
             const { frequency, dateType } = TABS.find(t => t.key === tab)!;
-            const data = await fetchTabData(frequency, dateType);
+            const data = await fetchTabData(frequency, dateType, priceZone);
             setCache(prev => ({ ...prev, [tab]: data }));
         } catch {
             setError('Failed to fetch electricity data');
         } finally {
             setLoading(false);
         }
-    }, [cache]);
+    }, [cache, priceZone]);
+
+    useEffect(() => {
+        setCache({});
+    }, [priceZone]);
 
     useEffect(() => {
         loadTab(activeTab);
@@ -97,10 +109,11 @@ const ElectricityPage = () => {
                 {/* Header */}
                 <div className="px-5 pt-5 pb-3 flex items-start justify-between">
                     <div>
-                        <h2 className="text-base font-semibold text-gray-100">NO2 · NOK / kWh</h2>
+                        <h2 className="text-base font-semibold text-gray-100">{priceZone} · NOK / kWh</h2>
                         {currentPrice !== null && (
                             <p className="text-xs text-gray-500 mt-0.5">Current hour</p>
                         )}
+                        <p className="text-xs text-gray-600 mt-1">Norwegian price zone · change in Profile → Settings</p>
                     </div>
                     {currentPrice !== null && (
                         <div className="text-right">

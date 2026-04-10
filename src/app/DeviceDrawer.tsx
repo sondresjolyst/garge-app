@@ -204,7 +204,9 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                                 </div>
                                 {health.chargesRecorded > 0 && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-500">Charges recorded</span>
+                                        <span className="text-gray-500" title="Number of times the battery has been detected as charged based on voltage rise patterns">
+                                            Charge cycles detected
+                                        </span>
                                         <span className="text-gray-200 font-medium">{health.chargesRecorded}</span>
                                     </div>
                                 )}

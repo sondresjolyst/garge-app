@@ -7,4 +7,6 @@ export interface AutomationRuleDto {
     condition: string;
     threshold: number;
     action: string;
+    isEnabled: boolean;
+    lastTriggeredAt: string | null;
 }
