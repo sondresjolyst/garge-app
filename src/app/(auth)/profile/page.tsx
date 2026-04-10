@@ -319,6 +319,7 @@ const Profile: React.FC = () => {
                 </Section>
 
                 {/* Settings */}
+                <div id="settings">
                 <Section title="Settings">
                     <div className="flex items-center justify-between">
                         <div>
@@ -340,6 +341,7 @@ const Profile: React.FC = () => {
                         </div>
                     </div>
                 </Section>
+                </div>
             </div>
         </>
     );

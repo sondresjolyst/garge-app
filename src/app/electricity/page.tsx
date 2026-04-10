@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ElectricityService from '@/services/electricityService';
 import UserService from '@/services/userService';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
@@ -113,7 +114,7 @@ const ElectricityPage = () => {
                         {currentPrice !== null && (
                             <p className="text-xs text-gray-500 mt-0.5">Current hour</p>
                         )}
-                        <p className="text-xs text-gray-600 mt-1">Norwegian price zone · change in Profile → Settings</p>
+                        <p className="text-xs text-gray-600 mt-1">Norwegian price zone · <Link href="/profile#settings" className="text-sky-500 hover:text-sky-400 transition-colors">change in Profile → Settings</Link></p>
                     </div>
                     {currentPrice !== null && (
                         <div className="text-right">
