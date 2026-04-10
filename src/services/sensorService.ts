@@ -107,34 +107,37 @@ const SensorService = {
 
     async getMultipleSensorsData( sensorIds: number[], startDate?: string, endDate?: string, timeRange?: string, groupBy?: string, pageNumber: number = 1, pageSize: number = 100): Promise<PagedResponse<SensorData>> {
         try {
-            const params: Record<string, string | number> = { pageNumber, pageSize };
+            const urlParams = new URLSearchParams();
+            urlParams.set('pageNumber', String(pageNumber));
+            urlParams.set('pageSize', String(pageSize));
+
             if (timeRange) {
                 const { startDate: parsedStartDate, endDate: parsedEndDate } = parseTimeRange(timeRange);
-                params.startDate = parsedStartDate;
-                params.endDate = parsedEndDate;
+                urlParams.set('startDate', parsedStartDate);
+                urlParams.set('endDate', parsedEndDate);
             } else {
-                if (startDate) params.startDate = new Date(startDate).toISOString();
+                if (startDate) urlParams.set('startDate', new Date(startDate).toISOString());
                 if (endDate) {
                     const end = new Date(endDate);
                     end.setHours(24, 0, 0, 0);
-                    params.endDate = end.toISOString();
+                    urlParams.set('endDate', end.toISOString());
                 }
             }
 
-            sensorIds.forEach((id, index) => {
-                params[`sensorIds[${index}]`] = id.toString();
-            });
+            sensorIds.forEach(id => urlParams.append('sensorIds', String(id)));
 
-            if (groupBy) params.groupBy = groupBy;
+            if (groupBy) urlParams.set('groupBy', groupBy);
 
-            const response = await axiosInstance.get<PagedResponse<SensorData>>('/sensors/data', { params });
+            const response = await axiosInstance.get<PagedResponse<SensorData>>(`/sensors/data?${urlParams.toString()}`);
             return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
-                console.error('API Error:', error.response?.data.message || 'Failed to fetch multiple sensors data');
+                // 404 means no data exists for the given parameters — return empty page
+                if (error.response?.status === 404) {
+                    return { totalCount: 0, pageNumber, pageSize, data: [] };
+                }
                 throw new Error(error.response?.data.message || 'Failed to fetch multiple sensors data');
             } else {
-                console.error('Unknown Error:', error);
                 throw new Error('An unknown error occurred');
             }
         }
@@ -160,6 +163,19 @@ const SensorService = {
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 throw new Error(error.response?.data.message || 'Failed to update custom name');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    async unclaimSensor(id: number): Promise<{ message: string }> {
+        try {
+            const response = await axiosInstance.delete<{ message: string }>(`/sensors/${id}/claim`);
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to remove sensor');
             } else {
                 throw new Error('An unknown error occurred');
             }
