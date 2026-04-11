@@ -8,7 +8,7 @@ import { unitForType, typeLabel } from '@/lib/typeUtils';
 import { RANGE_OPTIONS, type RangeIndex } from '@/lib/constants';
 import LoadingDots from '@/components/LoadingDots';
 import SensorService, { SensorData, BatteryHealthData } from '@/services/sensorService';
-import SwitchService from '@/services/switchService';
+import SwitchService, { SwitchData } from '@/services/switchService';
 import { formatDateTime } from '@/lib/dateUtils';
 import type { UnifiedDevice } from './DeviceDashboard';
 
@@ -19,11 +19,70 @@ interface DeviceDrawerProps {
     onClose: () => void;
 }
 
+// ── Socket timeline helpers ───────────────────────────────────────────────────
+
+interface Segment { start: number; end: number; on: boolean; }
+
+function buildSegments(events: SwitchData[], rangeStart: number, rangeEnd: number): Segment[] {
+    if (events.length === 0) return [];
+    const sorted = [...events].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    const segments: Segment[] = [];
+    for (let i = 0; i < sorted.length; i++) {
+        const start = Math.max(new Date(sorted[i].timestamp).getTime(), rangeStart);
+        const end = i + 1 < sorted.length
+            ? Math.min(new Date(sorted[i + 1].timestamp).getTime(), rangeEnd)
+            : rangeEnd;
+        if (end > start) {
+            segments.push({ start, end, on: (sorted[i].value || '').trim().toUpperCase() === 'ON' });
+        }
+    }
+    return segments;
+}
+
+function totalOnMs(segments: Segment[]): number {
+    return segments.filter(s => s.on).reduce((acc, s) => acc + (s.end - s.start), 0);
+}
+
+function formatDuration(ms: number): string {
+    const h = Math.floor(ms / 3_600_000);
+    const m = Math.floor((ms % 3_600_000) / 60_000);
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m`;
+    return '<1m';
+}
+
+const TimelineBar: React.FC<{ segments: Segment[]; rangeStart: number; rangeEnd: number }> = ({ segments, rangeStart, rangeEnd }) => {
+    const total = rangeEnd - rangeStart;
+    if (total <= 0) return null;
+    return (
+        <div className="relative h-8 rounded-xl overflow-hidden bg-gray-800/60 flex">
+            {segments.map((seg, i) => {
+                const left = ((seg.start - rangeStart) / total) * 100;
+                const width = ((seg.end - seg.start) / total) * 100;
+                return (
+                    <div
+                        key={i}
+                        title={`${seg.on ? 'ON' : 'OFF'} — ${formatDateTime(new Date(seg.start).toISOString())} → ${formatDateTime(new Date(seg.end).toISOString())}`}
+                        style={{ left: `${left}%`, width: `${width}%` }}
+                        className={`absolute top-0 h-full ${seg.on ? 'bg-green-500/70' : 'bg-gray-700/50'}`}
+                    />
+                );
+            })}
+        </div>
+    );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
     const [chartData, setChartData] = useState<{ x: number; y: number }[]>([]);
     const [loadingChart, setLoadingChart] = useState(false);
-    const [activeRange, setActiveRange] = useState<RangeIndex>(2);
+    const [activeRange, setActiveRange] = useState<RangeIndex>(0);
     const [visible, setVisible] = useState(false);
+
+    // Socket state
+    const [switchEvents, setSwitchEvents] = useState<SwitchData[]>([]);
+    const [loadingSwitch, setLoadingSwitch] = useState(false);
 
     // Inline name editing (sensors + sockets)
     const [editingName, setEditingName] = useState(false);
@@ -83,9 +142,24 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
         }
     }, [device.id, device.kind]);
 
+    const fetchSwitchData = useCallback(async (rangeIdx: RangeIndex) => {
+        if (device.kind !== 'socket') return;
+        setLoadingSwitch(true);
+        const { timeRange } = RANGE_OPTIONS[rangeIdx];
+        try {
+            const data = await SwitchService.getSwitchData(device.id, timeRange);
+            setSwitchEvents(data);
+        } catch {
+            setSwitchEvents([]);
+        } finally {
+            setLoadingSwitch(false);
+        }
+    }, [device.id, device.kind]);
+
     useEffect(() => {
         if (device.kind === 'sensor') fetchChart(activeRange);
-    }, [device, activeRange, fetchChart]);
+        if (device.kind === 'socket') fetchSwitchData(activeRange);
+    }, [device, activeRange, fetchChart, fetchSwitchData]);
 
     const { Icon, iconBg, iconColor } = typeConfig[device.type.toLowerCase()] ?? defaultType;
     const health = device.batteryHealth as BatteryHealthData | undefined;
@@ -95,6 +169,15 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
         ? `${Number(device.latestValue).toFixed(device.type === 'voltage' ? 2 : 1)} ${unitForType(device.type)}`
         : null;
 
+    // Socket computed values
+    const now = Date.now();
+    const rangeMs: Record<RangeIndex, number> = { 0: 86_400_000, 1: 7 * 86_400_000, 2: 30 * 86_400_000, 3: 365 * 86_400_000 };
+    const rangeStart = now - rangeMs[activeRange];
+    const segments = device.kind === 'socket' ? buildSegments(switchEvents, rangeStart, now) : [];
+    const onMs = totalOnMs(segments);
+    const lastEvent = switchEvents.length > 0
+        ? [...switchEvents].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]
+        : null;
     const handleSaveName = async () => {
         if (!editName.trim()) return;
         setSavingName(true);
@@ -206,34 +289,80 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                         </div>
                     )}
 
-                    {/* Sensor: range selector + chart */}
+                    {/* Range selector — both sensor and socket */}
+                    <div className="flex gap-1 bg-gray-800/60 rounded-xl p-1">
+                        {RANGE_OPTIONS.map((opt, idx) => (
+                            <button
+                                key={opt.label}
+                                onClick={() => setActiveRange(idx as RangeIndex)}
+                                className={`flex-1 text-sm py-1.5 rounded-lg font-medium transition-all duration-200 ${
+                                    activeRange === idx
+                                        ? 'bg-sky-600 text-white shadow-sm'
+                                        : 'text-gray-400 hover:text-gray-200'
+                                }`}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Sensor chart */}
                     {device.kind === 'sensor' && (
-                        <>
-                            <div className="flex gap-1 bg-gray-800/60 rounded-xl p-1">
-                                {RANGE_OPTIONS.map((opt, idx) => (
-                                    <button
-                                        key={opt.label}
-                                        onClick={() => setActiveRange(idx as RangeIndex)}
-                                        className={`flex-1 text-sm py-1.5 rounded-lg font-medium transition-all duration-200 ${
-                                            activeRange === idx
-                                                ? 'bg-sky-600 text-white shadow-sm'
-                                                : 'text-gray-400 hover:text-gray-200'
-                                        }`}
-                                    >
-                                        {opt.label}
-                                    </button>
-                                ))}
+                        loadingChart ? (
+                            <LoadingDots />
+                        ) : chartData.length > 0 ? (
+                            <TimeSeriesChart title="" data={chartData} />
+                        ) : (
+                            <div className="h-48 flex items-center justify-center text-gray-500 text-sm">
+                                No data for this period
                             </div>
-                            {loadingChart ? (
-                                <LoadingDots />
-                            ) : chartData.length > 0 ? (
-                                <TimeSeriesChart title="" data={chartData} />
-                            ) : (
-                                <div className="h-48 flex items-center justify-center text-gray-500 text-sm">
-                                    No data for this period
+                        )
+                    )}
+
+                    {/* Socket timeline */}
+                    {device.kind === 'socket' && (
+                        loadingSwitch ? (
+                            <LoadingDots />
+                        ) : (
+                            <div className="space-y-4">
+                                {/* Timeline bar */}
+                                {segments.length > 0 ? (
+                                    <>
+                                        <TimelineBar segments={segments} rangeStart={rangeStart} rangeEnd={now} />
+                                        <div className="flex justify-between text-xs text-gray-600">
+                                            <span>{RANGE_OPTIONS[activeRange].label === 'Day' ? '24h ago' : RANGE_OPTIONS[activeRange].label === 'Week' ? '7d ago' : RANGE_OPTIONS[activeRange].label === 'Month' ? '30d ago' : '1y ago'}</span>
+                                            <span>Now</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="h-8 flex items-center justify-center text-gray-500 text-sm">
+                                        No activity this period
+                                    </div>
+                                )}
+
+                                {/* Stats */}
+                                <div className="bg-gray-800/60 border border-gray-700/40 rounded-2xl p-4 space-y-3">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-500">Time on</span>
+                                        <span className="text-gray-200 font-medium">{onMs > 0 ? formatDuration(onMs) : '—'}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-500">Last state change</span>
+                                        <span className="text-gray-200 font-medium text-right">
+                                            {lastEvent ? formatDateTime(lastEvent.timestamp) : '—'}
+                                        </span>
+                                    </div>
+                                    {lastEvent && (
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-gray-500">Changed to</span>
+                                            <span className={`font-medium ${(lastEvent.value || '').trim().toUpperCase() === 'ON' ? 'text-green-400' : 'text-red-400'}`}>
+                                                {(lastEvent.value || '').trim().toUpperCase()}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </>
+                            </div>
+                        )
                     )}
 
                     {/* Battery health details */}
