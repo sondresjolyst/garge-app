@@ -69,10 +69,12 @@ const Btn: React.FC<{
 
 const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialStep, prefillGroupId, onComplete }) => {
     const [step, setStep]               = useState(initialStep ?? (prefillSensor ? 1 : 0));
+    const [claimType, setClaimType]     = useState<'sensor' | 'socket'>('sensor');
     const [regCode, setRegCode]         = useState('');
     const [claimError, setClaimError]   = useState('');
     const [claiming, setClaiming]       = useState(false);
     const [claimedSensor, setClaimedSensor] = useState<Sensor | null>(prefillSensor ?? null);
+    const [claimedSwitch, setClaimedSwitch] = useState<Switch | null>(null);
 
     const [customName, setCustomName]   = useState(prefillSensor?.customName ?? prefillSensor?.defaultName ?? '');
     const [saving, setSaving]           = useState(false);
@@ -144,22 +146,30 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
         }
     }, [step, prefillGroupId]);
 
-    // Step 0: Claim sensor
+    // Step 0: Claim sensor or switch
     const handleClaim = async () => {
         if (!regCode.trim()) return;
         setClaiming(true);
         setClaimError('');
         try {
-            await SensorService.claimSensor(regCode.trim());
-            // Fetch updated sensor list to find the newly claimed one
-            const all = await SensorService.getAllSensors();
-            const found = all.find(s => s.registrationCode === regCode.trim());
-            setClaimedSensor(found ?? null);
-            setCustomName(found?.customName ?? found?.defaultName ?? found?.name ?? '');
-            if (found) setSelectedSensorIds(new Set([found.id]));
+            if (claimType === 'sensor') {
+                await SensorService.claimSensor(regCode.trim());
+                const all = await SensorService.getAllSensors();
+                const found = all.find(s => s.registrationCode === regCode.trim());
+                setClaimedSensor(found ?? null);
+                setCustomName(found?.customName ?? found?.defaultName ?? found?.name ?? '');
+                if (found) setSelectedSensorIds(new Set([found.id]));
+            } else {
+                const { switchId } = await SwitchService.claimSwitch(regCode.trim());
+                const all = await SwitchService.getAllSwitches();
+                const found = all.find(sw => sw.id === switchId);
+                setClaimedSwitch(found ?? null);
+                setCustomName(found?.customName ?? found?.name ?? '');
+                if (found) setSelectedSwitchIds(new Set([found.id]));
+            }
             setStep(1);
         } catch (e: unknown) {
-            setClaimError(e instanceof Error ? e.message : 'Failed to claim sensor.');
+            setClaimError(e instanceof Error ? e.message : `Failed to claim ${claimType}.`);
         } finally {
             setClaiming(false);
         }
@@ -167,10 +177,13 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
 
     // Step 1: Save name
     const handleSaveName = async () => {
-        if (!claimedSensor) { setStep(2); return; }
         setSaving(true);
         try {
-            await SensorService.updateCustomName(claimedSensor.id, customName.trim() || claimedSensor.defaultName);
+            if (claimedSensor) {
+                await SensorService.updateCustomName(claimedSensor.id, customName.trim() || claimedSensor.defaultName);
+            } else if (claimedSwitch) {
+                await SwitchService.updateCustomName(claimedSwitch.id, customName.trim() || claimedSwitch.name);
+            }
             setStep(2);
         } catch {
             setStep(2); // non-fatal — proceed anyway
@@ -236,9 +249,38 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                 return (
                     <div className="space-y-5">
                         <div>
-                            <h2 className="text-xl font-bold text-gray-100 mb-1">Add a sensor</h2>
-                            <p className="text-sm text-gray-400">Enter the device code for your sensor.</p>
+                            <h2 className="text-xl font-bold text-gray-100 mb-1">
+                                Add a {claimType === 'sensor' ? 'sensor' : 'socket'}
+                            </h2>
+                            <p className="text-sm text-gray-400">Enter the device code found on your device.</p>
                         </div>
+
+                        {/* Type toggle */}
+                        <div className="flex gap-2 p-1 bg-gray-800/60 rounded-xl">
+                            <button
+                                type="button"
+                                onClick={() => { setClaimType('sensor'); setRegCode(''); setClaimError(''); }}
+                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                                    claimType === 'sensor'
+                                        ? 'bg-sky-600 text-white shadow'
+                                        : 'text-gray-400 hover:text-gray-200'
+                                }`}
+                            >
+                                🌡️ Sensor
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setClaimType('socket'); setRegCode(''); setClaimError(''); }}
+                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                                    claimType === 'socket'
+                                        ? 'bg-sky-600 text-white shadow'
+                                        : 'text-gray-400 hover:text-gray-200'
+                                }`}
+                            >
+                                🔌 Socket
+                            </button>
+                        </div>
+
                         <div className="space-y-3">
                             <input
                                 type="text"
@@ -253,7 +295,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                             {claimError && <p className="text-red-400 text-xs">{claimError}</p>}
                         </div>
                         <Btn onClick={handleClaim} loading={claiming} disabled={!regCode.trim()}>
-                            Claim sensor
+                            Claim {claimType === 'sensor' ? 'sensor' : 'socket'}
                             <ChevronRightIcon className="h-4 w-4" />
                         </Btn>
                         <Btn variant="ghost" onClick={() => setStep(2)}>
@@ -266,10 +308,17 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                 return (
                     <div className="space-y-5">
                         <div>
-                            <h2 className="text-xl font-bold text-gray-100 mb-1">Name your sensor</h2>
+                            <h2 className="text-xl font-bold text-gray-100 mb-1">
+                                Name your {claimedSwitch ? 'socket' : 'sensor'}
+                            </h2>
                             {claimedSensor && (
                                 <span className="inline-block mt-1 text-xs bg-sky-500/15 text-sky-300 border border-sky-500/20 rounded-full px-2.5 py-0.5">
                                     {typeLabel(claimedSensor.type)}
+                                </span>
+                            )}
+                            {claimedSwitch && (
+                                <span className="inline-block mt-1 text-xs bg-sky-500/15 text-sky-300 border border-sky-500/20 rounded-full px-2.5 py-0.5">
+                                    🔌 Socket
                                 </span>
                             )}
                         </div>
@@ -279,7 +328,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                             value={customName}
                             onChange={e => setCustomName(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleSaveName()}
-                            placeholder="e.g. Honda CB500 Battery"
+                            placeholder={claimedSwitch ? 'e.g. Storage Heater 1' : 'e.g. Honda CB500 Battery'}
                             className="w-full px-4 py-3 bg-gray-800/60 border border-gray-700/40 rounded-xl text-gray-100 placeholder-gray-500 focus:outline-none focus:border-sky-600/50 text-sm transition-all"
                         />
                         <Btn onClick={handleSaveName} loading={saving}>
@@ -331,12 +380,15 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                                         type="button"
                                         onClick={() => {
                                             setSelectedGroupId(g.id);
-                                            // Seed selection with this group's current members + any already-claimed sensor
+                                            // Seed selection with this group's current members + any already-claimed device
                                             setSelectedSensorIds(new Set([
                                                 ...g.sensorIds,
                                                 ...(claimedSensor ? [claimedSensor.id] : []),
                                             ]));
-                                            setSelectedSwitchIds(new Set(g.switchIds));
+                                            setSelectedSwitchIds(new Set([
+                                                ...g.switchIds,
+                                                ...(claimedSwitch ? [claimedSwitch.id] : []),
+                                            ]));
                                         }}
                                         className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border text-left transition-all text-sm ${
                                             selectedGroupId === g.id
@@ -354,9 +406,9 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                                 type="button"
                                 onClick={() => {
                                     setSelectedGroupId('new');
-                                    // Reset to just the newly claimed sensor (if any)
+                                    // Reset to just the newly claimed device (if any)
                                     setSelectedSensorIds(new Set(claimedSensor ? [claimedSensor.id] : []));
-                                    setSelectedSwitchIds(new Set());
+                                    setSelectedSwitchIds(new Set(claimedSwitch ? [claimedSwitch.id] : []));
                                 }}
                                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border text-left transition-all text-sm ${
                                     selectedGroupId === 'new'
@@ -528,8 +580,13 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                                     <span className="text-gray-200 font-medium">{customName || claimedSensor.defaultName}</span> is ready.
                                     {' '}Head to your dashboard to see live data.
                                 </p>
+                            ) : claimedSwitch ? (
+                                <p className="text-sm text-gray-400">
+                                    <span className="text-gray-200 font-medium">{customName || claimedSwitch.name}</span> is ready.
+                                    {' '}Head to your dashboard to control it.
+                                </p>
                             ) : (
-                                <p className="text-sm text-gray-400">Your group has been created. Add sensors to it anytime.</p>
+                                <p className="text-sm text-gray-400">Your group has been created. Add devices to it anytime.</p>
                             )}
                         </div>
                         <Btn onClick={() => { onComplete?.(); onClose(); }}>
