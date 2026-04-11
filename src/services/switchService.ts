@@ -6,6 +6,7 @@ export interface Switch {
     name: string;
     type: string;
     role: string;
+    customName?: string;
 }
 
 export interface SwitchData {
@@ -121,6 +122,19 @@ const SwitchService = {
                 throw new Error(error.response?.data.message || 'Failed to fetch multiple switches data');
             } else {
                 console.error('Unknown Error:', error);
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    async updateCustomName(switchId: number, customName: string): Promise<Switch> {
+        try {
+            const response = await axiosInstance.patch<Switch>(`/switches/${switchId}/custom-name`, { customName });
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to update switch name');
+            } else {
                 throw new Error('An unknown error occurred');
             }
         }
