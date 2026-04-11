@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import UserService from '@/services/userService';
 import { UserDTO } from '@/dto/UserDTO';
 import SensorService, { Sensor } from '@/services/sensorService';
+import SwitchService, { Switch } from '@/services/switchService';
 import { PencilIcon, CheckIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
@@ -40,6 +41,13 @@ const Profile: React.FC = () => {
     const [sensorsLoading, setSensorsLoading] = useState(true);
     const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
+    const [switches, setSwitches] = useState<Switch[]>([]);
+    const [switchesLoading, setSwitchesLoading] = useState(true);
+    const [editingSwitchId, setEditingSwitchId] = useState<number | null>(null);
+    const [newSwitchName, setNewSwitchName] = useState('');
+    const [switchEditLoading, setSwitchEditLoading] = useState(false);
+    const [switchEditError, setSwitchEditError] = useState<string | null>(null);
+
     function sortSensorsByName(sensors: Sensor[]): Sensor[] {
         return [...sensors].sort((a, b) =>
             (a.customName ?? a.defaultName ?? '').toLowerCase()
@@ -52,11 +60,20 @@ const Profile: React.FC = () => {
         setSensors(sortSensorsByName(userSensors));
     };
 
+    const refreshSwitches = async () => {
+        const allSwitches = await SwitchService.getAllSwitches();
+        setSwitches([...allSwitches].sort((a, b) =>
+            (a.customName ?? a.name).toLowerCase().localeCompare((b.customName ?? b.name).toLowerCase())
+        ));
+    };
+
     useEffect(() => {
         if (!isAuthenticated) { router.push('/login'); return; }
         UserService.getUserProfile().then(u => { setUser(u); setPriceZone(u.priceZone ?? 'NO2'); }).catch(console.error).finally(() => setProfileLoading(false));
         setSensorsLoading(true);
         refreshSensors().catch(console.error).finally(() => setSensorsLoading(false));
+        setSwitchesLoading(true);
+        refreshSwitches().catch(console.error).finally(() => setSwitchesLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isAuthenticated, router]);
 
@@ -154,6 +171,33 @@ const Profile: React.FC = () => {
             setEditError(error instanceof Error ? error.message : 'Failed to update sensor name.');
         } finally {
             setEditLoading(false);
+        }
+    };
+
+    const startEditingSwitch = (sw: Switch) => {
+        setEditingSwitchId(sw.id);
+        setNewSwitchName(sw.customName ?? sw.name);
+        setSwitchEditError(null);
+    };
+
+    const cancelEditingSwitch = () => { setEditingSwitchId(null); setNewSwitchName(''); setSwitchEditError(null); };
+
+    const handleSaveSwitchName = async (switchId: number) => {
+        if (!newSwitchName.trim() || newSwitchName.length > 50) {
+            setSwitchEditError('Name is required and must be at most 50 characters.');
+            return;
+        }
+        setSwitchEditLoading(true);
+        setSwitchEditError(null);
+        try {
+            await SwitchService.updateCustomName(switchId, newSwitchName.trim());
+            await refreshSwitches();
+            setEditingSwitchId(null);
+            setNewSwitchName('');
+        } catch (error: unknown) {
+            setSwitchEditError(error instanceof Error ? error.message : 'Failed to update socket name.');
+        } finally {
+            setSwitchEditLoading(false);
         }
     };
 
@@ -312,6 +356,57 @@ const Profile: React.FC = () => {
                                                 Remove from account
                                             </button>
                                         </>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </Section>
+
+                {/* Sockets */}
+                <Section title="Your sockets">
+                    {switchesLoading ? <LoadingDots /> : !switches.length ? (
+                        <p className="text-sm text-gray-500">No sockets found.</p>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {switches.map(sw => (
+                                <div key={sw.id} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                    {editingSwitchId === sw.id ? (
+                                        <div className="space-y-2">
+                                            <input
+                                                type="text"
+                                                value={newSwitchName}
+                                                onChange={e => setNewSwitchName(e.target.value)}
+                                                className={inputClass}
+                                                maxLength={50}
+                                                disabled={switchEditLoading}
+                                                autoFocus
+                                            />
+                                            {switchEditError && <p className="text-xs text-red-400">{switchEditError}</p>}
+                                            <div className="flex gap-2">
+                                                <button onClick={() => handleSaveSwitchName(sw.id)} disabled={switchEditLoading} className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-all">
+                                                    <CheckIcon className="h-3.5 w-3.5" />
+                                                    {switchEditLoading ? 'Saving…' : 'Save'}
+                                                </button>
+                                                <button onClick={cancelEditingSwitch} disabled={switchEditLoading} className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs font-medium rounded-lg transition-all">
+                                                    <XMarkIcon className="h-3.5 w-3.5" />
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div>
+                                                <span className="text-sm font-semibold text-gray-100 leading-tight block">
+                                                    {sw.customName ?? sw.name}
+                                                </span>
+                                                <p className="text-xs text-gray-400 mt-0.5">Type: {sw.type}</p>
+                                                {sw.customName && <p className="text-xs text-gray-500">Default: {sw.name}</p>}
+                                            </div>
+                                            <button onClick={() => startEditingSwitch(sw)} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700/60 transition-all flex-shrink-0" title="Rename">
+                                                <PencilIcon className="h-3.5 w-3.5" />
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             ))}
