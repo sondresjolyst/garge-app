@@ -5,6 +5,7 @@ export interface Group {
   name: string;
   icon: string | null;
   sensorIds: number[];
+  switchIds: number[];
 }
 
 const GroupService = {
@@ -32,6 +33,14 @@ const GroupService = {
 
   async removeSensor(groupId: number, sensorId: number): Promise<void> {
     await axiosInstance.delete(`/groups/${groupId}/sensors/${sensorId}`);
+  },
+
+  async addSwitch(groupId: number, switchId: number): Promise<void> {
+    await axiosInstance.post(`/groups/${groupId}/switches/${switchId}`);
+  },
+
+  async removeSwitch(groupId: number, switchId: number): Promise<void> {
+    await axiosInstance.delete(`/groups/${groupId}/switches/${switchId}`);
   },
 };
 

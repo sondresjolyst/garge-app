@@ -14,6 +14,9 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { groupEmoji } from '@/lib/groupIcons';
 import CollapsibleSection from '@/components/CollapsibleSection';
 
+// ── Type sort order for group cards ───────────────────────────────────────────
+const TYPE_ORDER: Record<string, number> = { voltage: 0, temperature: 1, humidity: 2, socket: 3 };
+
 // ── Custom dropdown ────────────────────────────────────────────────────────────
 interface SelectOption { value: string; label: string }
 interface CustomSelectProps {
@@ -267,7 +270,7 @@ const DeviceDashboard: React.FC = () => {
             const socketDevices: UnifiedDevice[] = allSwitches.map(sw => ({
                 kind: 'socket' as const,
                 id: sw.id,
-                displayName: sw.name,
+                displayName: sw.customName ?? sw.name,
                 type: 'socket',
                 rawSwitch: sw,
                 latestState: switchStateMap[sw.id] ?? 'UNKNOWN',
@@ -385,9 +388,23 @@ const DeviceDashboard: React.FC = () => {
                         <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Groups</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             {groups.map(group => {
-                                const groupDevices = devices.filter(d => d.kind === 'sensor' && group.sensorIds.includes(d.id));
+                                const groupDevices = devices
+                                    .filter(d =>
+                                        (d.kind === 'sensor' && group.sensorIds.includes(d.id)) ||
+                                        (d.kind === 'socket' && group.switchIds.includes(d.id))
+                                    )
+                                    .sort((a, b) =>
+                                        (TYPE_ORDER[a.type] ?? 99) - (TYPE_ORDER[b.type] ?? 99) ||
+                                        a.displayName.localeCompare(b.displayName)
+                                    );
                                 const emoji = groupEmoji(group.icon);
                                 const anyActive = groupDevices.some(d => d.isActive);
+                                const sensorCount = groupDevices.filter(d => d.kind === 'sensor').length;
+                                const socketCount = groupDevices.filter(d => d.kind === 'socket').length;
+                                const countLabel = [
+                                    sensorCount > 0 ? `${sensorCount} sensor${sensorCount !== 1 ? 's' : ''}` : '',
+                                    socketCount > 0 ? `${socketCount} socket${socketCount !== 1 ? 's' : ''}` : '',
+                                ].filter(Boolean).join(', ') || 'Empty';
                                 return (
                                     <div
                                         key={group.id}
@@ -399,7 +416,7 @@ const DeviceDashboard: React.FC = () => {
                                                 <span className="text-2xl">{emoji}</span>
                                                 <div>
                                                     <p className="font-semibold text-gray-100 text-sm">{group.name}</p>
-                                                    <p className="text-xs text-gray-500">{groupDevices.length} sensor{groupDevices.length !== 1 ? 's' : ''}</p>
+                                                    <p className="text-xs text-gray-500">{countLabel}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-1.5">
@@ -420,7 +437,7 @@ const DeviceDashboard: React.FC = () => {
 
                                         {/* Sensor readings inline */}
                                         {groupDevices.length === 0 ? (
-                                            <p className="text-xs text-gray-600 italic">No sensors assigned yet.</p>
+                                            <p className="text-xs text-gray-600 italic">No devices assigned yet.</p>
                                         ) : (
                                             <div className="flex flex-wrap gap-2">
                                                 {groupDevices.map(d => (
@@ -433,7 +450,8 @@ const DeviceDashboard: React.FC = () => {
                                                         <span className="text-xs text-gray-400">{
                                                             d.type === 'temperature' ? '🌡️' :
                                                             d.type === 'humidity'    ? '💧' :
-                                                            d.type === 'voltage'     ? '⚡' : '📡'
+                                                            d.type === 'voltage'     ? '⚡' :
+                                                            d.type === 'socket'      ? '🔌' : '📡'
                                                         }</span>
                                                         <span className="text-sm font-semibold text-gray-100 tabular-nums">{formatValue(d)}</span>
                                                     </button>
@@ -525,7 +543,7 @@ const DeviceDashboard: React.FC = () => {
                     <ConfirmModal
                         title="Delete group"
                         subtitle="This cannot be undone"
-                        message={<>Are you sure you want to delete <span className="font-medium text-gray-100">{icon} {deleteGroup.name}</span>? Your sensors won&apos;t be deleted, just removed from this group.</>}
+                        message={<>Are you sure you want to delete <span className="font-medium text-gray-100">{icon} {deleteGroup.name}</span>? Your devices won&apos;t be deleted, just removed from this group.</>}
                         confirmLabel="Delete"
                         onConfirm={async () => { await GroupService.deleteGroup(deleteGroup.id); setDeleteGroup(null); loadData(); }}
                         onCancel={() => setDeleteGroup(null)}

@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PencilIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { TYPE_CONFIG as typeConfig, DEFAULT_TYPE as defaultType, BATTERY_STATUS_CONFIG as statusConfig } from '@/lib/typeConfig';
 import { unitForType, typeLabel } from '@/lib/typeUtils';
 import { RANGE_OPTIONS, type RangeIndex } from '@/lib/constants';
@@ -83,6 +83,11 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
     // Socket state
     const [switchEvents, setSwitchEvents] = useState<SwitchData[]>([]);
     const [loadingSwitch, setLoadingSwitch] = useState(false);
+
+    // Inline name editing (sensors + sockets)
+    const [editingName, setEditingName] = useState(false);
+    const [editName, setEditName] = useState(device.displayName);
+    const [savingName, setSavingName] = useState(false);
 
     useEffect(() => {
         const frame = requestAnimationFrame(() => setVisible(true));
@@ -173,6 +178,23 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
     const lastEvent = switchEvents.length > 0
         ? [...switchEvents].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]
         : null;
+    const handleSaveName = async () => {
+        if (!editName.trim()) return;
+        setSavingName(true);
+        try {
+            if (device.kind === 'sensor') {
+                await SensorService.updateCustomName(device.id, editName.trim());
+            } else {
+                await SwitchService.updateCustomName(device.id, editName.trim());
+            }
+            device.displayName = editName.trim();
+            setEditingName(false);
+        } catch {
+            // non-fatal
+        } finally {
+            setSavingName(false);
+        }
+    };
 
     return (
         <>
@@ -191,7 +213,40 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                         <Icon className={`h-5 w-5 ${iconColor}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h2 className="font-semibold text-gray-100 truncate">{device.displayName}</h2>
+                        {(device.kind === 'socket' || device.kind === 'sensor') && editingName ? (
+                            <div className="flex items-center gap-2">
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    value={editName}
+                                    onChange={e => setEditName(e.target.value)}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter') handleSaveName();
+                                        if (e.key === 'Escape') setEditingName(false);
+                                    }}
+                                    className="flex-1 min-w-0 bg-gray-800/80 border border-gray-600/50 rounded-lg px-2 py-1 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60"
+                                />
+                                <button
+                                    onClick={handleSaveName}
+                                    disabled={savingName}
+                                    className="p-1 rounded-lg text-sky-400 hover:text-sky-300 hover:bg-sky-500/10 transition-colors flex-shrink-0"
+                                >
+                                    <CheckIcon className="h-4 w-4" />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-1.5 min-w-0">
+                                <h2 className="font-semibold text-gray-100 truncate">{device.displayName}</h2>
+                                {(device.kind === 'socket' || device.kind === 'sensor') && (
+                                    <button
+                                        onClick={() => { setEditName(device.displayName); setEditingName(true); }}
+                                        className="p-0.5 rounded text-gray-600 hover:text-gray-400 transition-colors flex-shrink-0"
+                                    >
+                                        <PencilIcon className="h-3.5 w-3.5" />
+                                    </button>
+                                )}
+                            </div>
+                        )}
                         <p className="text-xs text-gray-500">{typeLabel(device.type)}</p>
                     </div>
                     <button
