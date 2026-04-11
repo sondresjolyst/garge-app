@@ -333,7 +333,7 @@ const Profile: React.FC = () => {
                             value={claimCode}
                             onChange={e => setClaimCode(e.target.value.toUpperCase())}
                             onKeyDown={e => e.key === 'Enter' && handleClaimDevice()}
-                            placeholder="Device code"
+                            placeholder="e.g. A1B2C3D4E5"
                             className={inputClass}
                             disabled={claimLoading}
                         />
