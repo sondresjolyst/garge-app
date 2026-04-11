@@ -163,7 +163,7 @@ const DeviceDashboard: React.FC = () => {
     const isStale = (d: UnifiedDevice): boolean => {
         if (d.kind === 'socket') return d.latestState === 'UNKNOWN';
         if (!d.latestTimestamp) return true;
-        return (Date.now() - new Date(d.latestTimestamp).getTime()) / 86_400_000 > 30;
+        return (Date.now() - new Date(d.latestTimestamp).getTime()) / 86_400_000 > 14;
     };
 
     const loadData = useCallback(async () => {
@@ -178,11 +178,18 @@ const DeviceDashboard: React.FC = () => {
 
             const displaySensors = allSensors.filter(s => s.type !== 'battery');
 
-            const [latestResp, healthResults, switchStates] = await Promise.all([
+            const [latestResp, staleResp, healthResults, switchStates] = await Promise.all([
                 displaySensors.length > 0
                     ? SensorService.getMultipleSensorsData(
                         displaySensors.map(s => s.id),
                         undefined, undefined, '1d', '30m', 1, 5000
+                      ).catch(() => ({ data: [], totalCount: 0 }))
+                    : Promise.resolve({ data: [], totalCount: 0 }),
+
+                displaySensors.length > 0
+                    ? SensorService.getMultipleSensorsData(
+                        displaySensors.map(s => s.id),
+                        undefined, undefined, '14d', '1d', 1, 5000
                       ).catch(() => ({ data: [], totalCount: 0 }))
                     : Promise.resolve({ data: [], totalCount: 0 }),
 
@@ -226,6 +233,17 @@ const DeviceDashboard: React.FC = () => {
                     latestMap[d.sensorId] = { value: Number(d.value), timestamp: d.timestamp };
                 }
             }
+
+            const staleMap: Record<number, string> = {};
+            for (const d of staleResp.data) {
+                const ex = staleMap[d.sensorId];
+                const ts = new Date(d.timestamp).getTime();
+                if (!ex || ts > new Date(ex).getTime()) {
+                    staleMap[d.sensorId] = d.timestamp;
+                }
+            }
+            // Merge: if 1d data exists use that timestamp, otherwise fall back to 14d staleMap
+
             const activeSensorIds = new Set(Object.keys(latestMap).map(Number));
 
             const healthMap: Record<string, BatteryHealthData> = {};
@@ -244,7 +262,7 @@ const DeviceDashboard: React.FC = () => {
                 type: s.type,
                 rawSensor: s,
                 latestValue: latestMap[s.id]?.value,
-                latestTimestamp: latestMap[s.id]?.timestamp,
+                latestTimestamp: latestMap[s.id]?.timestamp ?? staleMap[s.id],
                 batteryHealth: healthMap[s.name],
                 isActive: activeSensorIds.has(s.id),
             }));
