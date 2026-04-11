@@ -16,7 +16,6 @@ import Alert from '@/components/Alert';
 
 const Profile: React.FC = () => {
     const { status } = useSession();
-    const { update: updateSession } = useSession();
     const router = useRouter();
     const isAuthenticated = status === 'authenticated';
 
@@ -29,6 +28,7 @@ const Profile: React.FC = () => {
     const [verificationCode, setVerificationCode] = useState('');
     const [sensors, setSensors] = useState<Sensor[]>([]);
     const [claimCode, setClaimCode] = useState('');
+    const [claimType, setClaimType] = useState<'sensor' | 'socket'>('sensor');
     const [claimLoading, setClaimLoading] = useState(false);
     const [emailMessage, setEmailMessage] = useState<string | null>(null);
     const [emailError, setEmailError] = useState(false);
@@ -47,6 +47,7 @@ const Profile: React.FC = () => {
     const [newSwitchName, setNewSwitchName] = useState('');
     const [switchEditLoading, setSwitchEditLoading] = useState(false);
     const [switchEditError, setSwitchEditError] = useState<string | null>(null);
+    const [confirmDeleteSwitchId, setConfirmDeleteSwitchId] = useState<number | null>(null);
 
     function sortSensorsByName(sensors: Sensor[]): Sensor[] {
         return [...sensors].sort((a, b) =>
@@ -120,20 +121,25 @@ const Profile: React.FC = () => {
         }
     };
 
-    const handleClaimSensor = async () => {
+    const handleClaimDevice = async () => {
         if (!claimCode.trim()) { setClaimMessage('Please enter a device code.'); setClaimError(true); return; }
         setClaimLoading(true);
         setClaimMessage(null);
         setClaimError(false);
         try {
-            await SensorService.claimSensor(claimCode.trim());
-            setClaimMessage('Sensor added successfully!');
+            if (claimType === 'sensor') {
+                await SensorService.claimSensor(claimCode.trim());
+                setClaimMessage('Sensor added successfully!');
+                await refreshSensors();
+            } else {
+                await SwitchService.claimSwitch(claimCode.trim());
+                setClaimMessage('Socket added successfully!');
+                await refreshSwitches();
+            }
             setClaimError(false);
             setClaimCode('');
-            await updateSession();
-            await refreshSensors();
         } catch (error: unknown) {
-            setClaimMessage(error instanceof Error ? error.message : 'Failed to add sensor.');
+            setClaimMessage(error instanceof Error ? error.message : `Failed to add ${claimType}.`);
             setClaimError(true);
         } finally {
             setClaimLoading(false);
@@ -145,6 +151,13 @@ const Profile: React.FC = () => {
         await SensorService.unclaimSensor(confirmDeleteId);
         setConfirmDeleteId(null);
         await refreshSensors();
+    };
+
+    const handleUnclaimSwitch = async () => {
+        if (confirmDeleteSwitchId === null) return;
+        await SwitchService.unclaimSwitch(confirmDeleteSwitchId);
+        setConfirmDeleteSwitchId(null);
+        await refreshSwitches();
     };
 
     const startEditing = (sensor: Sensor) => {
@@ -202,6 +215,7 @@ const Profile: React.FC = () => {
     };
 
     const confirmSensor = sensors.find(s => s.id === confirmDeleteId);
+    const confirmSwitch = switches.find(sw => sw.id === confirmDeleteSwitchId);
     const isUserLoading = status === 'loading' || !user;
 
     return (
@@ -213,6 +227,15 @@ const Profile: React.FC = () => {
                     confirmLabel="Remove"
                     onConfirm={handleUnclaimSensor}
                     onCancel={() => setConfirmDeleteId(null)}
+                />
+            )}
+            {confirmDeleteSwitchId !== null && confirmSwitch && (
+                <ConfirmModal
+                    title="Remove socket"
+                    message={<>Are you sure you want to remove <span className="font-medium text-gray-100">{confirmSwitch.customName ?? confirmSwitch.name}</span> from your account? You can re-add it later using the device code.</>}
+                    confirmLabel="Remove"
+                    onConfirm={handleUnclaimSwitch}
+                    onCancel={() => setConfirmDeleteSwitchId(null)}
                 />
             )}
 
@@ -274,20 +297,48 @@ const Profile: React.FC = () => {
                     )}
                 </Section>
 
-                {/* Claim Sensor */}
+                {/* Claim Device */}
                 <Section title="Add a device">
-                    <p className="text-sm text-gray-400 mb-3">Enter the device code for your sensor to add it to your account.</p>
+                    <p className="text-sm text-gray-400 mb-3">Enter the device code to add a sensor or socket to your account.</p>
+
+                    {/* Type toggle */}
+                    <div className="flex gap-2 p-1 bg-gray-800/60 rounded-xl mb-3">
+                        <button
+                            type="button"
+                            onClick={() => { setClaimType('sensor'); setClaimCode(''); setClaimMessage(null); }}
+                            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                                claimType === 'sensor'
+                                    ? 'bg-sky-600 text-white shadow'
+                                    : 'text-gray-400 hover:text-gray-200'
+                            }`}
+                        >
+                            🌡️ Sensor
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { setClaimType('socket'); setClaimCode(''); setClaimMessage(null); }}
+                            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                                claimType === 'socket'
+                                    ? 'bg-sky-600 text-white shadow'
+                                    : 'text-gray-400 hover:text-gray-200'
+                            }`}
+                        >
+                            🔌 Socket
+                        </button>
+                    </div>
+
                     <div className="flex gap-2">
                         <input
                             type="text"
                             value={claimCode}
-                            onChange={e => setClaimCode(e.target.value)}
+                            onChange={e => setClaimCode(e.target.value.toUpperCase())}
+                            onKeyDown={e => e.key === 'Enter' && handleClaimDevice()}
                             placeholder="Device code"
                             className={inputClass}
                             disabled={claimLoading}
                         />
                         <button
-                            onClick={handleClaimSensor}
+                            onClick={handleClaimDevice}
                             className="px-4 py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all whitespace-nowrap"
                             disabled={claimLoading}
                         >
@@ -395,18 +446,29 @@ const Profile: React.FC = () => {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div>
-                                                <span className="text-sm font-semibold text-gray-100 leading-tight block">
+                                        <>
+                                            <div className="flex items-start justify-between gap-2 mb-2">
+                                                <span className="text-sm font-semibold text-gray-100 leading-tight">
                                                     {sw.customName ?? sw.name}
                                                 </span>
-                                                <p className="text-xs text-gray-400 mt-0.5">Type: {sw.type}</p>
+                                                <button onClick={() => startEditingSwitch(sw)} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700/60 transition-all flex-shrink-0" title="Rename">
+                                                    <PencilIcon className="h-3.5 w-3.5" />
+                                                </button>
+                                            </div>
+                                            <div className="space-y-0.5 mb-4">
+                                                <p className="text-xs text-gray-400">Type: {sw.type}</p>
+                                                {sw.registrationCode && <p className="text-xs text-gray-500">Device code: {sw.registrationCode}</p>}
                                                 {sw.customName && <p className="text-xs text-gray-500">Default: {sw.name}</p>}
                                             </div>
-                                            <button onClick={() => startEditingSwitch(sw)} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700/60 transition-all flex-shrink-0" title="Rename">
-                                                <PencilIcon className="h-3.5 w-3.5" />
+                                            <button
+                                                onClick={() => setConfirmDeleteSwitchId(sw.id)}
+                                                className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-red-400 transition-colors"
+                                                title="Remove from account"
+                                            >
+                                                <TrashIcon className="h-3.5 w-3.5" />
+                                                Remove from account
                                             </button>
-                                        </div>
+                                        </>
                                     )}
                                 </div>
                             ))}
