@@ -329,7 +329,15 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                                     <button
                                         key={g.id}
                                         type="button"
-                                        onClick={() => setSelectedGroupId(g.id)}
+                                        onClick={() => {
+                                            setSelectedGroupId(g.id);
+                                            // Seed selection with this group's current members + any already-claimed sensor
+                                            setSelectedSensorIds(new Set([
+                                                ...g.sensorIds,
+                                                ...(claimedSensor ? [claimedSensor.id] : []),
+                                            ]));
+                                            setSelectedSwitchIds(new Set(g.switchIds));
+                                        }}
                                         className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border text-left transition-all text-sm ${
                                             selectedGroupId === g.id
                                                 ? 'bg-sky-600/15 border-sky-500/40 text-sky-200'
@@ -344,7 +352,12 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                             })}
                             <button
                                 type="button"
-                                onClick={() => setSelectedGroupId('new')}
+                                onClick={() => {
+                                    setSelectedGroupId('new');
+                                    // Reset to just the newly claimed sensor (if any)
+                                    setSelectedSensorIds(new Set(claimedSensor ? [claimedSensor.id] : []));
+                                    setSelectedSwitchIds(new Set());
+                                }}
                                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border text-left transition-all text-sm ${
                                     selectedGroupId === 'new'
                                         ? 'bg-sky-600/15 border-sky-500/40 text-sky-200'

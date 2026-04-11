@@ -6,10 +6,11 @@ interface CollapsibleSectionProps {
     count: number;
     children: React.ReactNode;
     className?: string;
+    defaultOpen?: boolean;
 }
 
-const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ label, count, children, className = '' }) => {
-    const [open, setOpen] = useState(false);
+const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ label, count, children, className = '', defaultOpen = false }) => {
+    const [open, setOpen] = useState(defaultOpen);
     return (
         <div className={`mt-8 ${className}`}>
             <button
