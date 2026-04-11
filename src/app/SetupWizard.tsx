@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { XMarkIcon, ChevronRightIcon, CheckIcon } from '@heroicons/react/24/outline';
 import SensorService, { Sensor } from '@/services/sensorService';
+import SwitchService, { Switch } from '@/services/switchService';
 import GroupService, { Group } from '@/services/groupService';
 import { GROUP_ICONS as ICONS, groupEmoji } from '@/lib/groupIcons';
 import { typeEmoji } from '@/lib/typeUtils';
@@ -84,10 +85,12 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
     const [assignError, setAssignError] = useState('');
 
     const [allSensors, setAllSensors]           = useState<Sensor[]>([]);
+    const [allSwitches, setAllSwitches]         = useState<Switch[]>([]);
     const [sensorSearch, setSensorSearch]       = useState('');
     const [selectedSensorIds, setSelectedSensorIds] = useState<Set<number>>(
         prefillSensor ? new Set([prefillSensor.id]) : new Set()
     );
+    const [selectedSwitchIds, setSelectedSwitchIds] = useState<Set<number>>(new Set());
 
     const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -100,22 +103,25 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
         return () => window.removeEventListener('keydown', handler);
     }, [onClose]);
 
-    // Load groups + all sensors when reaching step 2
+    // Load groups + all sensors + all switches when reaching step 2
     useEffect(() => {
         if (step === 2) {
             Promise.all([
                 GroupService.getAllGroups(),
                 SensorService.getAllSensors(),
-            ]).then(([fetchedGroups, fetchedSensors]) => {
+                SwitchService.getAllSwitches(),
+            ]).then(([fetchedGroups, fetchedSensors, fetchedSwitches]) => {
                 setGroups(fetchedGroups);
+                setAllSwitches(fetchedSwitches);
                 const accessible = fetchedSensors.filter(x => x.type !== 'battery');
 
-                // If managing an existing group, pre-check its current sensors
+                // If managing an existing group, pre-check its current sensors + switches
                 // and add ghost placeholders for any IDs not accessible in this environment
                 if (prefillGroupId) {
                     const existing = fetchedGroups.find(g => g.id === prefillGroupId);
                     if (existing) {
                         setSelectedSensorIds(new Set(existing.sensorIds));
+                        setSelectedSwitchIds(new Set(existing.switchIds));
                         const accessibleIds = new Set(accessible.map(s => s.id));
                         const ghosts: Sensor[] = existing.sensorIds
                             .filter(id => !accessibleIds.has(id))
@@ -181,6 +187,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
         try {
             let groupId: number;
             let originalSensorIds: Set<number> = new Set();
+            let originalSwitchIds: Set<number> = new Set();
 
             if (selectedGroupId === 'new') {
                 if (!newGroupName.trim()) { setAssignError('Please enter a group name.'); setAssigning(false); return; }
@@ -190,14 +197,19 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                 groupId = selectedGroupId;
                 const existing = groups.find(g => g.id === groupId);
                 originalSensorIds = new Set(existing?.sensorIds ?? []);
+                originalSwitchIds = new Set(existing?.switchIds ?? []);
             }
 
-            const toAdd    = [...selectedSensorIds].filter(id => !originalSensorIds.has(id));
-            const toRemove = [...originalSensorIds].filter(id => !selectedSensorIds.has(id));
+            const sensorsToAdd    = [...selectedSensorIds].filter(id => !originalSensorIds.has(id));
+            const sensorsToRemove = [...originalSensorIds].filter(id => !selectedSensorIds.has(id));
+            const switchesToAdd    = [...selectedSwitchIds].filter(id => !originalSwitchIds.has(id));
+            const switchesToRemove = [...originalSwitchIds].filter(id => !selectedSwitchIds.has(id));
 
             await Promise.all([
-                ...toAdd.map(id    => GroupService.addSensor(groupId, id)),
-                ...toRemove.map(id => GroupService.removeSensor(groupId, id)),
+                ...sensorsToAdd.map(id    => GroupService.addSensor(groupId, id)),
+                ...sensorsToRemove.map(id => GroupService.removeSensor(groupId, id)),
+                ...switchesToAdd.map(id    => GroupService.addSwitch(groupId, id)),
+                ...switchesToRemove.map(id => GroupService.removeSwitch(groupId, id)),
             ]);
             setStep(3);
         } catch {
@@ -283,6 +295,10 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                     (s.customName ?? s.defaultName ?? s.name)
                         .toLowerCase().includes(sensorSearch.toLowerCase())
                 );
+                const filteredSwitches = allSwitches.filter(sw =>
+                    (sw.customName ?? sw.name)
+                        .toLowerCase().includes(sensorSearch.toLowerCase())
+                );
                 const toggleSensor = (id: number) => {
                     setSelectedSensorIds(prev => {
                         const next = new Set(prev);
@@ -290,12 +306,20 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                         return next;
                     });
                 };
+                const toggleSwitch = (id: number) => {
+                    setSelectedSwitchIds(prev => {
+                        const next = new Set(prev);
+                        next.has(id) ? next.delete(id) : next.add(id);
+                        return next;
+                    });
+                };
+                const totalSelected = selectedSensorIds.size + selectedSwitchIds.size;
 
                 return (
                     <div className="space-y-4">
                         <div>
                             <h2 className="text-xl font-bold text-gray-100 mb-1">Assign to a group</h2>
-                            <p className="text-sm text-gray-400">Pick a group and the sensors to include.</p>
+                            <p className="text-sm text-gray-400">Pick a group and the devices to include.</p>
                         </div>
 
                         {/* Group picker */}
@@ -340,7 +364,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                                     type="text"
                                     value={newGroupName}
                                     onChange={e => setNewGroupName(e.target.value)}
-                                    placeholder="Group name (e.g. Honda CB500)"
+                                    placeholder="Group name (e.g. Storage Room)"
                                     className="w-full px-3 py-2 bg-gray-900/60 border border-gray-700/40 rounded-lg text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-600/50 text-sm"
                                 />
                                 <div className="grid grid-cols-4 gap-2">
@@ -363,7 +387,21 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                             </div>
                         )}
 
-                        {/* Sensor picker */}
+                        {/* Device search */}
+                        <div className="relative">
+                            <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                            </svg>
+                            <input
+                                type="text"
+                                value={sensorSearch}
+                                onChange={e => setSensorSearch(e.target.value)}
+                                placeholder="Search devices..."
+                                className="w-full pl-8 pr-3 py-2 bg-gray-800/60 border border-gray-700/40 rounded-xl text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-sky-600/50 transition-all"
+                            />
+                        </div>
+
+                        {/* Sensors section */}
                         <div className="space-y-2">
                             <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
                                 Sensors
@@ -373,21 +411,9 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                                     </span>
                                 )}
                             </p>
-                            <div className="relative">
-                                <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-                                </svg>
-                                <input
-                                    type="text"
-                                    value={sensorSearch}
-                                    onChange={e => setSensorSearch(e.target.value)}
-                                    placeholder="Search sensors..."
-                                    className="w-full pl-8 pr-3 py-2 bg-gray-800/60 border border-gray-700/40 rounded-xl text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-sky-600/50 transition-all"
-                                />
-                            </div>
-                            <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                            <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                                 {filteredSensors.length === 0 ? (
-                                    <p className="text-xs text-gray-600 italic py-2 text-center">No sensors found</p>
+                                    <p className="text-xs text-gray-600 italic py-1 text-center">No sensors found</p>
                                 ) : filteredSensors.map(s => {
                                     const name = s.customName ?? s.defaultName ?? s.name;
                                     const checked = selectedSensorIds.has(s.id);
@@ -419,6 +445,48 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                             </div>
                         </div>
 
+                        {/* Sockets section */}
+                        {allSwitches.length > 0 && (
+                            <div className="space-y-2">
+                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
+                                    Sockets
+                                    {selectedSwitchIds.size > 0 && (
+                                        <span className="ml-2 text-sky-400 normal-case font-normal tracking-normal">
+                                            {selectedSwitchIds.size} selected
+                                        </span>
+                                    )}
+                                </p>
+                                <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                                    {filteredSwitches.length === 0 ? (
+                                        <p className="text-xs text-gray-600 italic py-1 text-center">No sockets found</p>
+                                    ) : filteredSwitches.map(sw => {
+                                        const name = sw.customName ?? sw.name;
+                                        const checked = selectedSwitchIds.has(sw.id);
+                                        return (
+                                            <button
+                                                key={sw.id}
+                                                type="button"
+                                                onClick={() => toggleSwitch(sw.id)}
+                                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all text-sm ${
+                                                    checked
+                                                        ? 'bg-sky-600/10 border-sky-500/30 text-sky-100'
+                                                        : 'bg-gray-800/30 border-gray-700/20 text-gray-400 hover:bg-gray-700/40 hover:text-gray-200 hover:border-gray-600/40'
+                                                }`}
+                                            >
+                                                <span className="text-base w-5 text-center flex-shrink-0">🔌</span>
+                                                <span className="flex-1 truncate font-medium">{name}</span>
+                                                <div className={`w-4 h-4 rounded-md border flex-shrink-0 flex items-center justify-center transition-all ${
+                                                    checked ? 'bg-sky-500 border-sky-500' : 'border-gray-600'
+                                                }`}>
+                                                    {checked && <CheckIcon className="h-3 w-3 text-white" />}
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
                         {assignError && <p className="text-red-400 text-xs">{assignError}</p>}
 
                         <Btn
@@ -426,7 +494,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                             loading={assigning}
                             disabled={selectedGroupId === null}
                         >
-                            {selectedGroupId === null ? 'Select a group' : `Save group${selectedSensorIds.size > 0 ? ` · ${selectedSensorIds.size} sensor${selectedSensorIds.size !== 1 ? 's' : ''}` : ''}`}
+                            {selectedGroupId === null ? 'Select a group' : `Save group${totalSelected > 0 ? ` · ${totalSelected} device${totalSelected !== 1 ? 's' : ''}` : ''}`}
                             <ChevronRightIcon className="h-4 w-4" />
                         </Btn>
                         <Btn variant="ghost" onClick={() => setStep(3)}>Skip</Btn>
