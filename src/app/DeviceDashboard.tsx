@@ -14,6 +14,9 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { groupEmoji } from '@/lib/groupIcons';
 import CollapsibleSection from '@/components/CollapsibleSection';
 
+// ── Type sort order for group cards ───────────────────────────────────────────
+const TYPE_ORDER: Record<string, number> = { voltage: 0, temperature: 1, humidity: 2, socket: 3 };
+
 // ── Custom dropdown ────────────────────────────────────────────────────────────
 interface SelectOption { value: string; label: string }
 interface CustomSelectProps {
@@ -367,10 +370,15 @@ const DeviceDashboard: React.FC = () => {
                         <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Groups</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             {groups.map(group => {
-                                const groupDevices = devices.filter(d =>
-                                    (d.kind === 'sensor' && group.sensorIds.includes(d.id)) ||
-                                    (d.kind === 'socket' && group.switchIds.includes(d.id))
-                                );
+                                const groupDevices = devices
+                                    .filter(d =>
+                                        (d.kind === 'sensor' && group.sensorIds.includes(d.id)) ||
+                                        (d.kind === 'socket' && group.switchIds.includes(d.id))
+                                    )
+                                    .sort((a, b) =>
+                                        (TYPE_ORDER[a.type] ?? 99) - (TYPE_ORDER[b.type] ?? 99) ||
+                                        a.displayName.localeCompare(b.displayName)
+                                    );
                                 const emoji = groupEmoji(group.icon);
                                 const anyActive = groupDevices.some(d => d.isActive);
                                 const sensorCount = groupDevices.filter(d => d.kind === 'sensor').length;
