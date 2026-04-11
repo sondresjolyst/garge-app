@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { XMarkIcon, ChevronRightIcon, CheckIcon } from '@heroicons/react/24/outline';
 import SensorService, { Sensor } from '@/services/sensorService';
 import SwitchService, { Switch } from '@/services/switchService';
@@ -68,6 +69,7 @@ const Btn: React.FC<{
 // ── Main wizard ────────────────────────────────────────────────────────────────
 
 const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialStep, prefillGroupId, onComplete }) => {
+    const { update: updateSession } = useSession();
     const [step, setStep]               = useState(initialStep ?? (prefillSensor ? 1 : 0));
     const [regCode, setRegCode]         = useState('');
     const [claimError, setClaimError]   = useState('');
@@ -151,6 +153,8 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
         setClaimError('');
         try {
             await SensorService.claimSensor(regCode.trim());
+            // Force a session/token refresh so the new sensor role is included in the JWT
+            await updateSession();
             // Fetch updated sensor list to find the newly claimed one
             const all = await SensorService.getAllSensors();
             const found = all.find(s => s.registrationCode === regCode.trim());
