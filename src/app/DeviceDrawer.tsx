@@ -25,7 +25,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
     const [activeRange, setActiveRange] = useState<RangeIndex>(2);
     const [visible, setVisible] = useState(false);
 
-    // Inline name editing (sockets)
+    // Inline name editing (sensors + sockets)
     const [editingName, setEditingName] = useState(false);
     const [editName, setEditName] = useState(device.displayName);
     const [savingName, setSavingName] = useState(false);
@@ -96,10 +96,14 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
         : null;
 
     const handleSaveName = async () => {
-        if (device.kind !== 'socket' || !editName.trim()) return;
+        if (!editName.trim()) return;
         setSavingName(true);
         try {
-            await SwitchService.updateCustomName(device.id, editName.trim());
+            if (device.kind === 'sensor') {
+                await SensorService.updateCustomName(device.id, editName.trim());
+            } else {
+                await SwitchService.updateCustomName(device.id, editName.trim());
+            }
             device.displayName = editName.trim();
             setEditingName(false);
         } catch {
@@ -126,7 +130,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                         <Icon className={`h-5 w-5 ${iconColor}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                        {device.kind === 'socket' && editingName ? (
+                        {(device.kind === 'socket' || device.kind === 'sensor') && editingName ? (
                             <div className="flex items-center gap-2">
                                 <input
                                     autoFocus
@@ -150,7 +154,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                         ) : (
                             <div className="flex items-center gap-1.5 min-w-0">
                                 <h2 className="font-semibold text-gray-100 truncate">{device.displayName}</h2>
-                                {device.kind === 'socket' && (
+                                {(device.kind === 'socket' || device.kind === 'sensor') && (
                                     <button
                                         onClick={() => { setEditName(device.displayName); setEditingName(true); }}
                                         className="p-0.5 rounded text-gray-600 hover:text-gray-400 transition-colors flex-shrink-0"
