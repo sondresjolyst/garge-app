@@ -513,7 +513,11 @@ const DeviceDashboard: React.FC = () => {
                                             ))}
                                         </div>
                                         {inactiveDevices.length > 0 && (
-                                            <CollapsibleSection label="No recent data" count={inactiveDevices.length}>
+                                            <CollapsibleSection
+                                                label="No recent data"
+                                                count={inactiveDevices.length}
+                                                defaultOpen={activeDevices.length === 0}
+                                            >
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                                                     {inactiveDevices.map(device => (
                                                         <DeviceCard

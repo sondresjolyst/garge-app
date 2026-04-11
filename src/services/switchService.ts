@@ -7,6 +7,7 @@ export interface Switch {
     type: string;
     role: string;
     customName?: string;
+    registrationCode?: string;
 }
 
 export interface SwitchData {
@@ -134,6 +135,31 @@ const SwitchService = {
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 throw new Error(error.response?.data.message || 'Failed to update switch name');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    async claimSwitch(registrationCode: string): Promise<{ switchId: number; registrationCode: string }> {
+        try {
+            const response = await axiosInstance.post<{ switchId: number; registrationCode: string }>('/switches/claim', { registrationCode });
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to claim switch');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    async unclaimSwitch(switchId: number): Promise<void> {
+        try {
+            await axiosInstance.delete(`/switches/${switchId}/claim`);
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to unclaim switch');
             } else {
                 throw new Error('An unknown error occurred');
             }
