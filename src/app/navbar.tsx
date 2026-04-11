@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { signOut, useSession } from 'next-auth/react';
-import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/24/outline';
 
 export default function Navbar() {
     const { data: session, status } = useSession();
@@ -15,7 +15,7 @@ export default function Navbar() {
             <div className="px-4 sm:px-6 py-3 flex items-center justify-between max-w-7xl mx-auto">
 
                 <Link href="/" className="flex items-center gap-2.5">
-                    <Image src="/garge-icon-large.png" height={36} width={0} style={{ width: 'auto' }} alt="Garge" priority />
+                    <Image src="/garge-icon-large.png" height={32} width={32} quality={75} style={{ width: 'auto' }} alt="Garge" priority/>
                     <span className="text-sm font-semibold text-gray-100 tracking-wide hidden sm:block">Garge</span>
                 </Link>
 
@@ -33,7 +33,7 @@ export default function Navbar() {
                                 title="Logout"
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/60 transition-all"
                             >
-                                <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                                <ArrowRightStartOnRectangleIcon className="h-4 w-4" />
                                 <span className="hidden sm:block">Logout</span>
                             </button>
                         </>
