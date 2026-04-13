@@ -1,27 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { publicRoutePatterns } from "@/publicRoutes";
 
 const secret = process.env.NEXTAUTH_SECRET;
 
 export default async function middleware(req: NextRequest) {
-    const path = req.nextUrl.pathname;
-
-    if (path.startsWith('/_next/') || path.startsWith('/favicon.ico')) {
-        return NextResponse.next();
-    }
-
-    const isPublicRoute = publicRoutePatterns.some((pattern) => pattern.test(path));
-
     const token = await getToken({ req, secret });
 
-    // If not public and not authenticated, redirect to login
-    if (!isPublicRoute && !token?.accessToken) {
-        return NextResponse.redirect(new URL('/login', req.nextUrl));
-    }
-
     // If authenticated and trying to access login, redirect to profile
-    if (isPublicRoute && token?.accessToken && path === '/login') {
+    if (token?.accessToken) {
         return NextResponse.redirect(new URL('/profile', req.nextUrl));
     }
 
@@ -29,5 +15,6 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
+    matcher: ['/login'],
 };
+
