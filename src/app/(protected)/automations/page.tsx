@@ -12,6 +12,7 @@ import { unitForType } from '@/lib/typeUtils';
 import { formatDateTime } from '@/lib/dateUtils';
 import { AxiosError } from 'axios';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import { toast } from 'sonner';
 
 const PRICE_AREAS = ['NO1', 'NO2', 'NO3', 'NO4', 'NO5'];
 
@@ -230,13 +231,17 @@ const AutomationsPage: React.FC = () => {
             setForm(initialForm);
             setFormOpen(false);
             fetchRules();
-        } catch (e) { handleError(e, 'Failed to create automation'); }
+            toast.success('Automation created');
+        } catch (e) { handleError(e, 'Failed to create automation'); toast.error('Failed to create automation'); }
     };
 
     const handleDelete = async (id: number) => {
         setError('');
-        try { await AutomationService.deleteRule(id); fetchRules(); }
-        catch (e) { handleError(e, 'Failed to delete automation'); }
+        try {
+            await AutomationService.deleteRule(id);
+            fetchRules();
+            toast.success('Automation deleted');
+        } catch (e) { handleError(e, 'Failed to delete automation'); toast.error('Failed to delete automation'); }
     };
 
     const handleToggleEnabled = async (rule: AutomationRuleDto) => {
@@ -254,7 +259,8 @@ const AutomationsPage: React.FC = () => {
                 timerDurationHours: rule.timerDurationHours,
             });
             fetchRules();
-        } catch (e) { handleError(e, 'Failed to update automation'); }
+            toast.success(rule.isEnabled ? 'Automation disabled' : 'Automation enabled');
+        } catch (e) { handleError(e, 'Failed to update automation'); toast.error('Failed to update automation'); }
     };
 
     const startEdit = (rule: AutomationRuleDto) => {
@@ -282,7 +288,8 @@ const AutomationsPage: React.FC = () => {
             await AutomationService.updateRule(editingId, editForm);
             cancelEdit();
             fetchRules();
-        } catch (e) { handleError(e, 'Failed to update automation'); }
+            toast.success('Automation updated');
+        } catch (e) { handleError(e, 'Failed to update automation'); toast.error('Failed to update automation'); }
     };
 
     const handleTargetChange = (id: number) => {

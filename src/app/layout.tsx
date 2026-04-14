@@ -7,6 +7,7 @@ import Footer from './footer';
 import SessionProviderWrapper from './SessionProviderWrapper';
 import type { Metadata } from "next";
 import Script from 'next/script';
+import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
     title: 'Garge',
@@ -35,6 +36,7 @@ export default function Layout({
                         <Footer />
                         <FloatingNav />
                     </div>
+                    <Toaster position="bottom-center" theme="dark" richColors />
                 </SessionProviderWrapper>
             </body>
         </html>

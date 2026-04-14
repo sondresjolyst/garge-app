@@ -13,6 +13,7 @@ import LoadingDots from '@/components/LoadingDots';
 import Section from '@/components/Section';
 import { inputClass } from '@/components/TextInput';
 import Alert from '@/components/Alert';
+import { toast } from 'sonner';
 
 const Profile: React.FC = () => {
     const { status } = useSession();
@@ -130,17 +131,21 @@ const Profile: React.FC = () => {
             if (claimType === 'sensor') {
                 await SensorService.claimSensor(claimCode.trim());
                 setClaimMessage('Sensor added successfully!');
+                toast.success('Sensor added');
                 await refreshSensors();
             } else {
                 await SwitchService.claimSwitch(claimCode.trim());
                 setClaimMessage('Socket added successfully!');
+                toast.success('Socket added');
                 await refreshSwitches();
             }
             setClaimError(false);
             setClaimCode('');
         } catch (error: unknown) {
-            setClaimMessage(error instanceof Error ? error.message : `Failed to add ${claimType}.`);
+            const msg = error instanceof Error ? error.message : `Failed to add ${claimType}.`;
+            setClaimMessage(msg);
             setClaimError(true);
+            toast.error(msg);
         } finally {
             setClaimLoading(false);
         }
@@ -151,6 +156,7 @@ const Profile: React.FC = () => {
         await SensorService.unclaimSensor(confirmDeleteId);
         setConfirmDeleteId(null);
         await refreshSensors();
+        toast.success('Sensor removed');
     };
 
     const handleUnclaimSwitch = async () => {
@@ -158,6 +164,7 @@ const Profile: React.FC = () => {
         await SwitchService.unclaimSwitch(confirmDeleteSwitchId);
         setConfirmDeleteSwitchId(null);
         await refreshSwitches();
+        toast.success('Socket removed');
     };
 
     const startEditing = (sensor: Sensor) => {
@@ -180,6 +187,7 @@ const Profile: React.FC = () => {
             await refreshSensors();
             setEditingSensorId(null);
             setNewCustomName('');
+            toast.success('Sensor renamed');
         } catch (error: unknown) {
             setEditError(error instanceof Error ? error.message : 'Failed to update sensor name.');
         } finally {
@@ -207,6 +215,7 @@ const Profile: React.FC = () => {
             await refreshSwitches();
             setEditingSwitchId(null);
             setNewSwitchName('');
+            toast.success('Socket renamed');
         } catch (error: unknown) {
             setSwitchEditError(error instanceof Error ? error.message : 'Failed to update socket name.');
         } finally {
