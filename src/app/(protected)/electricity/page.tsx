@@ -20,10 +20,10 @@ const LoadingDots = () => (
 );
 
 const TABS = [
-    { label: 'Today', key: 'today',  frequency: 'HOURLY',  dateType: 'today'          },
-    { label: 'Week',  key: 'week',   frequency: 'DAILY',   dateType: 'last7Days'      },
-    { label: 'Month', key: 'month',  frequency: 'DAILY',   dateType: 'firstDayOfMonth' },
-    { label: 'Year',  key: 'year',   frequency: 'MONTHLY', dateType: 'firstDayOfYear' },
+    { label: 'Today', key: 'today',  frequency: 'HOURLY',  dateType: 'today',           chartType: 'bar'  as const },
+    { label: 'Week',  key: 'week',   frequency: 'DAILY',   dateType: 'last7Days',        chartType: 'bar'  as const },
+    { label: 'Month', key: 'month',  frequency: 'DAILY',   dateType: 'firstDayOfMonth',  chartType: 'bar'  as const },
+    { label: 'Year',  key: 'year',   frequency: 'MONTHLY', dateType: 'firstDayOfYear',   chartType: 'bar'  as const },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
@@ -157,7 +157,7 @@ const ElectricityPage = () => {
                     ) : error ? (
                         <div className="h-[300px] flex items-center justify-center text-red-400 text-sm">{error}</div>
                     ) : data.length > 0 ? (
-                        <TimeSeriesChart title="" data={data} chartType="bar" />
+                        <TimeSeriesChart title="" data={data} chartType={TABS.find(t => t.key === activeTab)!.chartType} />
                     ) : (
                         <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
                             No data available
