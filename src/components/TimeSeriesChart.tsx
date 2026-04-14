@@ -48,7 +48,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
                 options: {
                     plotOptions: {
                         bar: {
-                            columnWidth: '40%',
+                            columnWidth: '20%',
                             borderRadius: 1
                         }
                     }
