@@ -13,7 +13,6 @@ import SetupWizard from './SetupWizard';
 import ConfirmModal from '@/components/ConfirmModal';
 import { groupEmoji } from '@/lib/groupIcons';
 import CollapsibleSection from '@/components/CollapsibleSection';
-import { formatDateTime } from '@/lib/dateUtils';
 
 // ── Type sort order for group cards ───────────────────────────────────────────
 const TYPE_ORDER: Record<string, number> = { voltage: 0, temperature: 1, humidity: 2, socket: 3 };
@@ -94,7 +93,7 @@ function formatValue(device: UnifiedDevice): string {
     return formatSensorValue(device.type, device.latestValue);
 }
 
-const DeviceCard: React.FC<{ device: UnifiedDevice; onClick: () => void; showLastSeen?: boolean }> = ({ device, onClick, showLastSeen }) => {
+const DeviceCard: React.FC<{ device: UnifiedDevice; onClick: () => void }> = ({ device, onClick }) => {
     const cfg = TYPE_CONFIG[device.type.toLowerCase()] ?? DEFAULT_TYPE;
     const value = formatValue(device);
     const socketOn  = device.kind === 'socket' && device.latestState === 'ON';
@@ -126,9 +125,6 @@ const DeviceCard: React.FC<{ device: UnifiedDevice; onClick: () => void; showLas
             <div className="flex-1">
                 <p className="font-semibold text-gray-100 text-sm leading-snug line-clamp-2">{device.displayName}</p>
                 <p className="text-xs text-gray-500 mt-0.5">{cfg.label}</p>
-                {showLastSeen && device.latestTimestamp && (
-                    <p className="text-[10px] text-gray-600 mt-1">Last seen {formatDateTime(device.latestTimestamp)}</p>
-                )}
             </div>
 
             {/* Value */}
@@ -528,7 +524,6 @@ const DeviceDashboard: React.FC = () => {
                                                             key={`${device.kind}-${device.id}`}
                                                             device={device}
                                                             onClick={() => setSelected(device)}
-                                                            showLastSeen
                                                         />
                                                     ))}
                                                 </div>

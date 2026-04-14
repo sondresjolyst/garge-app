@@ -163,13 +163,13 @@ const ElectricityPage = () => {
                 {stats && !loading && (
                     <div className="px-5 pb-3 flex gap-3">
                         {[
-                            { label: 'Min', value: stats.min, color: 'text-green-400' },
-                            { label: 'Avg', value: stats.avg, color: 'text-sky-400' },
-                            { label: 'Max', value: stats.max, color: 'text-red-400' },
-                        ].map(({ label, value, color }) => (
+                            { label: 'Min', value: stats.min },
+                            { label: 'Avg', value: stats.avg },
+                            { label: 'Max', value: stats.max },
+                        ].map(({ label, value }) => (
                             <div key={label} className="flex-1 bg-gray-900/50 rounded-xl px-3 py-2 text-center">
                                 <p className="text-[10px] text-gray-500 uppercase tracking-wide">{label}</p>
-                                <p className={`text-sm font-bold tabular-nums ${color}`}>{value.toFixed(2)}</p>
+                                <p className="text-sm font-bold tabular-nums text-gray-100">{value.toFixed(2)}</p>
                                 <p className="text-[10px] text-gray-600">kr</p>
                             </div>
                         ))}
