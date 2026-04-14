@@ -48,6 +48,15 @@ const formatTriggered = (iso: string | null): string | null => {
     return formatDateTime(iso);
 };
 
+const formatTimerRemaining = (activatedAt: string, durationHours: number): string => {
+    const endsAt = new Date(activatedAt).getTime() + durationHours * 3600 * 1000;
+    const remainingMs = endsAt - Date.now();
+    if (remainingMs <= 0) return 'Expiring…';
+    const h = Math.floor(remainingMs / 3600000);
+    const m = Math.floor((remainingMs % 3600000) / 60000);
+    return h > 0 ? `${h}h ${m}m remaining` : `${m}m remaining`;
+};
+
 // ── Field components ──────────────────────────────────────────────────────────
 const FieldLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wide">
@@ -147,7 +156,7 @@ const PriceConditionForm: React.FC<PriceConditionFormProps> = ({ value, defaultA
                         </div>
                         <div>
                             <FieldLabel>Price (kr/kWh)</FieldLabel>
-                            <NumberInput value={value.electricityPriceThreshold ?? 0} step="0.01" placeholder="0"
+                            <NumberInput value={value.electricityPriceThreshold ?? 0} step="0.1" placeholder="0"
                                 onChange={e => onChange({ ...value, electricityPriceThreshold: Number(e.target.value) })} />
                         </div>
                         <div>
@@ -242,6 +251,7 @@ const AutomationsPage: React.FC = () => {
                 electricityPriceThreshold: rule.electricityPriceThreshold,
                 electricityPriceArea: rule.electricityPriceArea,
                 electricityPriceOperator: rule.electricityPriceOperator,
+                timerDurationHours: rule.timerDurationHours,
             });
             fetchRules();
         } catch (e) { handleError(e, 'Failed to update automation'); }
@@ -258,6 +268,7 @@ const AutomationsPage: React.FC = () => {
             electricityPriceThreshold: rule.electricityPriceThreshold,
             electricityPriceArea: rule.electricityPriceArea,
             electricityPriceOperator: rule.electricityPriceOperator,
+            timerDurationHours: rule.timerDurationHours,
         });
     };
 
@@ -328,6 +339,27 @@ const AutomationsPage: React.FC = () => {
                     {actionOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </Select>
             </div>
+            {editForm!.action === 'on' && (
+                <div className="pt-2 border-t border-gray-700/40">
+                    <div className="flex items-center gap-2 mb-2">
+                        <button
+                            type="button"
+                            onClick={() => setEditForm({ ...editForm!, timerDurationHours: editForm!.timerDurationHours ? undefined : 2 })}
+                            className={`relative w-9 h-5 rounded-full transition-colors focus:outline-none ${editForm!.timerDurationHours ? 'bg-sky-600' : 'bg-gray-600'}`}
+                        >
+                            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${editForm!.timerDurationHours ? 'translate-x-4' : 'translate-x-0'}`} />
+                        </button>
+                        <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">Auto-off timer</span>
+                    </div>
+                    {editForm!.timerDurationHours != null && (
+                        <div>
+                            <FieldLabel>Duration (hours)</FieldLabel>
+                            <NumberInput value={editForm!.timerDurationHours} step="0.5" min="0.5" placeholder="2"
+                                onChange={e => setEditForm({ ...editForm!, timerDurationHours: Number(e.target.value) })} />
+                        </div>
+                    )}
+                </div>
+            )}
             <PriceConditionForm
                 value={editForm!}
                 defaultArea={defaultPriceArea}
@@ -402,6 +434,27 @@ const AutomationsPage: React.FC = () => {
                                 {actionOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                             </Select>
                         </div>
+                        {form.action === 'on' && (
+                            <div className="pt-2 border-t border-gray-700/40">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setForm({ ...form, timerDurationHours: form.timerDurationHours ? undefined : 2 })}
+                                        className={`relative w-9 h-5 rounded-full transition-colors focus:outline-none ${form.timerDurationHours ? 'bg-sky-600' : 'bg-gray-600'}`}
+                                    >
+                                        <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.timerDurationHours ? 'translate-x-4' : 'translate-x-0'}`} />
+                                    </button>
+                                    <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">Auto-off timer</span>
+                                </div>
+                                {form.timerDurationHours != null && (
+                                    <div>
+                                        <FieldLabel>Duration (hours)</FieldLabel>
+                                        <NumberInput value={form.timerDurationHours} step="0.5" min="0.5" placeholder="2"
+                                            onChange={e => setForm({ ...form, timerDurationHours: Number(e.target.value) })} />
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <PriceConditionForm
                             value={form}
                             defaultArea={defaultPriceArea}
@@ -506,6 +559,16 @@ const AutomationsPage: React.FC = () => {
                                     <p className="mt-2 text-xs text-gray-500">
                                         Last triggered: <span className="text-gray-400">{triggered}</span>
                                     </p>
+                                )}
+
+                                {/* Timer status pill */}
+                                {rule.timerDurationHours != null && (
+                                    <div className={`mt-1.5 rounded-xl px-3 py-2 text-sm ${rule.timerActivatedAt ? 'bg-amber-500/10 text-amber-300' : 'bg-gray-900/60 text-gray-400'}`}>
+                                        {rule.timerActivatedAt
+                                            ? <>⏱ Timer active &mdash; {formatTimerRemaining(rule.timerActivatedAt, rule.timerDurationHours)}</>
+                                            : <>⏱ Auto-off after <span className="text-white font-medium">{rule.timerDurationHours}h</span></>
+                                        }
+                                    </div>
                                 )}
 
                                 {isEditing && renderEditForm(rule)}

@@ -11,4 +11,5 @@ export interface CreateAutomationRuleDto {
     electricityPriceThreshold?: number;
     electricityPriceArea?: string;
     electricityPriceOperator?: string;
+    timerDurationHours?: number;
 }
