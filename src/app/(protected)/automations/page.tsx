@@ -12,6 +12,7 @@ import { unitForType } from '@/lib/typeUtils';
 import { formatDateTime } from '@/lib/dateUtils';
 import { AxiosError } from 'axios';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import { toast } from 'sonner';
 
 const PRICE_AREAS = ['NO1', 'NO2', 'NO3', 'NO4', 'NO5'];
 
@@ -179,6 +180,7 @@ const AutomationsPage: React.FC = () => {
     const [error, setError] = useState<string>('');
     const [form, setForm] = useState<CreateAutomationRuleDto>(initialForm);
     const [formOpen, setFormOpen] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editForm, setEditForm] = useState<UpdateAutomationRuleDto | null>(null);
     const [switches, setSwitches] = useState<Switch[]>([]);
@@ -225,18 +227,24 @@ const AutomationsPage: React.FC = () => {
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setSubmitting(true);
         try {
             await AutomationService.createRule(form);
             setForm(initialForm);
             setFormOpen(false);
             fetchRules();
-        } catch (e) { handleError(e, 'Failed to create automation'); }
+            toast.success('Automation created');
+        } catch (e) { handleError(e, 'Failed to create automation'); toast.error('Failed to create automation'); }
+        finally { setSubmitting(false); }
     };
 
     const handleDelete = async (id: number) => {
         setError('');
-        try { await AutomationService.deleteRule(id); fetchRules(); }
-        catch (e) { handleError(e, 'Failed to delete automation'); }
+        try {
+            await AutomationService.deleteRule(id);
+            fetchRules();
+            toast.success('Automation deleted');
+        } catch (e) { handleError(e, 'Failed to delete automation'); toast.error('Failed to delete automation'); }
     };
 
     const handleToggleEnabled = async (rule: AutomationRuleDto) => {
@@ -254,7 +262,8 @@ const AutomationsPage: React.FC = () => {
                 timerDurationHours: rule.timerDurationHours,
             });
             fetchRules();
-        } catch (e) { handleError(e, 'Failed to update automation'); }
+            toast.success(rule.isEnabled ? 'Automation disabled' : 'Automation enabled');
+        } catch (e) { handleError(e, 'Failed to update automation'); toast.error('Failed to update automation'); }
     };
 
     const startEdit = (rule: AutomationRuleDto) => {
@@ -278,11 +287,14 @@ const AutomationsPage: React.FC = () => {
         e.preventDefault();
         if (!editingId || !editForm) return;
         setError('');
+        setSubmitting(true);
         try {
             await AutomationService.updateRule(editingId, editForm);
             cancelEdit();
             fetchRules();
-        } catch (e) { handleError(e, 'Failed to update automation'); }
+            toast.success('Automation updated');
+        } catch (e) { handleError(e, 'Failed to update automation'); toast.error('Failed to update automation'); }
+        finally { setSubmitting(false); }
     };
 
     const handleTargetChange = (id: number) => {
@@ -366,7 +378,7 @@ const AutomationsPage: React.FC = () => {
                 onChange={fields => setEditForm({ ...editForm!, ...fields })}
             />
             <div className="flex items-center gap-2 pt-1">
-                <button type="submit" className="flex-1 px-4 py-2 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white text-sm font-medium rounded-xl transition-all">Save</button>
+                <button type="submit" disabled={submitting} className="flex-1 px-4 py-2 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-all">{submitting ? 'Saving…' : 'Save'}</button>
                 <button type="button" className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium rounded-xl transition-all" onClick={cancelEdit}>Cancel</button>
                 <button type="button" className="px-4 py-2 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white text-sm font-medium rounded-xl transition-all" onClick={() => handleDelete(rule.id)}>Delete</button>
             </div>
@@ -461,7 +473,7 @@ const AutomationsPage: React.FC = () => {
                             onChange={fields => setForm({ ...form, ...fields })}
                         />
                         <div className="flex gap-2 pt-1">
-                            <button type="submit" className="flex-1 px-4 py-2 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white text-sm font-medium rounded-xl transition-all">Create</button>
+                            <button type="submit" disabled={submitting} className="flex-1 px-4 py-2 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-all">{submitting ? 'Creating…' : 'Create'}</button>
                             <button type="button" className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium rounded-xl transition-all" onClick={() => setFormOpen(false)}>Cancel</button>
                         </div>
                     </form>

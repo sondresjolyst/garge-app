@@ -102,6 +102,15 @@ const ElectricityPage = () => {
         ).y;
     })();
 
+    const stats = (() => {
+        if (data.length === 0) return null;
+        const values = data.map(d => d.y);
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const avg = values.reduce((s, v) => s + v, 0) / values.length;
+        return { min, max, avg };
+    })();
+
     return (
         <div className="p-4 max-w-7xl mx-auto">
             <h1 className="text-2xl sm:text-3xl font-bold mb-6">Electricity Prices</h1>
@@ -149,6 +158,23 @@ const ElectricityPage = () => {
                         ))}
                     </div>
                 </div>
+
+                {/* Stats bar */}
+                {stats && !loading && (
+                    <div className="px-5 pb-3 flex gap-3">
+                        {[
+                            { label: 'Min', value: stats.min },
+                            { label: 'Avg', value: stats.avg },
+                            { label: 'Max', value: stats.max },
+                        ].map(({ label, value }) => (
+                            <div key={label} className="flex-1 bg-gray-900/50 rounded-xl px-3 py-2 text-center">
+                                <p className="text-[10px] text-gray-500 uppercase tracking-wide">{label}</p>
+                                <p className="text-sm font-bold tabular-nums text-gray-100">{value.toFixed(2)}</p>
+                                <p className="text-[10px] text-gray-600">kr</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 {/* Chart */}
                 <div className="px-2 pb-4">
