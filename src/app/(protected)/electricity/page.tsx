@@ -20,7 +20,7 @@ const LoadingDots = () => (
 );
 
 const TABS = [
-    { label: 'Today', key: 'today',  frequency: 'HOURLY',  dateType: 'today',           chartType: 'line' as const },
+    { label: 'Today', key: 'today',  frequency: 'HOURLY',  dateType: 'today',           chartType: 'bar'  as const },
     { label: 'Week',  key: 'week',   frequency: 'DAILY',   dateType: 'last7Days',        chartType: 'bar'  as const },
     { label: 'Month', key: 'month',  frequency: 'DAILY',   dateType: 'firstDayOfMonth',  chartType: 'bar'  as const },
     { label: 'Year',  key: 'year',   frequency: 'MONTHLY', dateType: 'firstDayOfYear',   chartType: 'bar'  as const },
