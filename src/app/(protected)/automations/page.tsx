@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import AutomationService from '@/services/automationService';
 import SwitchService, { Switch } from '@/services/switchService';
 import SensorService, { Sensor } from '@/services/sensorService';
+import UserService from '@/services/userService';
 import { AutomationRuleDto } from '@/dto/Automation/AutomationRuleDto';
 import { CreateAutomationRuleDto } from '@/dto/Automation/CreateAutomationRuleDto';
 import { UpdateAutomationRuleDto } from '@/dto/Automation/UpdateAutomationRuleDto';
@@ -11,6 +12,8 @@ import { unitForType } from '@/lib/typeUtils';
 import { formatDateTime } from '@/lib/dateUtils';
 import { AxiosError } from 'axios';
 import { PlusIcon } from '@heroicons/react/24/outline';
+
+const PRICE_AREAS = ['NO1', 'NO2', 'NO3', 'NO4', 'NO5'];
 
 const initialForm: CreateAutomationRuleDto = {
     targetType: '',
@@ -77,6 +80,89 @@ const LoadingDots = () => (
     </div>
 );
 
+// ── Electricity price sub-form ────────────────────────────────────────────────
+interface PriceConditionFields {
+    electricityPriceCondition?: string;
+    electricityPriceThreshold?: number;
+    electricityPriceArea?: string;
+    electricityPriceOperator?: string;
+}
+
+interface PriceConditionFormProps {
+    value: PriceConditionFields;
+    defaultArea: string;
+    onChange: (v: PriceConditionFields) => void;
+}
+
+const PriceConditionForm: React.FC<PriceConditionFormProps> = ({ value, defaultArea, onChange }) => {
+    const [enabled, setEnabled] = useState(!!value.electricityPriceCondition);
+
+    const toggle = () => {
+        const next = !enabled;
+        setEnabled(next);
+        if (!next) {
+            onChange({
+                electricityPriceCondition: undefined,
+                electricityPriceThreshold: undefined,
+                electricityPriceArea: undefined,
+                electricityPriceOperator: undefined,
+            });
+        } else {
+            onChange({
+                electricityPriceCondition: '<',
+                electricityPriceThreshold: 0,
+                electricityPriceArea: value.electricityPriceArea || defaultArea,
+                electricityPriceOperator: 'AND',
+            });
+        }
+    };
+
+    return (
+        <div className="pt-2 border-t border-gray-700/40">
+            <div className="flex items-center gap-2 mb-2">
+                <button
+                    type="button"
+                    onClick={toggle}
+                    className={`relative w-9 h-5 rounded-full transition-colors focus:outline-none ${enabled ? 'bg-sky-600' : 'bg-gray-600'}`}
+                >
+                    <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${enabled ? 'translate-x-4' : 'translate-x-0'}`} />
+                </button>
+                <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">Electricity price condition</span>
+            </div>
+            {enabled && (
+                <div className="space-y-2">
+                    <div>
+                        <FieldLabel>Combine with sensor condition using</FieldLabel>
+                        <Select value={value.electricityPriceOperator ?? 'AND'} onChange={e => onChange({ ...value, electricityPriceOperator: e.target.value })}>
+                            <option value="AND">AND (both must be true)</option>
+                            <option value="OR">OR (either can be true)</option>
+                        </Select>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                        <div>
+                            <FieldLabel>Condition</FieldLabel>
+                            <Select value={value.electricityPriceCondition ?? '<'} onChange={e => onChange({ ...value, electricityPriceCondition: e.target.value })}>
+                                {conditionOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                            </Select>
+                        </div>
+                        <div>
+                            <FieldLabel>Price (kr/kWh)</FieldLabel>
+                            <NumberInput value={value.electricityPriceThreshold ?? 0} step="0.01" placeholder="0"
+                                onChange={e => onChange({ ...value, electricityPriceThreshold: Number(e.target.value) })} />
+                        </div>
+                        <div>
+                            <FieldLabel>Area</FieldLabel>
+                            <Select value={value.electricityPriceArea ?? defaultArea} onChange={e => onChange({ ...value, electricityPriceArea: e.target.value })}>
+                                {PRICE_AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+                            </Select>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 // ── AutomationsPage ───────────────────────────────────────────────────────────
 const AutomationsPage: React.FC = () => {
     const [rules, setRules] = useState<AutomationRuleDto[]>([]);
@@ -88,9 +174,10 @@ const AutomationsPage: React.FC = () => {
     const [editForm, setEditForm] = useState<UpdateAutomationRuleDto | null>(null);
     const [switches, setSwitches] = useState<Switch[]>([]);
     const [sensors, setSensors] = useState<Sensor[]>([]);
+    const [defaultPriceArea, setDefaultPriceArea] = useState<string>('NO2');
 
     useEffect(() => {
-        Promise.all([fetchRules(), fetchSwitches(), fetchSensors()])
+        Promise.all([fetchRules(), fetchSwitches(), fetchSensors(), fetchUserPriceZone()])
             .finally(() => setLoading(false));
     }, []);
 
@@ -112,6 +199,12 @@ const AutomationsPage: React.FC = () => {
     const fetchSensors = async () => {
         try { setSensors(await SensorService.getAllSensors()); }
         catch (e) { handleError(e, 'Failed to fetch sensors'); }
+    };
+    const fetchUserPriceZone = async () => {
+        try {
+            const profile = await UserService.getUserProfile();
+            if (profile.priceZone) setDefaultPriceArea(profile.priceZone);
+        } catch { /* ignore */ }
     };
 
     const handleError = (error: unknown, fallbackMsg?: string) => {
@@ -145,6 +238,10 @@ const AutomationsPage: React.FC = () => {
                 sensorType: rule.sensorType, sensorId: rule.sensorId,
                 condition: rule.condition, threshold: rule.threshold,
                 action: rule.action, isEnabled: !rule.isEnabled,
+                electricityPriceCondition: rule.electricityPriceCondition,
+                electricityPriceThreshold: rule.electricityPriceThreshold,
+                electricityPriceArea: rule.electricityPriceArea,
+                electricityPriceOperator: rule.electricityPriceOperator,
             });
             fetchRules();
         } catch (e) { handleError(e, 'Failed to update automation'); }
@@ -157,6 +254,10 @@ const AutomationsPage: React.FC = () => {
             sensorType: rule.sensorType, sensorId: rule.sensorId,
             condition: rule.condition, threshold: rule.threshold,
             action: rule.action, isEnabled: rule.isEnabled,
+            electricityPriceCondition: rule.electricityPriceCondition,
+            electricityPriceThreshold: rule.electricityPriceThreshold,
+            electricityPriceArea: rule.electricityPriceArea,
+            electricityPriceOperator: rule.electricityPriceOperator,
         });
     };
 
@@ -227,6 +328,11 @@ const AutomationsPage: React.FC = () => {
                     {actionOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </Select>
             </div>
+            <PriceConditionForm
+                value={editForm!}
+                defaultArea={defaultPriceArea}
+                onChange={fields => setEditForm({ ...editForm!, ...fields })}
+            />
             <div className="flex items-center gap-2 pt-1">
                 <button type="submit" className="flex-1 px-4 py-2 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white text-sm font-medium rounded-xl transition-all">Save</button>
                 <button type="button" className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium rounded-xl transition-all" onClick={cancelEdit}>Cancel</button>
@@ -296,6 +402,11 @@ const AutomationsPage: React.FC = () => {
                                 {actionOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                             </Select>
                         </div>
+                        <PriceConditionForm
+                            value={form}
+                            defaultArea={defaultPriceArea}
+                            onChange={fields => setForm({ ...form, ...fields })}
+                        />
                         <div className="flex gap-2 pt-1">
                             <button type="submit" className="flex-1 px-4 py-2 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white text-sm font-medium rounded-xl transition-all">Create</button>
                             <button type="button" className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium rounded-xl transition-all" onClick={() => setFormOpen(false)}>Cancel</button>
@@ -321,6 +432,7 @@ const AutomationsPage: React.FC = () => {
                         const sym = conditionSymbol[rule.condition] ?? rule.condition;
                         const unit = sensorObj ? unitForType(sensorObj.type) : '';
                         const triggered = formatTriggered(rule.lastTriggeredAt);
+                        const priceSym = rule.electricityPriceCondition ? (conditionSymbol[rule.electricityPriceCondition] ?? rule.electricityPriceCondition) : null;
 
                         return (
                             <div
@@ -367,7 +479,7 @@ const AutomationsPage: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Condition pill */}
+                                {/* Sensor condition pill */}
                                 <div className="bg-gray-900/60 rounded-xl px-3 py-2 text-sm text-gray-300">
                                     When{' '}
                                     <span className="text-white font-medium">
@@ -376,6 +488,18 @@ const AutomationsPage: React.FC = () => {
                                     <span className="text-sky-400 font-mono">{sym}</span>{' '}
                                     <span className="text-white font-medium">{rule.threshold}{unit ? ` ${unit}` : ''}</span>
                                 </div>
+
+                                {/* Electricity price condition pill */}
+                                {priceSym && rule.electricityPriceThreshold !== undefined && (
+                                    <div className="mt-1.5 bg-gray-900/60 rounded-xl px-3 py-2 text-sm text-gray-300">
+                                        <span className="text-amber-400 font-medium text-xs uppercase tracking-wide">
+                                            {rule.electricityPriceOperator ?? 'AND'}
+                                        </span>{' '}price{' '}
+                                        <span className="text-sky-400 font-mono">{priceSym}</span>{' '}
+                                        <span className="text-white font-medium">{rule.electricityPriceThreshold} kr/kWh</span>
+                                        <span className="text-gray-500 ml-1">({rule.electricityPriceArea})</span>
+                                    </div>
+                                )}
 
                                 {/* Last triggered */}
                                 {triggered && (
