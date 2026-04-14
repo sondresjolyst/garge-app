@@ -52,7 +52,7 @@ const fetchTabData = async (frequency: string, dateType: string, zone: string): 
         })
         .map((d: any) => {
             const ts = d.time.endsWith('Z') ? d.time : d.time + 'Z';
-            return { x: new Date(ts).getTime(), y: d.price / 1000 };
+            return { x: new Date(ts).getTime(), y: d.price };
         });
 };
 
