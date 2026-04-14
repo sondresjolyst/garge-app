@@ -25,7 +25,7 @@ export function formatSensorValue(type: string, value: number | null | undefined
     if (value === undefined || value === null) return '—';
     const t = type.toLowerCase();
     if (t === 'temperature') return `${Number(value).toFixed(1)} °C`;
-    if (t === 'humidity')    return `${Number(value).toFixed(0)} %`;
+    if (t === 'humidity')    return `${Number(value).toFixed(1)} %`;
     if (t === 'voltage')     return `${Number(value).toFixed(2)} V`;
     return `${Number(value).toFixed(1)} ${unitForType(t)}`;
 }
