@@ -371,15 +371,18 @@ const Profile: React.FC = () => {
                                 <div key={sensor.id} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
                                     {editingSensorId === sensor.id ? (
                                         <div className="space-y-2">
-                                            <input
-                                                type="text"
-                                                value={newCustomName}
-                                                onChange={e => setNewCustomName(e.target.value)}
-                                                className={inputClass}
-                                                maxLength={50}
-                                                disabled={editLoading}
-                                                autoFocus
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={newCustomName}
+                                                    onChange={e => setNewCustomName(e.target.value)}
+                                                    className={inputClass}
+                                                    maxLength={50}
+                                                    disabled={editLoading}
+                                                    autoFocus
+                                                />
+                                                <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] tabular-nums pointer-events-none ${newCustomName.length >= 45 ? 'text-amber-400' : 'text-gray-600'}`}>{newCustomName.length}/50</span>
+                                            </div>
                                             {editError && <p className="text-xs text-red-400">{editError}</p>}
                                             <div className="flex gap-2">
                                                 <button onClick={() => handleSaveCustomName(sensor.id)} disabled={editLoading} className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-all">
@@ -433,15 +436,18 @@ const Profile: React.FC = () => {
                                 <div key={sw.id} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
                                     {editingSwitchId === sw.id ? (
                                         <div className="space-y-2">
-                                            <input
-                                                type="text"
-                                                value={newSwitchName}
-                                                onChange={e => setNewSwitchName(e.target.value)}
-                                                className={inputClass}
-                                                maxLength={50}
-                                                disabled={switchEditLoading}
-                                                autoFocus
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={newSwitchName}
+                                                    onChange={e => setNewSwitchName(e.target.value)}
+                                                    className={inputClass}
+                                                    maxLength={50}
+                                                    disabled={switchEditLoading}
+                                                    autoFocus
+                                                />
+                                                <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] tabular-nums pointer-events-none ${newSwitchName.length >= 45 ? 'text-amber-400' : 'text-gray-600'}`}>{newSwitchName.length}/50</span>
+                                            </div>
                                             {switchEditError && <p className="text-xs text-red-400">{switchEditError}</p>}
                                             <div className="flex gap-2">
                                                 <button onClick={() => handleSaveSwitchName(sw.id)} disabled={switchEditLoading} className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-all">
