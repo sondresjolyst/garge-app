@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.1](https://github.com/sondresjolyst/garge-app/compare/v1.6.0...v1.6.1) (2026-04-13)
+
+
+### Bug Fixes
+
+* prevent spam URL indexing via middleware refactor ([#159](https://github.com/sondresjolyst/garge-app/issues/159)) ([8c54eae](https://github.com/sondresjolyst/garge-app/commit/8c54eae7ee52ccb1ec1b7df692afbb1a7c6d6b63))
+* use 14d window for stale sensor check instead of 1d data window ([0635d1f](https://github.com/sondresjolyst/garge-app/commit/0635d1fbdfffed3a7120c41fc3e409ea3a735270))
+
 ## [1.6.0](https://github.com/sondresjolyst/garge-app/compare/v1.5.0...v1.6.0) (2026-04-11)
 
 
