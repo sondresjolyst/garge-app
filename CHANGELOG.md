@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.7.0](https://github.com/sondresjolyst/garge-app/compare/v1.6.1...v1.7.0) (2026-04-14)
+
+
+### Features
+
+* **automations:** timed auto-off UI ([#164](https://github.com/sondresjolyst/garge-app/issues/164)) ([c0dd4dc](https://github.com/sondresjolyst/garge-app/commit/c0dd4dc5bcc7546ef7426fdef70f18bcbce26578))
+* electricity price conditions in automations UI and kr/kWh chart ([#163](https://github.com/sondresjolyst/garge-app/issues/163)) ([cb94c31](https://github.com/sondresjolyst/garge-app/commit/cb94c31da7c130497af5feb4409fd206cb48ca56))
+* electricity stats, toast notifications, button locking ([#166](https://github.com/sondresjolyst/garge-app/issues/166)) ([ed16e17](https://github.com/sondresjolyst/garge-app/commit/ed16e17cfe1306506ad4383472fc87d8a6525a5b))
+
+
+### Bug Fixes
+
+* add char counter to drawer rename input ([#168](https://github.com/sondresjolyst/garge-app/issues/168)) ([6ed532b](https://github.com/sondresjolyst/garge-app/commit/6ed532b60b96a7f9304297ce727b54f41cd20d57))
+* **electricity:** mobile-friendly chart with line on small screens ([#165](https://github.com/sondresjolyst/garge-app/issues/165)) ([9ef9298](https://github.com/sondresjolyst/garge-app/commit/9ef9298c47bd40597b11f4a592a02e2806f623ba))
+* humidity 1 decimal, rename char counter, unified timeline tooltip ([#167](https://github.com/sondresjolyst/garge-app/issues/167)) ([709e375](https://github.com/sondresjolyst/garge-app/commit/709e375b36e3ddc979cbef80cc4e979335e44b43))
+
 ## [1.6.1](https://github.com/sondresjolyst/garge-app/compare/v1.6.0...v1.6.1) (2026-04-13)
 
 
