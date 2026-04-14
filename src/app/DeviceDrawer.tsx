@@ -234,17 +234,21 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                     <div className="flex-1 min-w-0">
                         {(device.kind === 'socket' || device.kind === 'sensor') && editingName ? (
                             <div className="flex items-center gap-2">
-                                <input
-                                    autoFocus
-                                    type="text"
-                                    value={editName}
-                                    onChange={e => setEditName(e.target.value)}
-                                    onKeyDown={e => {
-                                        if (e.key === 'Enter') handleSaveName();
-                                        if (e.key === 'Escape') setEditingName(false);
-                                    }}
-                                    className="flex-1 min-w-0 bg-gray-800/80 border border-gray-600/50 rounded-lg px-2 py-1 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60"
-                                />
+                                <div className="relative flex-1 min-w-0">
+                                    <input
+                                        autoFocus
+                                        type="text"
+                                        value={editName}
+                                        onChange={e => setEditName(e.target.value)}
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter') handleSaveName();
+                                            if (e.key === 'Escape') setEditingName(false);
+                                        }}
+                                        maxLength={50}
+                                        className="w-full bg-gray-800/80 border border-gray-600/50 rounded-lg px-2 py-1 pr-10 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60"
+                                    />
+                                    <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] tabular-nums pointer-events-none ${editName.length >= 45 ? 'text-amber-400' : 'text-gray-600'}`}>{editName.length}/50</span>
+                                </div>
                                 <button
                                     onClick={handleSaveName}
                                     disabled={savingName}
