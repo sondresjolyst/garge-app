@@ -7,4 +7,8 @@ export interface UpdateAutomationRuleDto {
     threshold: number;
     action: string;
     isEnabled: boolean;
+    electricityPriceCondition?: string;
+    electricityPriceThreshold?: number;
+    electricityPriceArea?: string;
+    electricityPriceOperator?: string;
 }
