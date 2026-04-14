@@ -8,6 +8,9 @@ interface TimeSeriesChartProps {
     chartType?: 'line' | 'bar';
 }
 
+// Minimum pixels per bar to keep bars readable on mobile
+const MIN_BAR_WIDTH_PX = 24;
+
 const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartType = 'line' }) => {
     const series = useMemo(() => [
         {
@@ -15,6 +18,14 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
             data: data
         }
     ], [title, data]);
+
+    // Compute a minimum chart width so bars never get thinner than MIN_BAR_WIDTH_PX.
+    // ApexCharts will make the plot area scrollable horizontally when the viewport
+    // is narrower than this value.
+    const minScrollWidth = useMemo(() => {
+        if (chartType !== 'bar' || data.length <= 10) return undefined;
+        return data.length * MIN_BAR_WIDTH_PX;
+    }, [chartType, data.length]);
 
     const options: ApexOptions = useMemo(() => ({
         chart: {
@@ -34,7 +45,20 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
                     zoomout: true
                 }
             },
-            foreColor: '#f0f0f0'
+            foreColor: '#f0f0f0',
+            ...(minScrollWidth ? {
+                scrollablePlotArea: {
+                    minWidth: minScrollWidth,
+                    scrollWidth: minScrollWidth,
+                    offsetX: 0
+                }
+            } : {})
+        },
+        plotOptions: {
+            bar: {
+                columnWidth: '70%',
+                borderRadius: 2
+            }
         },
         title: {
             text: title,
@@ -49,16 +73,14 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
                 datetimeUTC: false,
                 style: {
                     colors: '#f0f0f0'
-                }
+                },
+                // Fewer x-axis labels on small screens to reduce crowding
+                hideOverlappingLabels: true,
+                rotate: -30,
+                rotateAlways: false,
             }
         },
         yaxis: {
-            //title: {
-            //    text: 'Value',
-            //    style: {
-            //        color: '#f0f0f0'
-            //    }
-            //},
             labels: {
                 style: {
                     colors: '#f0f0f0'
@@ -85,14 +107,18 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
                 format: 'dd.MM.yyyy HH:mm:ss'
             }
         }
-    }), [title, chartType]);
+    }), [title, chartType, minScrollWidth]);
 
     if (!data || data.length === 0) {
         return null;
     }
 
     return (
-        <Chart options={options} series={series} type={chartType} height={350} />
+        <div className="overflow-x-auto w-full">
+            <div style={{ minWidth: minScrollWidth ?? '100%' }}>
+                <Chart options={options} series={series} type={chartType} height={350} />
+            </div>
+        </div>
     );
 };
 
