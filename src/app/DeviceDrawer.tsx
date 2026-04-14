@@ -53,21 +53,40 @@ function formatDuration(ms: number): string {
 
 const TimelineBar: React.FC<{ segments: Segment[]; rangeStart: number; rangeEnd: number }> = ({ segments, rangeStart, rangeEnd }) => {
     const total = rangeEnd - rangeStart;
+    const [activeIdx, setActiveIdx] = useState<number | null>(null);
     if (total <= 0) return null;
+
+    const active = activeIdx !== null ? segments[activeIdx] : null;
+
     return (
-        <div className="relative h-8 rounded-xl overflow-hidden bg-gray-800/60 flex">
-            {segments.map((seg, i) => {
-                const left = ((seg.start - rangeStart) / total) * 100;
-                const width = ((seg.end - seg.start) / total) * 100;
-                return (
-                    <div
-                        key={i}
-                        title={`${seg.on ? 'ON' : 'OFF'} — ${formatDateTime(new Date(seg.start).toISOString())} → ${formatDateTime(new Date(seg.end).toISOString())}`}
-                        style={{ left: `${left}%`, width: `${width}%` }}
-                        className={`absolute top-0 h-full ${seg.on ? 'bg-green-500/70' : 'bg-gray-700/50'}`}
-                    />
-                );
-            })}
+        <div>
+            <div className="relative h-8 rounded-xl overflow-hidden bg-gray-800/60 flex">
+                {segments.map((seg, i) => {
+                    const left = ((seg.start - rangeStart) / total) * 100;
+                    const width = ((seg.end - seg.start) / total) * 100;
+                    return (
+                        <div
+                            key={i}
+                            style={{ left: `${left}%`, width: `${width}%` }}
+                            className={`absolute top-0 h-full cursor-pointer ${seg.on ? 'bg-green-500/70' : 'bg-gray-700/50'}`}
+                            onMouseEnter={() => setActiveIdx(i)}
+                            onMouseLeave={() => setActiveIdx(null)}
+                            onClick={() => setActiveIdx(prev => prev === i ? null : i)}
+                        />
+                    );
+                })}
+            </div>
+            <div className="h-5 mt-1">
+                {active && (
+                    <p className="text-[11px] text-gray-400 tabular-nums">
+                        <span className={active.on ? 'text-green-400 font-medium' : 'text-gray-500 font-medium'}>{active.on ? 'ON' : 'OFF'}</span>
+                        {' — '}
+                        {formatDateTime(new Date(active.start).toISOString())}
+                        {' → '}
+                        {formatDateTime(new Date(active.end).toISOString())}
+                    </p>
+                )}
+            </div>
         </div>
     );
 };
@@ -215,17 +234,21 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                     <div className="flex-1 min-w-0">
                         {(device.kind === 'socket' || device.kind === 'sensor') && editingName ? (
                             <div className="flex items-center gap-2">
-                                <input
-                                    autoFocus
-                                    type="text"
-                                    value={editName}
-                                    onChange={e => setEditName(e.target.value)}
-                                    onKeyDown={e => {
-                                        if (e.key === 'Enter') handleSaveName();
-                                        if (e.key === 'Escape') setEditingName(false);
-                                    }}
-                                    className="flex-1 min-w-0 bg-gray-800/80 border border-gray-600/50 rounded-lg px-2 py-1 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60"
-                                />
+                                <div className="relative flex-1 min-w-0">
+                                    <input
+                                        autoFocus
+                                        type="text"
+                                        value={editName}
+                                        onChange={e => setEditName(e.target.value)}
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter') handleSaveName();
+                                            if (e.key === 'Escape') setEditingName(false);
+                                        }}
+                                        maxLength={50}
+                                        className="w-full bg-gray-800/80 border border-gray-600/50 rounded-lg px-2 py-1 pr-10 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60"
+                                    />
+                                    <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] tabular-nums pointer-events-none ${editName.length >= 45 ? 'text-amber-400' : 'text-gray-600'}`}>{editName.length}/50</span>
+                                </div>
                                 <button
                                     onClick={handleSaveName}
                                     disabled={savingName}

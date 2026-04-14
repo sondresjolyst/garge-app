@@ -20,10 +20,10 @@ const LoadingDots = () => (
 );
 
 const TABS = [
-    { label: 'Today', key: 'today',  frequency: 'HOURLY',  dateType: 'today'          },
-    { label: 'Week',  key: 'week',   frequency: 'DAILY',   dateType: 'last7Days'      },
-    { label: 'Month', key: 'month',  frequency: 'DAILY',   dateType: 'firstDayOfMonth' },
-    { label: 'Year',  key: 'year',   frequency: 'MONTHLY', dateType: 'firstDayOfYear' },
+    { label: 'Today', key: 'today',  frequency: 'HOURLY',  dateType: 'today',           chartType: 'bar'  as const },
+    { label: 'Week',  key: 'week',   frequency: 'DAILY',   dateType: 'last7Days',        chartType: 'bar'  as const },
+    { label: 'Month', key: 'month',  frequency: 'DAILY',   dateType: 'firstDayOfMonth',  chartType: 'bar'  as const },
+    { label: 'Year',  key: 'year',   frequency: 'MONTHLY', dateType: 'firstDayOfYear',   chartType: 'bar'  as const },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
@@ -52,7 +52,7 @@ const fetchTabData = async (frequency: string, dateType: string, zone: string): 
         })
         .map((d: any) => {
             const ts = d.time.endsWith('Z') ? d.time : d.time + 'Z';
-            return { x: new Date(ts).getTime(), y: d.price / 1000 };
+            return { x: new Date(ts).getTime(), y: d.price };
         });
 };
 
@@ -100,6 +100,15 @@ const ElectricityPage = () => {
         return data.reduce((prev, curr) =>
             Math.abs(curr.x - now) < Math.abs(prev.x - now) ? curr : prev
         ).y;
+    })();
+
+    const stats = (() => {
+        if (data.length === 0) return null;
+        const values = data.map(d => d.y);
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const avg = values.reduce((s, v) => s + v, 0) / values.length;
+        return { min, max, avg };
     })();
 
     return (
@@ -150,6 +159,23 @@ const ElectricityPage = () => {
                     </div>
                 </div>
 
+                {/* Stats bar */}
+                {stats && !loading && (
+                    <div className="px-5 pb-3 flex gap-3">
+                        {[
+                            { label: 'Min', value: stats.min },
+                            { label: 'Avg', value: stats.avg },
+                            { label: 'Max', value: stats.max },
+                        ].map(({ label, value }) => (
+                            <div key={label} className="flex-1 bg-gray-900/50 rounded-xl px-3 py-2 text-center">
+                                <p className="text-[10px] text-gray-500 uppercase tracking-wide">{label}</p>
+                                <p className="text-sm font-bold tabular-nums text-gray-100">{value.toFixed(2)}</p>
+                                <p className="text-[10px] text-gray-600">kr</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
                 {/* Chart */}
                 <div className="px-2 pb-4">
                     {loading ? (
@@ -157,7 +183,7 @@ const ElectricityPage = () => {
                     ) : error ? (
                         <div className="h-[300px] flex items-center justify-center text-red-400 text-sm">{error}</div>
                     ) : data.length > 0 ? (
-                        <TimeSeriesChart title="" data={data} chartType="bar" />
+                        <TimeSeriesChart title="" data={data} chartType={TABS.find(t => t.key === activeTab)!.chartType} />
                     ) : (
                         <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
                             No data available

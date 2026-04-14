@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Chart from "react-apexcharts";
 import { ApexOptions } from 'apexcharts';
 
@@ -9,6 +9,18 @@ interface TimeSeriesChartProps {
 }
 
 const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartType = 'line' }) => {
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth < 640);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
+    }, []);
+
+    // On mobile, always use a line chart regardless of the requested type
+    const effectiveType = isMobile && chartType === 'bar' ? 'line' : chartType;
+
     const series = useMemo(() => [
         {
             name: title,
@@ -18,7 +30,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
 
     const options: ApexOptions = useMemo(() => ({
         chart: {
-            type: chartType,
+            type: effectiveType,
             height: 350,
             animations: {
                 enabled: false
@@ -36,6 +48,12 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
             },
             foreColor: '#f0f0f0'
         },
+        plotOptions: {
+            bar: {
+                columnWidth: '70%',
+                borderRadius: 2
+            }
+        },
         title: {
             text: title,
             align: 'left',
@@ -49,16 +67,14 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
                 datetimeUTC: false,
                 style: {
                     colors: '#f0f0f0'
-                }
+                },
+                hideOverlappingLabels: true
+            },
+            crosshairs: {
+                show: true
             }
         },
         yaxis: {
-            //title: {
-            //    text: 'Value',
-            //    style: {
-            //        color: '#f0f0f0'
-            //    }
-            //},
             labels: {
                 style: {
                     colors: '#f0f0f0'
@@ -68,13 +84,21 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
         },
         stroke: {
             curve: 'smooth',
-            width: 3
+            width: effectiveType === 'line' ? 3 : 0
+        },
+        markers: {
+            size: effectiveType === 'line' ? 0 : 0,
+            hover: {
+                size: effectiveType === 'line' ? 5 : 0
+            }
         },
         dataLabels: {
             enabled: false
         },
         tooltip: {
             theme: 'dark',
+            shared: true,
+            intersect: false,
             style: {
                 fontSize: '12px',
                 fontFamily: undefined,
@@ -82,17 +106,19 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
                 color: '#f0f0f0'
             },
             x: {
-                format: 'dd.MM.yyyy HH:mm:ss'
+                format: 'dd.MM.yyyy HH:mm'
             }
         }
-    }), [title, chartType]);
+    }), [title, effectiveType]);
 
     if (!data || data.length === 0) {
         return null;
     }
 
     return (
-        <Chart options={options} series={series} type={chartType} height={350} />
+        <div className="overflow-hidden w-full">
+            <Chart options={options} series={series} type={effectiveType} height={350} />
+        </div>
     );
 };
 

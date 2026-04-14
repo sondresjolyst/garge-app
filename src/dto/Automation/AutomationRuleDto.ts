@@ -9,4 +9,10 @@ export interface AutomationRuleDto {
     action: string;
     isEnabled: boolean;
     lastTriggeredAt: string | null;
+    electricityPriceCondition?: string;
+    electricityPriceThreshold?: number;
+    electricityPriceArea?: string;
+    electricityPriceOperator?: string;
+    timerDurationHours?: number;
+    timerActivatedAt?: string | null;
 }
