@@ -156,7 +156,7 @@ const PriceConditionForm: React.FC<PriceConditionFormProps> = ({ value, defaultA
                         </div>
                         <div>
                             <FieldLabel>Price (kr/kWh)</FieldLabel>
-                            <NumberInput value={value.electricityPriceThreshold ?? 0} step="0.01" placeholder="0"
+                            <NumberInput value={value.electricityPriceThreshold ?? 0} step="0.1" placeholder="0"
                                 onChange={e => onChange({ ...value, electricityPriceThreshold: Number(e.target.value) })} />
                         </div>
                         <div>
