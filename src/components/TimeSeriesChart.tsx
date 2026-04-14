@@ -116,7 +116,9 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
     }
 
     return (
-        <Chart options={options} series={series} type={effectiveType} height={350} />
+        <div className="overflow-hidden w-full">
+            <Chart options={options} series={series} type={effectiveType} height={350} />
+        </div>
     );
 };
 
