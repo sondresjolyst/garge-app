@@ -72,10 +72,11 @@ const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = ({ class
     />
 );
 
-const NumberInput: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ className = '', ...props }) => (
+const NumberInput: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ className = '', onFocus, ...props }) => (
     <input
         type="number"
         className={`block w-full px-3 py-2 bg-gray-900/70 border border-gray-700/60 rounded-xl text-gray-200 text-sm focus:outline-none focus:border-sky-500 transition-colors ${className}`}
+        onFocus={e => { e.currentTarget.select(); onFocus?.(e); }}
         {...props}
     />
 );
@@ -193,7 +194,7 @@ const AutomationsPage: React.FC = () => {
     }, []);
 
     const sortedSwitches = [...switches].sort((a, b) =>
-        (a.name ?? '').toLowerCase().localeCompare((b.name ?? '').toLowerCase())
+        (a.customName ?? a.name ?? '').toLowerCase().localeCompare((b.customName ?? b.name ?? '').toLowerCase())
     );
     const sortedSensors = [...sensors].sort((a, b) =>
         (a.customName ?? a.defaultName ?? '').toLowerCase()
@@ -319,12 +320,12 @@ const AutomationsPage: React.FC = () => {
                     setEditForm({ ...editForm!, targetId: id, targetType: switches.find(sw => sw.id === id)?.type || '' });
                 }}>
                     <option value={0}>Select Target</option>
-                    {sortedSwitches.map(sw => <option key={sw.id} value={sw.id}>{sw.name}</option>)}
+                    {sortedSwitches.map(sw => <option key={sw.id} value={sw.id}>{sw.customName ?? sw.name}</option>)}
                 </Select>
             </div>
             <div>
                 <FieldLabel>Sensor</FieldLabel>
-                <Select value={editForm!.sensorId} required onChange={e => {
+                <Select value={editForm!.sensorId}required onChange={e => {
                     const id = Number(e.target.value);
                     setEditForm({ ...editForm!, sensorId: id, sensorType: sensors.find(s => s.id === id)?.type || '' });
                 }}>
@@ -417,7 +418,7 @@ const AutomationsPage: React.FC = () => {
                             <FieldLabel>Target socket</FieldLabel>
                             <Select value={form.targetId} required onChange={e => handleTargetChange(Number(e.target.value))}>
                                 <option value={0}>Select target</option>
-                                {sortedSwitches.map(sw => <option key={sw.id} value={sw.id}>{sw.name}</option>)}
+                                {sortedSwitches.map(sw => <option key={sw.id} value={sw.id}>{sw.customName ?? sw.name}</option>)}
                             </Select>
                         </div>
                         <div>
@@ -510,7 +511,7 @@ const AutomationsPage: React.FC = () => {
                                 <div className="flex items-start justify-between mb-3">
                                     <div className="flex-1 min-w-0">
                                         <h3 className={`text-base font-semibold truncate ${rule.isEnabled ? 'text-gray-100' : 'text-gray-400'}`}>
-                                            {switchObj?.name ?? `Switch ${rule.targetId}`}
+                                            {switchObj ? (switchObj.customName ?? switchObj.name) : `Switch ${rule.targetId}`}
                                         </h3>
                                         <span className={`inline-flex items-center text-xs font-medium mt-1 px-2 py-0.5 rounded-full ${
                                             rule.action === 'on'
