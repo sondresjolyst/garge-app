@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/sondresjolyst/garge-app/compare/v1.7.0...v1.8.0) (2026-04-18)
+
+
+### Features
+
+* **automations:** show custom name for sockets, fallback to default name ([#173](https://github.com/sondresjolyst/garge-app/issues/173)) ([a1165e3](https://github.com/sondresjolyst/garge-app/commit/a1165e37635aae7631730d918a7b441d7824d197))
+
 ## [1.7.0](https://github.com/sondresjolyst/garge-app/compare/v1.6.1...v1.7.0) (2026-04-14)
 
 
