@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/sondresjolyst/garge-app/compare/v1.8.0...v1.8.1) (2026-04-18)
+
+
+### Bug Fixes
+
+* add missing error message on registrer ([#175](https://github.com/sondresjolyst/garge-app/issues/175)) ([#176](https://github.com/sondresjolyst/garge-app/issues/176)) ([4a85338](https://github.com/sondresjolyst/garge-app/commit/4a853386489a3c2e4b921fd36c69cc13a9d186c7))
+
 ## [1.8.0](https://github.com/sondresjolyst/garge-app/compare/v1.7.0...v1.8.0) (2026-04-18)
 
 
