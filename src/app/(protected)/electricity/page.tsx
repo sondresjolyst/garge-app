@@ -48,6 +48,8 @@ const fetchTabData = async (frequency: string, dateType: string, zone: string): 
         .filter((d: any) => {
             const ts = d.time.endsWith('Z') ? d.time : d.time + 'Z';
             const t = new Date(ts);
+            // MONTHLY entries always start on the 1st — any other UTC day is a bad row
+            if (frequency === 'MONTHLY' && t.getUTCDate() !== 1) return false;
             return t >= startDate && t < tomorrow;
         })
         .map((d: any) => {
