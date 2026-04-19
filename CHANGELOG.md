@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.2](https://github.com/sondresjolyst/garge-app/compare/v1.8.1...v1.8.2) (2026-04-19)
+
+
+### Bug Fixes
+
+* **electricity:** filter monthly chart to first-of-month entries only ([#178](https://github.com/sondresjolyst/garge-app/issues/178)) ([8de5167](https://github.com/sondresjolyst/garge-app/commit/8de516738b1717c3e4962954389c41e5e4a711d5))
+
 ## [1.8.1](https://github.com/sondresjolyst/garge-app/compare/v1.8.0...v1.8.1) (2026-04-18)
 
 
