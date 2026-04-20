@@ -21,7 +21,7 @@
     "next": "16.2.3",
     "next-auth": "^4.24.12",
     "react": "^19.0.0",
-    "react-apexcharts": "^1.7.0",
+    "react-apexcharts": "^2.1.0",
     "react-datepicker": "^9.1.0",
     "react-devtools": "^6.1.5",
     "react-dom": "^19.2.5",
