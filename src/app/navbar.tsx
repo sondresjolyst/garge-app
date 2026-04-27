@@ -9,6 +9,7 @@ import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/24/outline';
 export default function Navbar() {
     const { data: session, status } = useSession();
     const isAuthenticated = status === 'authenticated';
+    const isAdmin = ((session?.user as { roles?: string[] })?.roles ?? []).includes('Admin');
 
     return (
         <header className="sticky top-0 z-40 bg-gray-900/90 backdrop-blur-xl border-b border-gray-700/50">
@@ -22,6 +23,14 @@ export default function Navbar() {
                 <nav className="flex items-center gap-2">
                     {isAuthenticated ? (
                         <>
+                            {isAdmin && (
+                                <Link
+                                    href="/admin"
+                                    className="px-3 py-1.5 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-700/60 transition-all"
+                                >
+                                    Admin
+                                </Link>
+                            )}
                             <Link
                                 href="/profile"
                                 className="px-3 py-1.5 rounded-xl text-sm font-medium text-gray-200 hover:text-white hover:bg-gray-700/60 transition-all"

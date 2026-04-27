@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { XMarkIcon, PencilIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PencilIcon, CheckIcon, CameraIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { TYPE_CONFIG as typeConfig, DEFAULT_TYPE as defaultType, BATTERY_STATUS_CONFIG as statusConfig } from '@/lib/typeConfig';
 import { unitForType, typeLabel } from '@/lib/typeUtils';
 import { RANGE_OPTIONS, type RangeIndex } from '@/lib/constants';
@@ -10,6 +10,10 @@ import LoadingDots from '@/components/LoadingDots';
 import SensorService, { SensorData, BatteryHealthData } from '@/services/sensorService';
 import SwitchService, { SwitchData } from '@/services/switchService';
 import { formatDateTime } from '@/lib/dateUtils';
+import SensorPhotoService from '@/services/sensorPhotoService';
+import { compressImage } from '@/lib/imageUtils';
+import { toast } from 'sonner';
+import ActivitiesSection from '@/components/ActivitiesSection';
 import type { UnifiedDevice } from './DeviceDashboard';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
@@ -103,6 +107,12 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
     const [switchEvents, setSwitchEvents] = useState<SwitchData[]>([]);
     const [loadingSwitch, setLoadingSwitch] = useState(false);
 
+    // Photo (sensors only)
+    const [photo, setPhoto] = useState<{ data: string; contentType: string } | null | undefined>(undefined);
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    const [deletingPhoto, setDeletingPhoto] = useState(false);
+    const photoInputRef = React.useRef<HTMLInputElement>(null);
+
     // Inline name editing (sensors + sockets)
     const [editingName, setEditingName] = useState(false);
     const [editName, setEditName] = useState(device.displayName);
@@ -180,6 +190,11 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
         if (device.kind === 'socket') fetchSwitchData(activeRange);
     }, [device, activeRange, fetchChart, fetchSwitchData]);
 
+    useEffect(() => {
+        if (device.kind !== 'sensor') return;
+        SensorPhotoService.get(device.id).then(setPhoto);
+    }, [device.id, device.kind]);
+
     const { Icon, iconBg, iconColor } = typeConfig[device.type.toLowerCase()] ?? defaultType;
     const health = device.batteryHealth as BatteryHealthData | undefined;
     const healthCfg = health ? (statusConfig[health.status] ?? statusConfig.learning) : null;
@@ -208,10 +223,41 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
             }
             device.displayName = editName.trim();
             setEditingName(false);
+            toast.success(device.kind === 'sensor' ? 'Sensor renamed' : 'Socket renamed');
         } catch {
-            // non-fatal
+            toast.error('Failed to rename');
         } finally {
             setSavingName(false);
+        }
+    };
+
+    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        e.target.value = '';
+        setUploadingPhoto(true);
+        try {
+            const { base64, contentType } = await compressImage(file);
+            await SensorPhotoService.upload(device.id, base64, contentType);
+            setPhoto({ data: base64, contentType });
+            toast.success('Photo saved');
+        } catch {
+            toast.error('Failed to upload photo');
+        } finally {
+            setUploadingPhoto(false);
+        }
+    };
+
+    const handlePhotoDelete = async () => {
+        setDeletingPhoto(true);
+        try {
+            await SensorPhotoService.remove(device.id);
+            setPhoto(null);
+            toast.success('Photo deleted');
+        } catch {
+            toast.error('Failed to delete photo');
+        } finally {
+            setDeletingPhoto(false);
         }
     };
 
@@ -281,6 +327,56 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                 </div>
 
                 <div className="px-5 py-5 pb-28 space-y-6">
+
+                    {/* Photo — sensor only */}
+                    {device.kind === 'sensor' && (
+                        <div className="relative">
+                            <input
+                                ref={photoInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handlePhotoUpload}
+                            />
+                            {photo ? (
+                                <div className="relative rounded-2xl overflow-hidden bg-gray-800/60 border border-gray-700/40">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={`data:${photo.contentType};base64,${photo.data}`}
+                                        alt="Sensor photo"
+                                        className="w-full object-cover max-h-52"
+                                    />
+                                    <div className="absolute top-2 right-2 flex gap-1.5">
+                                        <button
+                                            onClick={() => photoInputRef.current?.click()}
+                                            disabled={uploadingPhoto}
+                                            title="Replace photo"
+                                            className="p-1.5 rounded-lg bg-gray-900/80 text-gray-300 hover:text-white transition-colors"
+                                        >
+                                            <CameraIcon className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            onClick={handlePhotoDelete}
+                                            disabled={deletingPhoto}
+                                            title="Delete photo"
+                                            className="p-1.5 rounded-lg bg-gray-900/80 text-red-400 hover:text-red-300 transition-colors"
+                                        >
+                                            <TrashIcon className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : photo === null ? (
+                                <button
+                                    onClick={() => photoInputRef.current?.click()}
+                                    disabled={uploadingPhoto}
+                                    className="w-full flex flex-col items-center gap-2 py-6 rounded-2xl border border-dashed border-gray-700/60 text-gray-500 hover:text-gray-300 hover:border-gray-600 transition-colors"
+                                >
+                                    <CameraIcon className="h-6 w-6" />
+                                    <span className="text-sm">{uploadingPhoto ? 'Uploading…' : 'Add photo'}</span>
+                                </button>
+                            ) : null /* loading — render nothing */}
+                        </div>
+                    )}
 
                     {/* Current value — sensor */}
                     {device.kind === 'sensor' && latestValueStr && (
@@ -423,12 +519,18 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                         </div>
                     )}
 
+                    {/* Activities (sensors only — e.g. log motorcycle activities for a voltmeter) */}
+                    {device.kind === 'sensor' && (
+                        <ActivitiesSection sensorId={device.id} />
+                    )}
+
                     {/* Last seen */}
                     {device.latestTimestamp && (
                         <p className="text-xs text-gray-600 text-center pb-2">
                             Last seen {formatDateTime(device.latestTimestamp)}
                         </p>
                     )}
+
                 </div>
             </div>
         </>
