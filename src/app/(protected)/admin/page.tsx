@@ -11,21 +11,12 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
-import AdminService, { AdminStats, AdminUser, DiscoveredDevice, StatSnapshot } from '@/services/adminService';
+import AdminService, { AdminStats, AdminUser, StatSnapshot } from '@/services/adminService';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
 
 const ALL_ROLES = ['Admin', 'Default', 'Electricity', 'SensorAdmin', 'MqttAdmin', 'AutomationAdmin', 'SwitchAdmin'];
 
-const relativeTime = (iso: string): string => {
-    const diff = Date.now() - new Date(iso).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'just now';
-    if (mins < 60) return `${mins}m ago`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
-    return `${Math.floor(hrs / 24)}d ago`;
-};
 
 export default function AdminPage() {
     const { data: session, status } = useSession();
@@ -41,7 +32,6 @@ export default function AdminPage() {
     const [stats, setStats] = useState<AdminStats | null>(null);
     const [history, setHistory] = useState<StatSnapshot[]>([]);
     const [selectedStat, setSelectedStat] = useState<StatKey | null>('totalUsers');
-    const [devices, setDevices] = useState<DiscoveredDevice[]>([]);
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -60,14 +50,12 @@ export default function AdminPage() {
         setLoading(true);
         setError(null);
         try {
-            const [s, d, u, h] = await Promise.all([
+            const [s, u, h] = await Promise.all([
                 AdminService.getStats(),
-                AdminService.getDevices(),
                 AdminService.getUsers(),
                 AdminService.getStatsHistory(),
             ]);
             setStats(s);
-            setDevices(d);
             setUsers(u);
             setHistory(h);
         } catch {
@@ -176,25 +164,6 @@ export default function AdminPage() {
                                     chartType="line"
                                     integerY
                                 />
-                            </div>
-                        )}
-                    </Section>
-
-                    {/* MQTT devices */}
-                    <Section title="MQTT Devices">
-                        {devices.length === 0 ? (
-                            <p className="text-xs text-gray-500">No devices discovered.</p>
-                        ) : (
-                            <div className="space-y-2">
-                                {devices.map((d) => (
-                                    <div key={d.id} className="flex items-center justify-between bg-gray-900/40 border border-gray-700/30 rounded-xl px-3 py-2.5">
-                                        <div>
-                                            <p className="text-sm text-gray-200 font-medium">{d.target}</p>
-                                            <p className="text-xs text-gray-500">{d.type} · via {d.discoveredBy}</p>
-                                        </div>
-                                        <p className="text-xs text-gray-500 tabular-nums">{relativeTime(d.timestamp)}</p>
-                                    </div>
-                                ))}
                             </div>
                         )}
                     </Section>
