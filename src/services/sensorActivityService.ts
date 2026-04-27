@@ -7,6 +7,7 @@ export interface SensorActivity {
     userId: string;
     title: string;
     notes?: string | null;
+    odometerKm?: number | null;
     activityDate: string;
     createdAt: string;
     updatedAt?: string | null;
@@ -15,6 +16,8 @@ export interface SensorActivity {
 export interface CreateSensorActivityPayload {
     title: string;
     notes?: string | null;
+    /** Odometer reading in km. */
+    odometerKm?: number | null;
     /** ISO date string. If omitted, the API uses now. */
     activityDate?: string | null;
 }

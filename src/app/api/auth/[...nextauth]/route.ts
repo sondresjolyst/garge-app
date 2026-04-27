@@ -7,6 +7,7 @@ type DecodedToken = {
     sub: string;
     unique_name: string;
     email: string;
+    role?: string | string[];
     nbf: number;
     exp: number;
     iat: number;
@@ -18,6 +19,7 @@ type ExtendedUser = {
     id: string;
     name: string;
     email: string;
+    roles: string[];
     accessToken: string;
     accessTokenExpires: number;
     refreshToken: string;
@@ -42,10 +44,13 @@ const handler = NextAuth({
                     });
                     if (user) {
                         const decodedToken = jwt.decode(user.token) as DecodedToken;
+                        const raw = decodedToken.role;
+                        const roles = Array.isArray(raw) ? raw : raw ? [raw] : [];
                         return {
                             id: decodedToken.sub,
                             name: decodedToken.unique_name,
                             email: credentials.email,
+                            roles,
                             accessToken: user.token,
                             accessTokenExpires: decodedToken.exp * 1000,
                             refreshToken: user.refreshToken
@@ -79,6 +84,7 @@ const handler = NextAuth({
                     id: user.id,
                     name: user.name,
                     email: user.email,
+                    roles: (user as ExtendedUser).roles,
                 };
             }
 
@@ -97,11 +103,14 @@ const handler = NextAuth({
                         refreshToken: token.refreshToken,
                     });
                     const decodedToken = jwt.decode(refreshed.token) as DecodedToken;
+                    const raw = decodedToken.role;
+                    const roles = Array.isArray(raw) ? raw : raw ? [raw] : [];
                     return {
                         ...token,
                         accessToken: refreshed.token,
                         accessTokenExpires: decodedToken.exp * 1000,
                         refreshToken: refreshed.refreshToken,
+                        user: { ...(token.user as object), roles },
                     };
                 } catch (error) {
                     return {

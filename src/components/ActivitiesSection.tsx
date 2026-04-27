@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { PencilIcon, TrashIcon, CheckIcon, XMarkIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, CheckIcon, XMarkIcon, PlusIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import LoadingDots from '@/components/LoadingDots';
+import ConfirmModal from '@/components/ConfirmModal';
 import SensorActivityService, { SensorActivity } from '@/services/sensorActivityService';
 import { formatDateTime } from '@/lib/dateUtils';
 
@@ -16,6 +17,10 @@ const toDateTimeLocal = (iso?: string | null): string => {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
+const formatOdometer = (km: number): string => {
+    return km.toLocaleString('nb-NO') + ' km';
+};
+
 const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ sensorId }) => {
     const [activities, setActivities] = useState<SensorActivity[]>([]);
     const [loading, setLoading] = useState(false);
@@ -25,9 +30,15 @@ const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ sensorId }) => {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [title, setTitle] = useState('');
     const [notes, setNotes] = useState('');
+    const [odometerKm, setOdometerKm] = useState<string>('');
     const [activityDate, setActivityDate] = useState<string>(toDateTimeLocal());
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [showMore, setShowMore] = useState(false);
+
+    // Delete-confirmation state: stores the activity the user clicked the trash icon on,
+    // or null when the modal is closed.
+    const [deleteTarget, setDeleteTarget] = useState<SensorActivity | null>(null);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -50,8 +61,10 @@ const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ sensorId }) => {
         setEditingId(null);
         setTitle('');
         setNotes('');
+        setOdometerKm('');
         setActivityDate(toDateTimeLocal());
         setSubmitError(null);
+        setShowMore(false);
     };
 
     const startNew = () => {
@@ -63,8 +76,11 @@ const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ sensorId }) => {
         setEditingId(a.id);
         setTitle(a.title);
         setNotes(a.notes ?? '');
+        setOdometerKm(a.odometerKm != null ? String(a.odometerKm) : '');
         setActivityDate(toDateTimeLocal(a.activityDate));
         setSubmitError(null);
+        // Auto-expand "More details" if odometer was set
+        setShowMore(a.odometerKm != null);
         setShowForm(true);
     };
 
@@ -80,12 +96,19 @@ const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ sensorId }) => {
             return;
         }
 
+        const parsedOdometer = odometerKm.trim() ? parseInt(odometerKm.trim(), 10) : null;
+        if (odometerKm.trim() && (parsedOdometer === null || isNaN(parsedOdometer) || parsedOdometer < 0)) {
+            setSubmitError('Odometer must be a positive number');
+            return;
+        }
+
         setSubmitting(true);
         setSubmitError(null);
         try {
             const payload = {
                 title: title.trim(),
                 notes: notes.trim() || null,
+                odometerKm: parsedOdometer,
                 activityDate: activityDate ? new Date(activityDate).toISOString() : null,
             };
 
@@ -105,11 +128,12 @@ const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ sensorId }) => {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        const ok = typeof window !== 'undefined' ? window.confirm('Delete this activity?') : true;
-        if (!ok) return;
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        const id = deleteTarget.id;
         try {
             await SensorActivityService.remove(sensorId, id);
+            setDeleteTarget(null);
             await load();
             if (editingId === id) {
                 resetForm();
@@ -117,18 +141,30 @@ const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ sensorId }) => {
             }
         } catch (err) {
             setLoadError(err instanceof Error ? err.message : 'Failed to delete activity');
+            // Close the modal even on error so the user sees the inline error message.
+            setDeleteTarget(null);
         }
     };
+
+    // Find the latest odometer reading across all activities
+    const latestOdometer = activities.find(a => a.odometerKm != null)?.odometerKm;
 
     return (
         <div className="bg-gray-800/60 border border-gray-700/40 rounded-2xl p-4 space-y-3">
             <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-300">Activities</h3>
+                <div>
+                    <h3 className="text-sm font-semibold text-gray-300">Activities</h3>
+                    {latestOdometer != null && (
+                        <p className="text-xs text-gray-500 mt-0.5">
+                            Last odometer: {formatOdometer(latestOdometer)}
+                        </p>
+                    )}
+                </div>
                 {!showForm && (
                     <button
                         type="button"
                         onClick={startNew}
-                        className="flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300 transition-colors"
+                        className="flex items-center gap-1.5 pl-3 pr-3.5 py-1.5 bg-sky-600/20 hover:bg-sky-600/30 border border-sky-600/30 rounded-xl text-xs text-sky-300 hover:text-sky-200 transition-all"
                     >
                         <PlusIcon className="h-3.5 w-3.5" />
                         Add
@@ -142,7 +178,7 @@ const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ sensorId }) => {
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Title (e.g. Oil change, ride to the cabin)"
+                        placeholder="Title (e.g. Oil change, washing, new tires)"
                         maxLength={100}
                         autoFocus
                         className="w-full bg-gray-900/60 border border-gray-700/60 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60"
@@ -160,6 +196,36 @@ const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ sensorId }) => {
                         onChange={(e) => setActivityDate(e.target.value)}
                         className="w-full bg-gray-900/60 border border-gray-700/60 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60"
                     />
+
+                    {/* Expandable "More details" section */}
+                    <button
+                        type="button"
+                        onClick={() => setShowMore(o => !o)}
+                        className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-200 transition-colors pt-0.5"
+                    >
+                        <ChevronRightIcon
+                            className={`h-3 w-3 transition-transform duration-200 ${showMore ? 'rotate-90' : ''}`}
+                        />
+                        More details
+                    </button>
+
+                    {showMore && (
+                        <div className="space-y-2 pl-0.5">
+                            <div className="relative">
+                                <input
+                                    type="number"
+                                    value={odometerKm}
+                                    onChange={(e) => setOdometerKm(e.target.value)}
+                                    placeholder="Odometer reading"
+                                    min={0}
+                                    className="w-full bg-gray-900/60 border border-gray-700/60 rounded-lg px-2.5 py-1.5 pr-10 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-gray-600 pointer-events-none">
+                                    km
+                                </span>
+                            </div>
+                        </div>
+                    )}
 
                     {submitError && <p className="text-xs text-red-400">{submitError}</p>}
 
@@ -196,40 +262,54 @@ const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ sensorId }) => {
                 <ul className="space-y-2 pt-1">
                     {activities.map((a) => (
                         <li key={a.id} className="bg-gray-900/40 border border-gray-700/30 rounded-xl p-3">
-                            <div className="flex items-start justify-between gap-2">
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-sm text-gray-100 font-medium truncate">{a.title}</p>
-                                    <p className="text-[11px] text-gray-500 tabular-nums mt-0.5">
-                                        {formatDateTime(a.activityDate)}
-                                    </p>
-                                    {a.notes && (
-                                        <p className="text-xs text-gray-300 mt-1.5 whitespace-pre-wrap break-words">
-                                            {a.notes}
-                                        </p>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-0.5 flex-shrink-0">
-                                    <button
-                                        type="button"
-                                        onClick={() => startEdit(a)}
-                                        className="p-1 rounded text-gray-500 hover:text-gray-300 hover:bg-gray-800/60 transition-colors"
-                                        aria-label="Edit activity"
-                                    >
-                                        <PencilIcon className="h-3.5 w-3.5" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleDelete(a.id)}
-                                        className="p-1 rounded text-gray-500 hover:text-red-400 hover:bg-gray-800/60 transition-colors"
-                                        aria-label="Delete activity"
-                                    >
-                                        <TrashIcon className="h-3.5 w-3.5" />
-                                    </button>
-                                </div>
+                            <div className="flex items-start justify-between gap-2 mb-1.5">
+                                <p className="text-xs text-gray-500 tabular-nums leading-tight">
+                                    {formatDateTime(a.activityDate)}
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={() => startEdit(a)}
+                                    className="-mt-1 -mr-1 p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700/60 transition-all flex-shrink-0"
+                                    title="Edit"
+                                >
+                                    <PencilIcon className="h-3.5 w-3.5" />
+                                </button>
                             </div>
+                            <p className="text-sm font-semibold text-gray-100 leading-tight">
+                                {a.title}
+                            </p>
+                            {a.odometerKm != null && (
+                                <p className="mt-1.5 text-xs text-gray-400 tabular-nums">
+                                    {formatOdometer(a.odometerKm)}
+                                </p>
+                            )}
+                            {a.notes && (
+                                <p className="mt-2 text-xs text-gray-300 whitespace-pre-wrap break-words">
+                                    {a.notes}
+                                </p>
+                            )}
+                            <button
+                                type="button"
+                                onClick={() => setDeleteTarget(a)}
+                                className="mt-4 flex items-center gap-1.5 text-xs text-gray-600 hover:text-red-400 transition-colors"
+                                title="Delete activity"
+                            >
+                                <TrashIcon className="h-3.5 w-3.5" />
+                                Delete activity
+                            </button>
                         </li>
                     ))}
                 </ul>
+            )}
+
+            {deleteTarget && (
+                <ConfirmModal
+                    title="Delete activity"
+                    message={<>Are you sure you want to delete <span className="font-medium text-gray-100">{deleteTarget.title}</span>?</>}
+                    confirmLabel="Delete"
+                    onConfirm={confirmDelete}
+                    onCancel={() => setDeleteTarget(null)}
+                />
             )}
         </div>
     );
