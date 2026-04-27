@@ -12,6 +12,7 @@ import SwitchService, { SwitchData } from '@/services/switchService';
 import { formatDateTime } from '@/lib/dateUtils';
 import SensorPhotoService from '@/services/sensorPhotoService';
 import { compressImage } from '@/lib/imageUtils';
+import { toast } from 'sonner';
 import type { UnifiedDevice } from './DeviceDashboard';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
@@ -221,8 +222,9 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
             }
             device.displayName = editName.trim();
             setEditingName(false);
+            toast.success(device.kind === 'sensor' ? 'Sensor renamed' : 'Socket renamed');
         } catch {
-            // non-fatal
+            toast.error('Failed to rename');
         } finally {
             setSavingName(false);
         }
@@ -237,8 +239,9 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
             const { base64, contentType } = await compressImage(file);
             await SensorPhotoService.upload(device.id, base64, contentType);
             setPhoto({ data: base64, contentType });
+            toast.success('Photo saved');
         } catch {
-            // non-fatal
+            toast.error('Failed to upload photo');
         } finally {
             setUploadingPhoto(false);
         }
@@ -249,8 +252,9 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
         try {
             await SensorPhotoService.remove(device.id);
             setPhoto(null);
+            toast.success('Photo deleted');
         } catch {
-            // non-fatal
+            toast.error('Failed to delete photo');
         } finally {
             setDeletingPhoto(false);
         }
