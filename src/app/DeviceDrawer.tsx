@@ -10,6 +10,7 @@ import LoadingDots from '@/components/LoadingDots';
 import SensorService, { SensorData, BatteryHealthData } from '@/services/sensorService';
 import SwitchService, { SwitchData } from '@/services/switchService';
 import { formatDateTime } from '@/lib/dateUtils';
+import ActivitiesSection from '@/components/ActivitiesSection';
 import type { UnifiedDevice } from './DeviceDashboard';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
@@ -421,6 +422,11 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                                 )}
                             </div>
                         </div>
+                    )}
+
+                    {/* Activities (sensors only — e.g. log motorcycle activities for a voltmeter) */}
+                    {device.kind === 'sensor' && (
+                        <ActivitiesSection sensorId={device.id} />
                     )}
 
                     {/* Last seen */}
