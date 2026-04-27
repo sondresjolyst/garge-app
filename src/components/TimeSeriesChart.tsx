@@ -6,9 +6,10 @@ interface TimeSeriesChartProps {
     title: string;
     data: { x: number, y: number }[];
     chartType?: 'line' | 'bar';
+    integerY?: boolean;
 }
 
-const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartType = 'line' }) => {
+const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartType = 'line', integerY = false }) => {
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
@@ -79,8 +80,9 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
                 style: {
                     colors: '#f0f0f0'
                 },
-                formatter: (value) => value.toFixed(2)
-            }
+                formatter: (value) => integerY ? Math.round(value).toString() : value.toFixed(2)
+            },
+            ...(integerY && { min: 0, forceNiceScale: true }),
         },
         stroke: {
             curve: 'smooth',
