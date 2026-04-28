@@ -17,6 +17,7 @@ const Register: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
     const [errors, setErrors] = useState<{ userName?: string[]; firstName?: string[]; lastName?: string[]; email?: string[]; password?: string[] }>({});
     const [apiMessage, setApiMessage] = useState('');
     const [loading, setLoading] = useState(false);
@@ -111,10 +112,25 @@ const Register: React.FC = () => {
                             <Alert variant="error">{apiMessage}</Alert>
                         )}
 
+                        <label className="flex items-start gap-2.5 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={agreedToTerms}
+                                onChange={e => setAgreedToTerms(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded border-gray-600 bg-gray-800 text-sky-500 focus:ring-sky-500 focus:ring-offset-gray-900 flex-shrink-0"
+                            />
+                            <span className="text-xs text-gray-400 leading-relaxed">
+                                I have read and agree to the{' '}
+                                <Link href="/terms" className="text-sky-400 hover:text-sky-300 transition-colors">Terms of Service</Link>
+                                {' '}and{' '}
+                                <Link href="/privacy" className="text-sky-400 hover:text-sky-300 transition-colors">Privacy Policy</Link>
+                            </span>
+                        </label>
+
                         <button
                             className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all text-sm"
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || !agreedToTerms}
                         >
                             {loading ? 'Creating account…' : 'Create account'}
                         </button>
