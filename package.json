@@ -36,7 +36,7 @@
     "@types/lodash": "^4.17.24",
     "@types/node": "^24",
     "@types/react": "^19",
-    "@types/react-datepicker": "^6.2.0",
+    "@types/react-datepicker": "^7.0.0",
     "@types/react-dom": "^19",
     "@types/uikit": "^3.23.0",
     "eslint": "^9",
