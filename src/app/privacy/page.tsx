@@ -27,17 +27,29 @@ export default function PrivacyPage() {
 
                 <section className="space-y-2">
                     <h2 className="text-base font-semibold text-gray-100">Data sharing</h2>
-                    <p>We do not sell, trade, or share your personal data with third parties, except where required by law.</p>
+                    <p>We do not sell or trade your personal data. We use the following third-party data processors:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                        <li>
+                            <a href="https://www.brevo.com/legal/termsofuse/" target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:text-sky-300">Brevo</a>
+                            {' '}— transactional email delivery (email confirmations, password resets). Your email address is shared with Brevo solely for this purpose.
+                        </li>
+                    </ul>
+                    <p>We may also disclose data when required by law.</p>
                 </section>
 
                 <section className="space-y-2">
                     <h2 className="text-base font-semibold text-gray-100">Data retention</h2>
-                    <p>Your data is retained for as long as your account is active. You may request deletion of your account and associated data by contacting us.</p>
+                    <p>Your data is retained for as long as your account is active. When you delete your account, all associated personal data is permanently removed. You can delete your account at any time from your <Link href="/profile" className="text-sky-400 hover:text-sky-300">profile page</Link>.</p>
                 </section>
 
                 <section className="space-y-2">
                     <h2 className="text-base font-semibold text-gray-100">Your rights</h2>
-                    <p>You have the right to access, correct, or delete your personal data. To exercise these rights, <Link href="/contact" className="text-sky-400 hover:text-sky-300">contact us</Link>.</p>
+                    <p>Under GDPR you have the right to:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                        <li><span className="text-gray-300">Access &amp; portability</span> — download a copy of all your personal data in JSON format from your <Link href="/profile" className="text-sky-400 hover:text-sky-300">profile page</Link>.</li>
+                        <li><span className="text-gray-300">Erasure</span> — permanently delete your account and all associated data from your <Link href="/profile" className="text-sky-400 hover:text-sky-300">profile page</Link>.</li>
+                        <li><span className="text-gray-300">Correction</span> — to correct inaccurate data, <Link href="/contact" className="text-sky-400 hover:text-sky-300">contact us</Link>.</li>
+                    </ul>
                 </section>
 
                 <section className="space-y-2">

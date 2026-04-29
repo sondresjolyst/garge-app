@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.9.0](https://github.com/sondresjolyst/garge-app/compare/v1.8.2...v1.9.0) (2026-04-27)
+
+
+### Features
+
+* add activities to sensor sidebar ([#191](https://github.com/sondresjolyst/garge-app/issues/191)) ([5bc3b18](https://github.com/sondresjolyst/garge-app/commit/5bc3b18779920c02d88c3a92c172a4af37a66876))
+* admin page, activities section, and session roles ([#189](https://github.com/sondresjolyst/garge-app/issues/189)) ([b4108f5](https://github.com/sondresjolyst/garge-app/commit/b4108f505844f78297f2837f62a71316376ef4a7))
+* **sensor:** photo upload for device drawer ([#190](https://github.com/sondresjolyst/garge-app/issues/190)) ([c2cdfe7](https://github.com/sondresjolyst/garge-app/commit/c2cdfe76dff71ad2232f80eb5ba62e3cbdea9066))
+
 ## [1.8.2](https://github.com/sondresjolyst/garge-app/compare/v1.8.1...v1.8.2) (2026-04-19)
 
 

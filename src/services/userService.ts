@@ -191,6 +191,31 @@ const UserService = {
             }
         }
     },
+
+    async deleteAccount(userId: string): Promise<void> {
+        try {
+            await axiosInstance.delete(`/users/${userId}/account`);
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to delete account');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    async exportData(userId: string): Promise<unknown> {
+        try {
+            const response = await axiosInstance.get(`/users/${userId}/export`);
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to export data');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
 };
 
 export default UserService;

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import UserService from '@/services/userService';
 import { UserDTO } from '@/dto/UserDTO';
 import SensorService, { Sensor } from '@/services/sensorService';
@@ -49,6 +49,9 @@ const Profile: React.FC = () => {
     const [switchEditLoading, setSwitchEditLoading] = useState(false);
     const [switchEditError, setSwitchEditError] = useState<string | null>(null);
     const [confirmDeleteSwitchId, setConfirmDeleteSwitchId] = useState<number | null>(null);
+    const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+    const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
+    const [exportLoading, setExportLoading] = useState(false);
 
     function sortSensorsByName(sensors: Sensor[]): Sensor[] {
         return [...sensors].sort((a, b) =>
@@ -223,12 +226,56 @@ const Profile: React.FC = () => {
         }
     };
 
+    const handleDeleteAccount = async () => {
+        if (!user?.id) return;
+        setDeleteAccountLoading(true);
+        try {
+            await UserService.deleteAccount(user.id);
+            await signOut({ callbackUrl: '/' });
+        } catch {
+            toast.error('Failed to delete account. Please try again.');
+            setDeleteAccountLoading(false);
+            setShowDeleteAccount(false);
+        }
+    };
+
+    const handleExportData = async () => {
+        if (!user?.id) return;
+        setExportLoading(true);
+        try {
+            const data = await UserService.exportData(user.id);
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'garge-my-data.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            toast.success('Data downloaded');
+        } catch {
+            toast.error('Failed to export data. Please try again.');
+        } finally {
+            setExportLoading(false);
+        }
+    };
+
     const confirmSensor = sensors.find(s => s.id === confirmDeleteId);
     const confirmSwitch = switches.find(sw => sw.id === confirmDeleteSwitchId);
     const isUserLoading = status === 'loading' || !user;
 
     return (
         <>
+            {showDeleteAccount && (
+                <ConfirmModal
+                    title="Delete account"
+                    message={<>This will permanently delete your account and all associated personal data. <span className="font-medium text-red-400">This cannot be undone.</span></>}
+                    confirmLabel="Delete my account"
+                    onConfirm={handleDeleteAccount}
+                    onCancel={() => setShowDeleteAccount(false)}
+                />
+            )}
             {confirmDeleteId !== null && confirmSensor && (
                 <ConfirmModal
                     title="Remove sensor"
@@ -526,6 +573,39 @@ const Profile: React.FC = () => {
                     </div>
                 </Section>
                 </div>
+
+                {/* Your data */}
+                <Section title="Your data">
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-100 font-medium">Download your data</p>
+                                <p className="text-xs text-gray-500 mt-0.5">Export your account and device data as JSON (GDPR Article 20).</p>
+                            </div>
+                            <button
+                                onClick={handleExportData}
+                                disabled={!user?.id || exportLoading}
+                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all whitespace-nowrap"
+                            >
+                                {exportLoading ? 'Exporting…' : 'Download'}
+                            </button>
+                        </div>
+
+                        <div className="border-t border-gray-700/40 pt-4 flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-red-400 font-medium">Delete account</p>
+                                <p className="text-xs text-gray-500 mt-0.5">Permanently deletes your account and personal data.</p>
+                            </div>
+                            <button
+                                onClick={() => setShowDeleteAccount(true)}
+                                disabled={!user?.id || deleteAccountLoading}
+                                className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-600/40 disabled:opacity-50 disabled:cursor-not-allowed text-red-400 text-sm font-medium rounded-xl transition-all whitespace-nowrap"
+                            >
+                                Delete account
+                            </button>
+                        </div>
+                    </div>
+                </Section>
             </div>
         </>
     );
