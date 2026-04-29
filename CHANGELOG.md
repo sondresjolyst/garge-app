@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/sondresjolyst/garge-app/compare/v1.9.0...v1.10.0) (2026-04-29)
+
+
+### Features
+
+* GDPR compliance improvements ([#194](https://github.com/sondresjolyst/garge-app/issues/194)) ([55d5f2e](https://github.com/sondresjolyst/garge-app/commit/55d5f2eafe24a75295435cc16552bfb29dddaf8b))
+
 ## [1.9.0](https://github.com/sondresjolyst/garge-app/compare/v1.8.2...v1.9.0) (2026-04-27)
 
 
