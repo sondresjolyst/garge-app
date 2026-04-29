@@ -99,8 +99,8 @@ const handler = NextAuth({
             if (token.refreshToken) {
                 try {
                     const refreshed = await UserService.refreshToken({
-                        token: token.accessToken,
-                        refreshToken: token.refreshToken,
+                        token: token.accessToken as string,
+                        refreshToken: token.refreshToken as string,
                     });
                     const decodedToken = jwt.decode(refreshed.token) as DecodedToken;
                     const raw = decodedToken.role;
