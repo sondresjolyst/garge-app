@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import React, { useState, useEffect, useCallback } from 'react';
-import ElectricityService from '@/services/electricityService';
+import ElectricityService, { type ElectricityData } from '@/services/electricityService';
 import UserService from '@/services/userService';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -45,14 +44,14 @@ const fetchTabData = async (frequency: string, dateType: string, zone: string): 
     const startDate = getDate(dateType);
     const raw = await ElectricityService.getElectricityData(frequency, zone, tomorrow.toISOString());
     return raw
-        .filter((d: any) => {
+        .filter((d: ElectricityData) => {
             const ts = d.time.endsWith('Z') ? d.time : d.time + 'Z';
             const t = new Date(ts);
             // MONTHLY entries always start on the 1st — any other UTC day is a bad row
             if (frequency === 'MONTHLY' && t.getUTCDate() !== 1) return false;
             return t >= startDate && t < tomorrow;
         })
-        .map((d: any) => {
+        .map((d: ElectricityData) => {
             const ts = d.time.endsWith('Z') ? d.time : d.time + 'Z';
             return { x: new Date(ts).getTime(), y: d.price };
         });

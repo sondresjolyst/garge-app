@@ -18,7 +18,7 @@ export default function FloatingNav() {
     const pathname = usePathname();
 
     return (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-max">
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-max nav-slide-up">
             <nav className="flex items-center gap-1 bg-gray-900/90 backdrop-blur-xl border border-gray-700/50 rounded-full px-2 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
                 {navItems.map(({ href, label, Icon }) => {
                     const isActive = href === '/'

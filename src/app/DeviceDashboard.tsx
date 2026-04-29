@@ -17,6 +17,14 @@ import CollapsibleSection from '@/components/CollapsibleSection';
 // ── Type sort order for group cards ───────────────────────────────────────────
 const TYPE_ORDER: Record<string, number> = { voltage: 0, temperature: 1, humidity: 2, socket: 3 };
 
+// ── Per-type top border accent ────────────────────────────────────────────────
+const CARD_ACCENT: Record<string, string> = {
+    temperature: 'border-t-orange-500/50',
+    humidity:    'border-t-blue-500/50',
+    voltage:     'border-t-yellow-500/50',
+    socket:      'border-t-green-500/50',
+};
+
 // ── Custom dropdown ────────────────────────────────────────────────────────────
 interface SelectOption { value: string; label: string }
 interface CustomSelectProps {
@@ -98,11 +106,12 @@ const DeviceCard: React.FC<{ device: UnifiedDevice; onClick: () => void }> = ({ 
     const value = formatValue(device);
     const socketOn  = device.kind === 'socket' && device.latestState === 'ON';
     const socketOff = device.kind === 'socket' && device.latestState === 'OFF';
+    const accent = CARD_ACCENT[device.type.toLowerCase()] ?? 'border-t-sky-500/50';
 
     return (
         <button
             onClick={onClick}
-            className="bg-gray-800/60 border border-gray-700/40 rounded-2xl backdrop-blur-sm shadow-md p-4 cursor-pointer hover:bg-gray-700/60 hover:border-gray-600/50 hover:shadow-lg transition-all duration-200 active:scale-[0.97] flex flex-col gap-3 text-left w-full min-h-[148px]"
+            className={`bg-gray-800/60 border border-gray-700/40 border-t-2 ${accent} rounded-2xl backdrop-blur-sm shadow-md p-4 cursor-pointer hover:bg-gray-700/60 hover:border-gray-600/50 hover:shadow-lg transition-all duration-200 active:scale-[0.97] flex flex-col gap-3 text-left w-full min-h-[148px]`}
         >
             {/* Top: icon + active dot */}
             <div className="flex items-start justify-between">
@@ -110,11 +119,16 @@ const DeviceCard: React.FC<{ device: UnifiedDevice; onClick: () => void }> = ({ 
                     <cfg.Icon className={`h-5 w-5 ${cfg.iconColor}`} />
                 </div>
                 <div className="flex items-center gap-1 mt-1.5 flex-shrink-0">
-                    <span className={`w-2 h-2 rounded-full ${
-                        device.isActive
-                            ? 'bg-green-400 shadow-[0_0_6px_2px_rgba(74,222,128,0.35)]'
-                            : 'bg-gray-600'
-                    }`} />
+                    <span className="relative flex w-2 h-2">
+                        {device.isActive && (
+                            <span className="absolute inset-0 rounded-full bg-green-400 opacity-75 animate-ping" />
+                        )}
+                        <span className={`relative w-2 h-2 rounded-full ${
+                            device.isActive
+                                ? 'bg-green-400 shadow-[0_0_6px_2px_rgba(74,222,128,0.35)]'
+                                : 'bg-gray-600'
+                        }`} />
+                    </span>
                     <span className={`text-[10px] font-medium ${device.isActive ? 'text-green-400' : 'text-gray-600'}`}>
                         {device.isActive ? 'Active' : 'Inactive'}
                     </span>
@@ -128,7 +142,7 @@ const DeviceCard: React.FC<{ device: UnifiedDevice; onClick: () => void }> = ({ 
             </div>
 
             {/* Value */}
-            <p className={`text-xl font-bold tabular-nums ${
+            <p className={`text-3xl font-mono font-bold tabular-nums tracking-tight leading-none ${
                 socketOn  ? 'text-green-400' :
                 socketOff ? 'text-red-400'   : 'text-white'
             }`}>
@@ -503,7 +517,7 @@ const DeviceDashboard: React.FC = () => {
                                 const inactiveDevices = ungroupedDevices.filter(d => isStale(d));
                                 return (
                                     <>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 device-card-grid">
                                             {activeDevices.map(device => (
                                                 <DeviceCard
                                                     key={`${device.kind}-${device.id}`}
@@ -518,7 +532,7 @@ const DeviceDashboard: React.FC = () => {
                                                 count={inactiveDevices.length}
                                                 defaultOpen={activeDevices.length === 0}
                                             >
-                                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 device-card-grid">
                                                     {inactiveDevices.map(device => (
                                                         <DeviceCard
                                                             key={`${device.kind}-${device.id}`}
