@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { SignalIcon, BoltIcon, CpuChipIcon, ChartBarIcon, DevicePhoneMobileIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
@@ -57,16 +57,32 @@ const faqs = [
     },
 ];
 
+function RevealSection({ children }: { children: React.ReactNode }) {
+    const ref = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => { if (entry.isIntersecting) { el.classList.add('section-visible'); observer.disconnect(); } },
+            { threshold: 0.1 }
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
+    return <div ref={ref} className="section-reveal">{children}</div>;
+}
+
 export default function MarketingPage() {
     return (
         <div className="max-w-5xl mx-auto px-4 py-8 space-y-16 text-gray-200">
 
             {/* Hero */}
-            <section className="flex flex-col items-center text-center pt-4 pb-2 gap-6">
+            <section className="flex flex-col items-center text-center pt-4 pb-2 gap-6 device-card-grid">
+                <div className="fixed top-0 left-0 right-0 h-[480px] -z-10 bg-[radial-gradient(ellipse_at_50%_0%,rgba(14,165,233,0.1),transparent_70%)] pointer-events-none" />
                 <Image src="/garge-icon-large.png" width={0} height={0} style={{ height: '80px', width: 'auto' }} alt="Garge" priority unoptimized />
                 <div>
-                    <h1 className="text-4xl sm:text-5xl font-bold text-gray-100 leading-tight mb-3">
-                        Know what's happening<br className="hidden sm:block" /> in your space
+                    <h1 className="text-5xl sm:text-7xl font-display font-bold text-gray-100 leading-tight mb-3">
+                        Know what&apos;s happening<br className="hidden sm:block" /> in your space
                     </h1>
                     <p className="text-lg text-gray-400 max-w-xl mx-auto">
                         Garge monitors temperature, humidity, and voltage in real time — so you're always in the loop, wherever you are.
@@ -102,7 +118,8 @@ export default function MarketingPage() {
 
             {/* Features */}
             <section>
-                <h2 className="text-2xl font-bold text-gray-100 mb-6 text-center">Everything you need</h2>
+                <RevealSection>
+                <h2 className="text-2xl font-display font-bold text-gray-100 mb-6 text-center">Everything you need</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {features.map(({ icon: Icon, title, description }) => (
                         <div key={title} className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-5">
@@ -114,11 +131,13 @@ export default function MarketingPage() {
                         </div>
                     ))}
                 </div>
+                </RevealSection>
             </section>
 
             {/* FAQ */}
             <section>
-                <h2 className="text-2xl font-bold text-gray-100 mb-6 text-center">Frequently asked questions</h2>
+                <RevealSection>
+                <h2 className="text-2xl font-display font-bold text-gray-100 mb-6 text-center">Frequently asked questions</h2>
                 <div className="space-y-3">
                     {faqs.map(({ q, a }) => (
                         <div key={q} className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-5">
@@ -127,6 +146,7 @@ export default function MarketingPage() {
                         </div>
                     ))}
                 </div>
+                </RevealSection>
             </section>
 
         </div>

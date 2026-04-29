@@ -8,6 +8,11 @@ import SessionProviderWrapper from './SessionProviderWrapper';
 import type { Metadata } from "next";
 import Script from 'next/script';
 import { Toaster } from 'sonner';
+import { Outfit, Syne, JetBrains_Mono } from 'next/font/google';
+
+const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit', display: 'swap' });
+const syne   = Syne({ subsets: ['latin'], variable: '--font-syne',   display: 'swap' });
+const jetMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono', display: 'swap' });
 
 export const metadata: Metadata = {
     title: 'Garge',
@@ -26,7 +31,7 @@ export default function Layout({
             <head>
                 <title>Garge</title>
             </head>
-            <body className="bg-gray-900 text-gray-200">
+            <body className={`bg-gray-900 text-gray-200 font-sans ${outfit.variable} ${syne.variable} ${jetMono.variable}`}>
                 <SessionProviderWrapper>
                     <div className="min-h-screen flex flex-col">
                         <Navbar />

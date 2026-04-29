@@ -4,6 +4,56 @@
 @tailwind utilities;
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ── Design tokens ─────────────────────────────────────────────────────────── */
+body {
+    background-image: radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 28px 28px;
+}
+
+/* ── Card entrance animation ────────────────────────────────────────────────── */
+@keyframes card-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.device-card-grid > * {
+    animation: card-in 0.35s ease-out both;
+}
+.device-card-grid > *:nth-child(1)    { animation-delay:   0ms; }
+.device-card-grid > *:nth-child(2)    { animation-delay:  45ms; }
+.device-card-grid > *:nth-child(3)    { animation-delay:  90ms; }
+.device-card-grid > *:nth-child(4)    { animation-delay: 135ms; }
+.device-card-grid > *:nth-child(5)    { animation-delay: 180ms; }
+.device-card-grid > *:nth-child(6)    { animation-delay: 225ms; }
+.device-card-grid > *:nth-child(7)    { animation-delay: 270ms; }
+.device-card-grid > *:nth-child(8)    { animation-delay: 315ms; }
+.device-card-grid > *:nth-child(9)    { animation-delay: 360ms; }
+.device-card-grid > *:nth-child(10)   { animation-delay: 405ms; }
+.device-card-grid > *:nth-child(n+11) { animation-delay: 450ms; }
+
+/* ── FloatingNav slide-up ───────────────────────────────────────────────────── */
+@keyframes nav-slide-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.nav-slide-up {
+    animation: nav-slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 300ms both;
+}
+
+/* ── Scroll-reveal sections ─────────────────────────────────────────────────── */
+.section-reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.55s ease-out, transform 0.55s ease-out;
+}
+
+.section-reveal.section-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────────── */
 .gargeBtnActive {
     @apply bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-gray-200 px-4 py-2 rounded;
 }
