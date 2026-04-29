@@ -44,8 +44,7 @@ const registerSchema = z.object({
 
 const UserService = {
     async getUserProfile(): Promise<UserDTO> {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const session: any = await getSession();
+        const session = await getSession();
         if (!session?.accessToken) {
             throw new Error('No access token found');
         }
@@ -165,8 +164,7 @@ const UserService = {
         }
     },
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async refreshToken(data: { token: any, refreshToken: any }): Promise<{ token: string, refreshToken: string }> {
+    async refreshToken(data: { token: string, refreshToken: string }): Promise<{ token: string, refreshToken: string }> {
         try {
             const response = await axiosInstance.post<{ token: string, refreshToken: string }>('/auth/refresh-token', data);
             return response.data;

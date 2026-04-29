@@ -9,8 +9,7 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
     async (config) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const session: any = await getSession();
+        const session = await getSession();
         if (session?.accessToken) {
             config.headers.Authorization = `Bearer ${session.accessToken}`;
         }
