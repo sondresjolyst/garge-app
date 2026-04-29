@@ -2,6 +2,8 @@ import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
 import UserService from "@/services/userService";
 import jwt from 'jsonwebtoken';
+import type { Session } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 
 type DecodedToken = {
     sub: string;
@@ -82,8 +84,8 @@ const handler = NextAuth({
                 token.refreshToken = (user as ExtendedUser).refreshToken;
                 token.user = {
                     id: user.id,
-                    name: user.name,
-                    email: user.email,
+                    name: user.name ?? '',
+                    email: user.email ?? '',
                     roles: (user as ExtendedUser).roles,
                 };
             }
@@ -111,24 +113,23 @@ const handler = NextAuth({
                         accessTokenExpires: decodedToken.exp * 1000,
                         refreshToken: refreshed.refreshToken,
                         user: { ...(token.user as object), roles },
-                    };
+                    } as JWT;
                 } catch (error) {
                     return {
                         ...token,
-                        error: error,
-                    };
+                        error: error instanceof Error ? error.message : String(error),
+                    } as JWT;
                 }
             }
 
             return {
                 ...token,
                 error: "AccessTokenExpired",
-            };
+            } as JWT;
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        async session({ session, token }: { session: any, token: any }) {
-            session.user = token.user;
-            session.accessToken = token.accessToken;
+        async session({ session, token }: { session: Session; token: JWT }) {
+            session.user = token.user!;
+            session.accessToken = token.accessToken!;
             session.error = token.error;
             return session;
         },
