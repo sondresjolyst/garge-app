@@ -1,4 +1,4 @@
-import axiosInstance from './axiosInstance';
+import axiosInstance from '@/services/axiosInstance';
 import { AutomationRuleDto } from '@/dto/Automation/AutomationRuleDto';
 import { CreateAutomationRuleDto } from '@/dto/Automation/CreateAutomationRuleDto';
 import { UpdateAutomationRuleDto } from '@/dto/Automation/UpdateAutomationRuleDto';

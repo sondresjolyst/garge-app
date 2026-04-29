@@ -44,8 +44,7 @@ const registerSchema = z.object({
 
 const UserService = {
     async getUserProfile(): Promise<UserDTO> {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const session: any = await getSession();
+        const session = await getSession();
         if (!session?.accessToken) {
             throw new Error('No access token found');
         }
@@ -165,8 +164,7 @@ const UserService = {
         }
     },
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async refreshToken(data: { token: any, refreshToken: any }): Promise<{ token: string, refreshToken: string }> {
+    async refreshToken(data: { token: string, refreshToken: string }): Promise<{ token: string, refreshToken: string }> {
         try {
             const response = await axiosInstance.post<{ token: string, refreshToken: string }>('/auth/refresh-token', data);
             return response.data;
@@ -186,6 +184,31 @@ const UserService = {
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 throw new Error(error.response?.data.message || 'Failed to update preferences');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    async deleteAccount(userId: string): Promise<void> {
+        try {
+            await axiosInstance.delete(`/users/${userId}/account`);
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to delete account');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    async exportData(userId: string): Promise<unknown> {
+        try {
+            const response = await axiosInstance.get(`/users/${userId}/export`);
+            return response.data;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to export data');
             } else {
                 throw new Error('An unknown error occurred');
             }

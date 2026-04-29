@@ -34,7 +34,7 @@ export default function TermsPage() {
 
                 <section className="space-y-2">
                     <h2 className="text-base font-semibold text-gray-100">6. Changes to terms</h2>
-                    <p>We may update these terms from time to time. Continued use of Garge after changes are posted constitutes acceptance.</p>
+                    <p>We may update these terms from time to time. We will notify you of material changes by email. Continued use of Garge after notification constitutes acceptance of the updated terms.</p>
                 </section>
 
                 <section className="space-y-2">
