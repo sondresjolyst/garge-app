@@ -74,7 +74,7 @@ function RevealSection({ children }: { children: React.ReactNode }) {
 
 export default function MarketingPage() {
     return (
-        <div className="max-w-5xl mx-auto px-4 py-8 space-y-16 text-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-8 space-y-16 text-gray-200">
 
             {/* Hero */}
             <section className="flex flex-col items-center text-center pt-4 pb-2 gap-6 device-card-grid">

@@ -19,10 +19,10 @@ const TYPE_ORDER: Record<string, number> = { voltage: 0, temperature: 1, humidit
 
 // ── Per-type top border accent ────────────────────────────────────────────────
 const CARD_ACCENT: Record<string, string> = {
-    temperature: 'border-t-orange-500/50',
-    humidity:    'border-t-blue-500/50',
-    voltage:     'border-t-yellow-500/50',
-    socket:      'border-t-green-500/50',
+    temperature: 'border-t-orange-500/20',
+    humidity:    'border-t-blue-500/20',
+    voltage:     'border-t-yellow-500/20',
+    socket:      'border-t-green-500/20',
 };
 
 // ── Custom dropdown ────────────────────────────────────────────────────────────
@@ -106,7 +106,7 @@ const DeviceCard: React.FC<{ device: UnifiedDevice; onClick: () => void }> = ({ 
     const value = formatValue(device);
     const socketOn  = device.kind === 'socket' && device.latestState === 'ON';
     const socketOff = device.kind === 'socket' && device.latestState === 'OFF';
-    const accent = CARD_ACCENT[device.type.toLowerCase()] ?? 'border-t-sky-500/50';
+    const accent = CARD_ACCENT[device.type.toLowerCase()] ?? 'border-t-sky-500/20';
 
     return (
         <button
@@ -142,7 +142,7 @@ const DeviceCard: React.FC<{ device: UnifiedDevice; onClick: () => void }> = ({ 
             </div>
 
             {/* Value */}
-            <p className={`text-3xl font-mono font-bold tabular-nums tracking-tight leading-none ${
+            <p className={`text-2xl font-bold tabular-nums ${
                 socketOn  ? 'text-green-400' :
                 socketOff ? 'text-red-400'   : 'text-white'
             }`}>
@@ -349,7 +349,7 @@ const DeviceDashboard: React.FC = () => {
             <div className="p-4 max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-100">My Devices</h1>
+                    <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-100">My Devices</h1>
                 <div className="flex items-center gap-2">
                     <button
                         type="button"
@@ -400,7 +400,7 @@ const DeviceDashboard: React.FC = () => {
                 {groups.length > 0 && (
                     <section className="mb-8">
                         <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Groups</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 device-card-grid">
                             {groups.map(group => {
                                 const groupDevices = devices
                                     .filter(d =>
@@ -422,7 +422,7 @@ const DeviceDashboard: React.FC = () => {
                                 return (
                                     <div
                                         key={group.id}
-                                        className="bg-gray-800/60 border border-gray-700/40 rounded-2xl backdrop-blur-sm p-4 flex flex-col gap-3"
+                                        className="bg-gray-800/60 border border-gray-700/40 border-t-2 border-t-sky-500/20 rounded-2xl backdrop-blur-sm p-4 flex flex-col gap-3"
                                     >
                                         {/* Group header */}
                                         <div className="flex items-start justify-between">
@@ -434,11 +434,16 @@ const DeviceDashboard: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-1.5">
-                                                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                                                    anyActive
-                                                        ? 'bg-green-400 shadow-[0_0_6px_2px_rgba(74,222,128,0.35)]'
-                                                        : 'bg-gray-600'
-                                                }`} />
+                                                <span className="relative flex w-2 h-2 flex-shrink-0">
+                                                    {anyActive && (
+                                                        <span className="absolute inset-0 rounded-full bg-green-400 opacity-75 animate-ping" />
+                                                    )}
+                                                    <span className={`relative w-2 h-2 rounded-full ${
+                                                        anyActive
+                                                            ? 'bg-green-400 shadow-[0_0_6px_2px_rgba(74,222,128,0.35)]'
+                                                            : 'bg-gray-600'
+                                                    }`} />
+                                                </span>
                                                 <button
                                                     type="button"
                                                     onClick={() => setDeleteGroup(group)}
@@ -456,18 +461,21 @@ const DeviceDashboard: React.FC = () => {
                                             <div className="flex flex-wrap gap-2">
                                                 {groupDevices.map(d => (
                                                     <button
-                                                        key={d.id}
+                                                        key={`${d.kind}-${d.id}`}
                                                         type="button"
                                                         onClick={() => setSelected(d)}
-                                                        className="flex items-center gap-1.5 bg-gray-900/50 border border-gray-700/30 rounded-xl px-2.5 py-1.5 hover:bg-gray-700/40 hover:border-gray-600/50 transition-all"
+                                                        className="flex flex-col items-start bg-gray-900/50 border border-gray-700/30 rounded-xl px-2.5 py-2 hover:bg-gray-700/40 hover:border-gray-600/50 transition-all"
                                                     >
-                                                        <span className="text-xs text-gray-400">{
-                                                            d.type === 'temperature' ? '🌡️' :
-                                                            d.type === 'humidity'    ? '💧' :
-                                                            d.type === 'voltage'     ? '⚡' :
-                                                            d.type === 'socket'      ? '🔌' : '📡'
-                                                        }</span>
-                                                        <span className="text-sm font-semibold text-gray-100 tabular-nums">{formatValue(d)}</span>
+                                                        <div className="flex items-center gap-1 leading-tight">
+                                                            <span className="text-xs">{
+                                                                d.type === 'temperature' ? '🌡️' :
+                                                                d.type === 'humidity'    ? '💧' :
+                                                                d.type === 'voltage'     ? '⚡' :
+                                                                d.type === 'socket'      ? '🔌' : '📡'
+                                                            }</span>
+                                                            <span className="text-sm font-bold text-gray-100 tabular-nums">{formatValue(d)}</span>
+                                                        </div>
+                                                        <span className="text-[10px] text-gray-500 leading-tight mt-0.5 truncate max-w-[80px]">{d.displayName}</span>
                                                     </button>
                                                 ))}
                                             </div>
