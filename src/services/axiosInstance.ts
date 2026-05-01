@@ -1,10 +1,8 @@
 import axios from 'axios';
-import { getSession } from 'next-auth/react';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://garge-api.prod.tumogroup.com/api';
+import { getSession, signOut } from 'next-auth/react';
 
 const axiosInstance = axios.create({
-    baseURL: API_URL,
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
 axiosInstance.interceptors.request.use(
@@ -25,13 +23,16 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
         if (process.env.NODE_ENV === 'development') {
             console.error('Response error:', error);
         }
 
-        if (error.response && error.response.status === 401) {
-            console.error('Unauthorized access - possibly invalid token');
+        if (error.response?.status === 401) {
+            const session = await getSession();
+            if (session?.error) {
+                await signOut({ callbackUrl: '/login' });
+            }
         }
 
         return Promise.reject(error);

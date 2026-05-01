@@ -29,6 +29,7 @@ const Register: React.FC = () => {
 
     const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (!agreedToTerms) return;
         setLoading(true);
         try {
             await AuthService.register({ userName, firstName, lastName, email, password });

@@ -184,7 +184,7 @@ const SensorService = {
 
     async getBatteryHealthLatest(sensorName: string): Promise<BatteryHealthData> {
         try {
-            const response = await axiosInstance.get<BatteryHealthData>(`/battery-health/name/${sensorName}/latest`);
+            const response = await axiosInstance.get<BatteryHealthData>(`/battery-health/name/${encodeURIComponent(sensorName)}/latest`);
             return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
