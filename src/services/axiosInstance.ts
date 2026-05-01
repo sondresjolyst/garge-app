@@ -1,15 +1,21 @@
 import axios from 'axios';
-import { getSession } from 'next-auth/react';
+import { getSession, signOut } from 'next-auth/react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://garge-api.prod.tumogroup.com/api';
+if (!process.env.NEXT_PUBLIC_API_URL) {
+    throw new Error('NEXT_PUBLIC_API_URL is not set');
+}
 
 const axiosInstance = axios.create({
-    baseURL: API_URL,
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
 axiosInstance.interceptors.request.use(
     async (config) => {
         const session = await getSession();
+        if (session?.error) {
+            await signOut({ callbackUrl: '/login' });
+            return Promise.reject(new Error('Session expired'));
+        }
         if (session?.accessToken) {
             config.headers.Authorization = `Bearer ${session.accessToken}`;
         }
