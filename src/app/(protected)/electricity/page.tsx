@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import React, { useState, useEffect, useCallback } from 'react';
-import ElectricityService from '@/services/electricityService';
+import ElectricityService, { type ElectricityData } from '@/services/electricityService';
 import UserService from '@/services/userService';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -45,14 +44,14 @@ const fetchTabData = async (frequency: string, dateType: string, zone: string): 
     const startDate = getDate(dateType);
     const raw = await ElectricityService.getElectricityData(frequency, zone, tomorrow.toISOString());
     return raw
-        .filter((d: any) => {
+        .filter((d: ElectricityData) => {
             const ts = d.time.endsWith('Z') ? d.time : d.time + 'Z';
             const t = new Date(ts);
             // MONTHLY entries always start on the 1st — any other UTC day is a bad row
             if (frequency === 'MONTHLY' && t.getUTCDate() !== 1) return false;
             return t >= startDate && t < tomorrow;
         })
-        .map((d: any) => {
+        .map((d: ElectricityData) => {
             const ts = d.time.endsWith('Z') ? d.time : d.time + 'Z';
             return { x: new Date(ts).getTime(), y: d.price };
         });
@@ -114,84 +113,129 @@ const ElectricityPage = () => {
     })();
 
     return (
-        <div className="p-4 max-w-7xl mx-auto">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-6">Electricity Prices</h1>
+        <div className="p-4 sm:p-6 max-w-7xl mx-auto">
 
-            <div className="bg-gray-800/60 border border-gray-700/40 rounded-2xl backdrop-blur-sm shadow-lg">
-                {/* Header */}
-                <div className="px-5 pt-5 pb-3 flex items-start justify-between">
-                    <div>
-                        <h2 className="text-base font-semibold text-gray-100">
-                            {priceZone
-                                ? <>{priceZone} · NOK / kWh</>
-                                : <span className="inline-block w-24 h-4 bg-gray-700/60 rounded animate-pulse" />
-                            }
-                        </h2>
-                        {currentPrice !== null && (
-                            <p className="text-xs text-gray-500 mt-0.5">Current hour</p>
-                        )}
-                        <p className="text-xs text-gray-600 mt-1">Norwegian price zone · <Link href="/profile#settings" className="text-sky-500 hover:text-sky-400 transition-colors">change in Profile → Settings</Link></p>
-                    </div>
+            {/* ── Page header ──────────────────────────────────────────────────── */}
+            <div className="mb-6">
+                <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-100">Electricity Prices</h1>
+            </div>
+
+            <div className="flex flex-col gap-5">
+
+                {/* ── Current price hero + zone meta row ───────────────────────── */}
+                <div className="flex flex-col sm:flex-row gap-4">
+
+                    {/* Current price — prominent hero stat, only shown on Today tab */}
                     {currentPrice !== null && (
-                        <div className="text-right">
-                            <span className="text-2xl font-bold text-white tabular-nums">
-                                {currentPrice.toFixed(2)}
-                            </span>
-                            <span className="text-sm text-gray-400 ml-0.5">kr</span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Tab selector */}
-                <div className="px-5 pb-3">
-                    <div className="flex gap-1 bg-gray-900/60 rounded-xl p-1">
-                        {TABS.map(({ label, key }) => (
-                            <button
-                                key={key}
-                                onClick={() => setActiveTab(key)}
-                                className={`flex-1 text-sm py-1.5 rounded-lg font-medium transition-all duration-200 ${
-                                    activeTab === key
-                                        ? 'bg-sky-600 text-white shadow-sm'
-                                        : 'text-gray-400 hover:text-gray-200'
-                                }`}
-                            >
-                                {label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Stats bar */}
-                {stats && !loading && (
-                    <div className="px-5 pb-3 flex gap-3">
-                        {[
-                            { label: 'Min', value: stats.min },
-                            { label: 'Avg', value: stats.avg },
-                            { label: 'Max', value: stats.max },
-                        ].map(({ label, value }) => (
-                            <div key={label} className="flex-1 bg-gray-900/50 rounded-xl px-3 py-2 text-center">
-                                <p className="text-[10px] text-gray-500 uppercase tracking-wide">{label}</p>
-                                <p className="text-sm font-bold tabular-nums text-gray-100">{value.toFixed(2)}</p>
-                                <p className="text-[10px] text-gray-600">kr</p>
+                        <div className="flex-1 bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-5 shadow-lg flex flex-col justify-between min-h-[110px]">
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Current hour</p>
+                            <div className="mt-2 flex items-end gap-2">
+                                <span className="text-5xl font-bold tabular-nums text-gray-100 leading-none">
+                                    {currentPrice.toFixed(2)}
+                                </span>
+                                <span className="text-base text-gray-400 mb-1">kr/kWh</span>
                             </div>
-                        ))}
-                    </div>
-                )}
+                            {priceZone && (
+                                <span className="mt-2 self-start text-xs font-semibold text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded-full">{priceZone}</span>
+                            )}
+                        </div>
+                    )}
 
-                {/* Chart */}
-                <div className="px-2 pb-4">
-                    {loading ? (
-                        <LoadingDots />
-                    ) : error ? (
-                        <div className="h-[300px] flex items-center justify-center text-red-400 text-sm">{error}</div>
-                    ) : data.length > 0 ? (
-                        <TimeSeriesChart title="" data={data} chartType={TABS.find(t => t.key === activeTab)!.chartType} />
-                    ) : (
-                        <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
-                            No data available
+                    {/* Stats — min / avg / max */}
+                    {stats && !loading && (
+                        <div className="flex-1 bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-5 shadow-lg">
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                                {activeTab === 'today' ? 'Today' : activeTab === 'week' ? 'Last 7 days' : activeTab === 'month' ? 'This month' : 'This year'}
+                                {' '}· NOK / kWh
+                            </p>
+                            <div className="grid grid-cols-3 divide-x divide-gray-700/50">
+                                {([
+                                    { label: 'Min', value: stats.min },
+                                    { label: 'Avg', value: stats.avg },
+                                    { label: 'Max', value: stats.max },
+                                ] as const).map(({ label, value }) => (
+                                    <div key={label} className="px-4 first:pl-0 last:pr-0 flex flex-col gap-0.5">
+                                        <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
+                                        <p className="text-2xl font-semibold tabular-nums text-gray-100 leading-tight">
+                                            {value.toFixed(2)}
+                                        </p>
+                                        <p className="text-xs text-gray-600">kr</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* When Today tab but still loading — placeholder keeps layout stable */}
+                    {activeTab === 'today' && loading && currentPrice === null && (
+                        <div className="flex-1 bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-5 shadow-lg min-h-[110px] flex items-center justify-center">
+                            <div className="flex gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-sky-500 animate-bounce [animation-delay:0ms]" />
+                                <span className="w-2 h-2 rounded-full bg-sky-500 animate-bounce [animation-delay:150ms]" />
+                                <span className="w-2 h-2 rounded-full bg-sky-500 animate-bounce [animation-delay:300ms]" />
+                            </div>
                         </div>
                     )}
                 </div>
+
+                {/* ── Chart card ───────────────────────────────────────────────── */}
+                <div className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl shadow-lg overflow-hidden">
+
+                    {/* Tab selector */}
+                    <div className="px-5 pt-5 pb-4">
+                        <div className="flex gap-1 bg-gray-900/60 rounded-xl p-1">
+                            {TABS.map(({ label, key }) => (
+                                <button
+                                    key={key}
+                                    onClick={() => setActiveTab(key)}
+                                    className={`flex-1 text-sm py-1.5 rounded-lg font-medium transition-all duration-200 ${
+                                        activeTab === key
+                                            ? 'bg-sky-600 text-white shadow-sm'
+                                            : 'text-gray-400 hover:text-gray-200'
+                                    }`}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Chart body */}
+                    <div className="px-2 pb-4">
+                        {loading ? (
+                            <LoadingDots />
+                        ) : error ? (
+                            <div className="h-[300px] flex items-center justify-center">
+                                <span className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2">
+                                    {error}
+                                </span>
+                            </div>
+                        ) : data.length > 0 ? (
+                            <TimeSeriesChart title="" data={data} chartType={TABS.find(t => t.key === activeTab)!.chartType} />
+                        ) : (
+                            <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
+                                No data available
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* ── Price zone footer ─────────────────────────────────────────── */}
+                <div className="flex items-center gap-2 px-1">
+                    <span className="text-xs text-gray-400">Price zone:</span>
+                    {priceZone ? (
+                        <span className="text-xs font-semibold text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded-full">{priceZone}</span>
+                    ) : (
+                        <span className="inline-block w-10 h-5 bg-gray-700/60 rounded-full animate-pulse" />
+                    )}
+                    <Link
+                        href="/profile#settings"
+                        className="text-xs text-gray-400 bg-gray-700/60 hover:bg-gray-700 border border-gray-600/40 px-2 py-0.5 rounded-full transition-colors"
+                    >
+                        Change
+                    </Link>
+                </div>
+
             </div>
         </div>
     );

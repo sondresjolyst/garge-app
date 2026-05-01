@@ -50,7 +50,7 @@ const Login: React.FC = () => {
                 </div>
 
                 <div className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-8 shadow-xl">
-                    <h1 className="text-xl font-semibold text-gray-100 mb-1">Welcome back</h1>
+                    <h1 className="text-xl font-display font-bold text-gray-100 mb-1">Welcome back</h1>
                     <p className="text-sm text-gray-400 mb-6">
                         No account?{' '}
                         <Link href="/register" className="text-sky-400 hover:text-sky-300 transition-colors">Create one</Link>

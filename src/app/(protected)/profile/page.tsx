@@ -296,7 +296,7 @@ const Profile: React.FC = () => {
             )}
 
             <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">
-                <h1 className="text-2xl font-bold text-gray-100">Profile</h1>
+                <h1 className="text-2xl font-display font-bold text-gray-100">Profile</h1>
 
                 {/* Account Info */}
                 <Section title="Account">
@@ -413,7 +413,7 @@ const Profile: React.FC = () => {
                     {sensorsLoading ? <LoadingDots /> : !sensors.length ? (
                         <p className="text-sm text-gray-500">No sensors found. Add one above.</p>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 device-card-grid">
                             {sensors.map(sensor => (
                                 <div key={sensor.id} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
                                     {editingSensorId === sensor.id ? (
@@ -478,7 +478,7 @@ const Profile: React.FC = () => {
                     {switchesLoading ? <LoadingDots /> : !switches.length ? (
                         <p className="text-sm text-gray-500">No sockets found.</p>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 device-card-grid">
                             {switches.map(sw => (
                                 <div key={sw.id} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
                                     {editingSwitchId === sw.id ? (
