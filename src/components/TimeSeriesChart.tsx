@@ -29,6 +29,9 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
         }
     ], [title, data]);
 
+    const xMin = data.length > 0 ? Math.min(...data.map(d => d.x)) : undefined;
+    const xMax = data.length > 0 ? Math.max(...data.map(d => d.x)) : undefined;
+
     const options: ApexOptions = useMemo(() => ({
         chart: {
             type: effectiveType,
@@ -64,6 +67,8 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
         },
         xaxis: {
             type: 'datetime',
+            min: xMin,
+            max: xMax,
             labels: {
                 datetimeUTC: false,
                 style: {
@@ -111,7 +116,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
                 format: 'dd.MM.yyyy HH:mm'
             }
         }
-    }), [title, effectiveType]);
+    }), [title, effectiveType, xMin, xMax]);
 
     if (!data || data.length === 0) {
         return null;
