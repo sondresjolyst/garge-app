@@ -7,7 +7,7 @@ import UserService from '@/services/userService';
 import { UserDTO } from '@/dto/UserDTO';
 import SensorService, { Sensor } from '@/services/sensorService';
 import SwitchService, { Switch } from '@/services/switchService';
-import { PencilIcon, CheckIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, CheckIcon, XMarkIcon, TrashIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
 import Section from '@/components/Section';
@@ -261,6 +261,10 @@ const Profile: React.FC = () => {
         }
     };
 
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text).then(() => toast.success('Copied')).catch(() => toast.error('Failed to copy'));
+    };
+
     const confirmSensor = sensors.find(s => s.id === confirmDeleteId);
     const confirmSwitch = switches.find(sw => sw.id === confirmDeleteSwitchId);
     const isUserLoading = status === 'loading' || !user;
@@ -454,7 +458,18 @@ const Profile: React.FC = () => {
                                             </div>
                                             <div className="space-y-0.5 mb-4">
                                                 <p className="text-xs text-gray-400">Type: {sensor.type}</p>
-                                        <p className="text-xs text-gray-500">Device code: {sensor.registrationCode}</p>
+                                        <div className="flex items-center gap-1.5">
+                                            <p className="text-xs text-gray-500">Device code: <span className="font-mono">{sensor.registrationCode}</span></p>
+                                            {sensor.registrationCode && (
+                                                <button
+                                                    onClick={() => copyToClipboard(sensor.registrationCode)}
+                                                    aria-label="Copy device code"
+                                                    className="p-0.5 rounded text-gray-600 hover:text-gray-400 transition-colors flex-shrink-0"
+                                                >
+                                                    <ClipboardDocumentIcon className="h-3.5 w-3.5" />
+                                                </button>
+                                            )}
+                                        </div>
                                                 {sensor.customName && <p className="text-xs text-gray-500">Default: {sensor.defaultName}</p>}
                                             </div>
                                             <button
@@ -519,7 +534,18 @@ const Profile: React.FC = () => {
                                             </div>
                                             <div className="space-y-0.5 mb-4">
                                                 <p className="text-xs text-gray-400">Type: {sw.type}</p>
-                                                {sw.registrationCode && <p className="text-xs text-gray-500">Device code: {sw.registrationCode}</p>}
+                                                {sw.registrationCode && (
+                                                    <div className="flex items-center gap-1.5">
+                                                        <p className="text-xs text-gray-500">Device code: <span className="font-mono">{sw.registrationCode}</span></p>
+                                                        <button
+                                                            onClick={() => copyToClipboard(sw.registrationCode!)}
+                                                            aria-label="Copy device code"
+                                                            className="p-0.5 rounded text-gray-600 hover:text-gray-400 transition-colors flex-shrink-0"
+                                                        >
+                                                            <ClipboardDocumentIcon className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    </div>
+                                                )}
                                                 {sw.customName && <p className="text-xs text-gray-500">Default: {sw.name}</p>}
                                             </div>
                                             <button

@@ -41,6 +41,7 @@ export default function AdminPage() {
     const [roleLoading, setRoleLoading] = useState(false);
 
     const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
+    const [loadedAt, setLoadedAt] = useState<Date | null>(null);
 
     const [userSearch, setUserSearch] = useState('');
     const [userPage, setUserPage] = useState(0);
@@ -58,6 +59,7 @@ export default function AdminPage() {
             setStats(s);
             setUsers(u);
             setHistory(h);
+            setLoadedAt(new Date());
         } catch {
             setError('Failed to load admin data');
         } finally {
@@ -127,7 +129,7 @@ export default function AdminPage() {
                             {([
                                 { label: 'Users', value: stats?.totalUsers, key: 'totalUsers' as StatKey },
                                 { label: 'Sensors', value: stats?.totalSensors, key: 'totalSensors' as StatKey },
-                                { label: 'Switches', value: stats?.totalSwitches, key: 'totalSwitches' as StatKey },
+                                { label: 'Sockets', value: stats?.totalSwitches, key: 'totalSwitches' as StatKey },
                                 { label: 'Active automations', value: stats?.activeAutomations, key: 'totalAutomations' as StatKey },
                             ]).map(({ label, value, key }) => {
                                 const isSelected = selectedStat === key;
@@ -154,7 +156,7 @@ export default function AdminPage() {
                                     title={{
                                         totalUsers: 'Users over time',
                                         totalSensors: 'Sensors over time',
-                                        totalSwitches: 'Switches over time',
+                                        totalSwitches: 'Sockets over time',
                                         totalAutomations: 'Automations over time',
                                     }[selectedStat]}
                                     data={history.map(s => ({
@@ -166,6 +168,30 @@ export default function AdminPage() {
                                 />
                             </div>
                         )}
+                    </Section>
+
+                    {/* System Health */}
+                    <Section title="System Health">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4 col-span-2 sm:col-span-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="relative flex w-2 h-2">
+                                        <span className="absolute inset-0 rounded-full bg-green-400 opacity-75 animate-ping" />
+                                        <span className="relative w-2 h-2 rounded-full bg-green-400 shadow-[0_0_6px_2px_rgba(74,222,128,0.35)]" />
+                                    </span>
+                                    <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">API</span>
+                                </div>
+                                <p className="text-sm font-semibold text-green-400">Operational</p>
+                            </div>
+                            <div className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                <p className="text-2xl font-bold text-gray-100 tabular-nums">{(stats?.totalSensors ?? 0) + (stats?.totalSwitches ?? 0)}</p>
+                                <p className="text-xs text-gray-500 mt-1">Total devices</p>
+                            </div>
+                            <div className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                <p className="text-xs text-gray-500 mb-1">Last refreshed</p>
+                                <p className="text-sm font-medium text-gray-300">{loadedAt ? loadedAt.toLocaleTimeString() : '—'}</p>
+                            </div>
+                        </div>
                     </Section>
 
                     {/* Users */}

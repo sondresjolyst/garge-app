@@ -616,6 +616,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                 <button
                     type="button"
                     onClick={onClose}
+                    aria-label="Close"
                     className="absolute top-4 right-4 p-1.5 rounded-xl text-gray-500 hover:text-gray-300 hover:bg-gray-800/60 transition-colors z-10"
                 >
                     <XMarkIcon className="h-5 w-5" />
