@@ -114,7 +114,7 @@ export default function AdminPage() {
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8 space-y-6 pb-32">
-            <h1 className="text-xl font-bold text-gray-100">Admin</h1>
+            <h1 className="text-xl font-display font-bold text-gray-100">Admin</h1>
 
             {loading && <LoadingDots height="h-32" />}
             {error && <p className="text-sm text-red-400">{error}</p>}
@@ -123,7 +123,7 @@ export default function AdminPage() {
                 <>
                     {/* Stats */}
                     <Section title="Overview">
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 device-card-grid">
                             {([
                                 { label: 'Users', value: stats?.totalUsers, key: 'totalUsers' as StatKey },
                                 { label: 'Sensors', value: stats?.totalSensors, key: 'totalSensors' as StatKey },

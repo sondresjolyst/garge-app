@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { PencilIcon, TrashIcon, CheckIcon, XMarkIcon, PlusIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
+import DatePicker from '@/components/DatePicker';
 import SensorActivityService, { SensorActivity } from '@/services/sensorActivityService';
 import { formatDateTime } from '@/lib/dateUtils';
 
@@ -190,10 +191,10 @@ const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ sensorId }) => {
                         placeholder="Notes (optional)"
                         className="w-full bg-gray-900/60 border border-gray-700/60 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60 resize-none"
                     />
-                    <input
-                        type="datetime-local"
+                    <DatePicker
+                        showTime
                         value={activityDate}
-                        onChange={(e) => setActivityDate(e.target.value)}
+                        onChange={setActivityDate}
                         className="w-full bg-gray-900/60 border border-gray-700/60 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60"
                     />
 

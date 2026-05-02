@@ -249,7 +249,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                 return (
                     <div className="space-y-5">
                         <div>
-                            <h2 className="text-xl font-bold text-gray-100 mb-1">
+                            <h2 className="text-xl font-display font-bold text-gray-100 mb-1">
                                 Add a {claimType === 'sensor' ? 'sensor' : 'socket'}
                             </h2>
                             <p className="text-sm text-gray-400">Enter the device code found on your device.</p>
@@ -308,7 +308,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                 return (
                     <div className="space-y-5">
                         <div>
-                            <h2 className="text-xl font-bold text-gray-100 mb-1">
+                            <h2 className="text-xl font-display font-bold text-gray-100 mb-1">
                                 Name your {claimedSwitch ? 'socket' : 'sensor'}
                             </h2>
                             {claimedSensor && (
@@ -367,7 +367,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                 return (
                     <div className="space-y-4">
                         <div>
-                            <h2 className="text-xl font-bold text-gray-100 mb-1">Assign to a group</h2>
+                            <h2 className="text-xl font-display font-bold text-gray-100 mb-1">Assign to a group</h2>
                             <p className="text-sm text-gray-400">Pick a group and the devices to include.</p>
                         </div>
 
@@ -574,7 +574,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                             <CheckIcon className="h-8 w-8 text-green-400" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-gray-100 mb-1">All set!</h2>
+                            <h2 className="text-xl font-display font-bold text-gray-100 mb-1">All set!</h2>
                             {claimedSensor ? (
                                 <p className="text-sm text-gray-400">
                                     <span className="text-gray-200 font-medium">{customName || claimedSensor.defaultName}</span> is ready.

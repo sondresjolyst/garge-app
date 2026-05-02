@@ -2,7 +2,6 @@ import axiosInstance from '@/services/axiosInstance';
 import { UserDTO } from '@/dto/UserDTO';
 import { AxiosError } from 'axios';
 import { getSession } from 'next-auth/react';
-import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 
 interface RegisterData extends LoginData {
@@ -49,12 +48,11 @@ const UserService = {
             throw new Error('No access token found');
         }
 
-        const decodedToken = jwt.decode(session.accessToken) as { sub: string, unique_name: string };
-        if (!decodedToken || !decodedToken.sub || !decodedToken.unique_name) {
-            throw new Error('Failed to decode access token');
+        const sub = session.user?.id;
+        if (!sub) {
+            throw new Error('No user ID in session');
         }
 
-        const sub = decodedToken.sub;
         try {
             const response = await axiosInstance.get<UserDTO>(`/users/${sub}/profile`, {
                 headers: {

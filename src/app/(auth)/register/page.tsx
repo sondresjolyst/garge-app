@@ -29,6 +29,7 @@ const Register: React.FC = () => {
 
     const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (!agreedToTerms) return;
         setLoading(true);
         try {
             await AuthService.register({ userName, firstName, lastName, email, password });
@@ -54,7 +55,7 @@ const Register: React.FC = () => {
                 </div>
 
                 <div className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-8 shadow-xl">
-                    <h1 className="text-xl font-semibold text-gray-100 mb-1">Create account</h1>
+                    <h1 className="text-xl font-display font-bold text-gray-100 mb-1">Create account</h1>
                     <p className="text-sm text-gray-400 mb-6">
                         Already have one?{' '}
                         <Link href="/login" className="text-sky-400 hover:text-sky-300 transition-colors">Sign in</Link>

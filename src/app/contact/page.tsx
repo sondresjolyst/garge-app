@@ -3,8 +3,9 @@ import { EnvelopeIcon } from "@heroicons/react/24/outline";
 
 export default function ContactPage() {
     return (
-        <div className="max-w-2xl mx-auto px-4 py-10 space-y-6">
-            <h1 className="text-3xl font-bold text-gray-100">Contact</h1>
+        <div className="max-w-7xl mx-auto px-4 py-10">
+            <div className="max-w-2xl mx-auto space-y-6">
+            <h1 className="text-3xl font-display font-bold text-gray-100">Contact</h1>
 
             <div className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-6 shadow-lg space-y-4">
                 <p className="text-sm text-gray-400 leading-relaxed">
@@ -26,6 +27,7 @@ export default function ContactPage() {
             <p className="text-xs text-gray-600">
                 <Link href="/" className="hover:text-gray-400 transition-colors">← Back to home</Link>
             </p>
+            </div>
         </div>
     );
 }

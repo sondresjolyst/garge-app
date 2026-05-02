@@ -8,8 +8,13 @@ export interface ElectricityData {
     currency: string;
 }
 
+interface ElectricityApiItem {
+    value: number;
+    start: string;
+}
+
 const ElectricityService = {
-    async getElectricityData(type: string, area: string, date: string, currency = 'NOK') {
+    async getElectricityData(type: string, area: string, date: string, currency = 'NOK'): Promise<ElectricityData[]> {
         try {
             const params: {
                 type: string;
@@ -25,9 +30,8 @@ const ElectricityService = {
                 params.date = new Date(date).toISOString();
             }
             const response = await axiosInstance.get('/electricity/prices', { params });
-            const data = response.data.areas[area].values;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return data.map((item: any) => {
+            const data: ElectricityApiItem[] = response.data.areas[area].values;
+            return data.map((item) => {
                 let price = item.value;
                 if (['NO1', 'NO2', 'NO3', 'NO4'].includes(area)) {
                     price *= 1.25;
