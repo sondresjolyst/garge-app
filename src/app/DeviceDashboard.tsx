@@ -12,6 +12,7 @@ import DeviceDrawer from './DeviceDrawer';
 import SetupWizard from './SetupWizard';
 import ConfirmModal from '@/components/ConfirmModal';
 import { groupEmoji } from '@/lib/groupIcons';
+import { useLocalStorage } from '@/lib/useLocalStorage';
 import CollapsibleSection from '@/components/CollapsibleSection';
 
 // ── Type sort order for group cards ───────────────────────────────────────────
@@ -166,8 +167,8 @@ const DeviceDashboard: React.FC = () => {
     const [groups, setGroups]         = useState<Group[]>([]);
     const [loading, setLoading]       = useState(true);
     const [search, setSearch]         = useState('');
-    const [sort, setSort]             = useState<SortKey>('name-asc');
-    const [typeFilter, setTypeFilter] = useState<string>('all');
+    const [sort, setSort]             = useLocalStorage<SortKey>('device-sort', 'name-asc');
+    const [typeFilter, setTypeFilter] = useLocalStorage<string>('device-type-filter', 'all');
     const [selected, setSelected]     = useState<UnifiedDevice | null>(null);
     const [wizardOpen, setWizardOpen]   = useState(false);
     const [wizardStep, setWizardStep]   = useState(0);

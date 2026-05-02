@@ -678,7 +678,7 @@ const AutomationsPage: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">Automations</h1>
-                    <p className="text-gray-400 text-sm mt-0.5">Rules that control your garage automatically</p>
+
                 </div>
                 <button
                     onClick={openCreateDrawer}
