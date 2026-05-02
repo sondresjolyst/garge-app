@@ -298,6 +298,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                                 <button
                                     onClick={handleSaveName}
                                     disabled={savingName}
+                                    aria-label="Save name"
                                     className="p-1 rounded-lg text-sky-400 hover:text-sky-300 hover:bg-sky-500/10 transition-colors flex-shrink-0"
                                 >
                                     <CheckIcon className="h-4 w-4" />
@@ -309,6 +310,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                                 {(device.kind === 'socket' || device.kind === 'sensor') && (
                                     <button
                                         onClick={() => { setEditName(device.displayName); setEditingName(true); }}
+                                        aria-label="Rename"
                                         className="p-0.5 rounded text-gray-600 hover:text-gray-400 transition-colors flex-shrink-0"
                                     >
                                         <PencilIcon className="h-3.5 w-3.5" />
@@ -320,6 +322,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                     </div>
                     <button
                         onClick={handleClose}
+                        aria-label="Close"
                         className="flex-shrink-0 p-1.5 rounded-xl text-gray-400 hover:text-gray-200 hover:bg-gray-800/60 transition-all"
                     >
                         <XMarkIcon className="h-5 w-5" />
