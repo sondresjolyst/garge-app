@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.11.0](https://github.com/sondresjolyst/garge-app/compare/v1.10.0...v1.11.0) (2026-05-02)
+
+
+### Features
+
+* add Vitest unit tests and Playwright E2E tests ([#208](https://github.com/sondresjolyst/garge-app/issues/208)) ([7e1fcfe](https://github.com/sondresjolyst/garge-app/commit/7e1fcfe8473a7bbe30f6e771db53bbe92cdb5195))
+* design refresh — fonts, animations, scroll reveals ([#201](https://github.com/sondresjolyst/garge-app/issues/201)) ([f8cf7f5](https://github.com/sondresjolyst/garge-app/commit/f8cf7f58818045757965f85d0167aeacc321efe3))
+* redesign automations and electricity pages ([#203](https://github.com/sondresjolyst/garge-app/issues/203)) ([b5d1f76](https://github.com/sondresjolyst/garge-app/commit/b5d1f7635b6a87c4a980b3a945b610acf24a14ec))
+
+
+### Bug Fixes
+
+* exclude vitest and playwright configs from Next.js typecheck ([c07c360](https://github.com/sondresjolyst/garge-app/commit/c07c36068909f857dfd528fdc5d00e7f3d34beb0))
+* replace all any types with proper TypeScript types ([#200](https://github.com/sondresjolyst/garge-app/issues/200)) ([4c75c84](https://github.com/sondresjolyst/garge-app/commit/4c75c841a163f513a5519ebdef4429c2a3300539))
+* replace native datetime-local input with DatePicker and fix dark theme time list ([#204](https://github.com/sondresjolyst/garge-app/issues/204)) ([cdb7207](https://github.com/sondresjolyst/garge-app/commit/cdb720748bb73d0b8bfd1a5f3eef5c399257cb71))
+* resolve security advisory GHSA-7gff-xmf6-56c5 ([#205](https://github.com/sondresjolyst/garge-app/issues/205)) ([20430d7](https://github.com/sondresjolyst/garge-app/commit/20430d76736e243ed364dd9ca986ed2332934c5a))
+
 ## [1.10.0](https://github.com/sondresjolyst/garge-app/compare/v1.9.0...v1.10.0) (2026-04-29)
 
 
