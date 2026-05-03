@@ -107,7 +107,7 @@ const Profile: React.FC = () => {
                 toast.success('Offline alerts enabled');
             } else {
                 await unsubscribeFromPush();
-                await UserService.updatePreferences(user.id, { priceZone, pushNotificationsEnabled: false });
+                await UserService.updatePreferences(user.id, { priceZone });
                 setPushEnabled(false);
                 toast.success('Offline alerts disabled');
             }
@@ -138,7 +138,7 @@ const Profile: React.FC = () => {
         setOfflineThreshold(clamped);
         setThresholdSaving(true);
         try {
-            await UserService.updatePreferences(user.id, { priceZone, pushNotificationsEnabled: pushEnabled, offlineAlertThresholdHours: clamped });
+            await UserService.updatePreferences(user.id, { priceZone, offlineAlertThresholdHours: clamped });
         } catch { /* silent */ }
         finally { setThresholdSaving(false); }
     };
