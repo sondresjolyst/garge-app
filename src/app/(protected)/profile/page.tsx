@@ -407,8 +407,8 @@ const Profile: React.FC = () => {
                         <p className="text-sm text-gray-500">Push notifications are not supported in this browser.</p>
                     ) : (
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div>
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="min-w-0">
                                     <p className="text-sm text-gray-100 font-medium">Offline alerts</p>
                                     <p className="text-xs text-gray-500 mt-0.5">Notify when a sensor has not reported for a while. Requires the app to be installed.</p>
                                 </div>
@@ -416,7 +416,7 @@ const Profile: React.FC = () => {
                                     onClick={handleTogglePush}
                                     disabled={pushLoading || profileLoading}
                                     aria-label={pushEnabled ? 'Disable offline alerts' : 'Enable offline alerts'}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${pushEnabled ? 'bg-sky-600' : 'bg-gray-700'}`}
+                                    className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${pushEnabled ? 'bg-sky-600' : 'bg-gray-700'}`}
                                 >
                                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${pushEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
                                 </button>
