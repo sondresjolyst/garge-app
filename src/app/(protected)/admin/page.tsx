@@ -11,7 +11,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
-import AdminService, { AdminStats, AdminUser, StatSnapshot } from '@/services/adminService';
+import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats } from '@/services/adminService';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
 
@@ -40,6 +40,10 @@ export default function AdminPage() {
     const [selectedRole, setSelectedRole] = useState('');
     const [roleLoading, setRoleLoading] = useState(false);
 
+    const [emailStats, setEmailStats] = useState<EmailStats | null>(null);
+    const [emailStatsDays, setEmailStatsDays] = useState(30);
+    const [emailStatsLoading, setEmailStatsLoading] = useState(false);
+
     const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
     const [loadedAt, setLoadedAt] = useState<Date | null>(null);
 
@@ -66,6 +70,22 @@ export default function AdminPage() {
             setLoading(false);
         }
     }, []);
+
+    const loadEmailStats = useCallback(async (days: number) => {
+        setEmailStatsLoading(true);
+        try {
+            const es = await AdminService.getEmailStats(days);
+            setEmailStats(es);
+        } catch {
+            toast.error('Failed to load email stats');
+        } finally {
+            setEmailStatsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (isAdmin) loadEmailStats(emailStatsDays);
+    }, [isAdmin, loadEmailStats, emailStatsDays]);
 
     useEffect(() => {
         if (isAdmin) load();
@@ -189,9 +209,53 @@ export default function AdminPage() {
                             </div>
                             <div className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
                                 <p className="text-xs text-gray-500 mb-1">Last refreshed</p>
-                                <p className="text-sm font-medium text-gray-300">{loadedAt ? loadedAt.toLocaleTimeString() : '—'}</p>
+                                <p className="text-sm font-medium text-gray-300">{loadedAt ? loadedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '—'}</p>
                             </div>
                         </div>
+                    </Section>
+
+                    {/* Email Stats */}
+                    <Section title="Email (Brevo)">
+                        <div className="flex items-center justify-between mb-3">
+                            <p className="text-xs text-gray-500">Transactional email stats</p>
+                            <div className="flex gap-1">
+                                {([7, 30, 90] as const).map(d => (
+                                    <button
+                                        key={d}
+                                        onClick={() => setEmailStatsDays(d)}
+                                        className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${
+                                            emailStatsDays === d
+                                                ? 'bg-sky-600 text-white'
+                                                : 'bg-gray-700/60 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                                        }`}
+                                    >
+                                        {d}d
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        {emailStatsLoading ? (
+                            <LoadingDots height="h-16" />
+                        ) : emailStats ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                {([
+                                    { label: 'Sent', value: emailStats.requests },
+                                    { label: 'Delivered', value: emailStats.delivered },
+                                    { label: 'Hard bounces', value: emailStats.hardBounces },
+                                    { label: 'Soft bounces', value: emailStats.softBounces },
+                                    { label: 'Blocked', value: emailStats.blocked },
+                                    { label: 'Spam reports', value: emailStats.spamReports },
+                                    { label: 'Invalid', value: emailStats.invalid },
+                                ]).map(({ label, value }) => (
+                                    <div key={label} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                        <p className="text-2xl font-bold tabular-nums text-gray-100">{value}</p>
+                                        <p className="text-xs text-gray-500 mt-1">{label}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-xs text-gray-500">No data.</p>
+                        )}
                     </Section>
 
                     {/* Users */}
