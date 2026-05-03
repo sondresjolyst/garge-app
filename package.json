@@ -39,7 +39,7 @@
     "@types/jsonwebtoken": "^9.0.8",
     "@types/node": "^24",
     "@types/react": "^19",
-    "@types/react-datepicker": "^6.2.0",
+    "@types/react-datepicker": "^7.0.0",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^9",
