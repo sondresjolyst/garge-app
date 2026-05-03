@@ -11,7 +11,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
-import AdminService, { AdminStats, AdminUser, StatSnapshot } from '@/services/adminService';
+import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats, AppSettings } from '@/services/adminService';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
 
@@ -40,11 +40,19 @@ export default function AdminPage() {
     const [selectedRole, setSelectedRole] = useState('');
     const [roleLoading, setRoleLoading] = useState(false);
 
+    const [emailStats, setEmailStats] = useState<EmailStats | null>(null);
+    const [emailStatsDays, setEmailStatsDays] = useState(30);
+    const [emailStatsLoading, setEmailStatsLoading] = useState(false);
+
     const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
+    const [loadedAt, setLoadedAt] = useState<Date | null>(null);
 
     const [userSearch, setUserSearch] = useState('');
     const [userPage, setUserPage] = useState(0);
     const PAGE_SIZE = 10;
+
+    const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
+    const [appSettingsLoading, setAppSettingsLoading] = useState(false);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -58,6 +66,7 @@ export default function AdminPage() {
             setStats(s);
             setUsers(u);
             setHistory(h);
+            setLoadedAt(new Date());
         } catch {
             setError('Failed to load admin data');
         } finally {
@@ -65,9 +74,45 @@ export default function AdminPage() {
         }
     }, []);
 
+    const loadEmailStats = useCallback(async (days: number) => {
+        setEmailStatsLoading(true);
+        try {
+            const es = await AdminService.getEmailStats(days);
+            setEmailStats(es);
+        } catch {
+            toast.error('Failed to load email stats');
+        } finally {
+            setEmailStatsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (isAdmin) loadEmailStats(emailStatsDays);
+    }, [isAdmin, loadEmailStats, emailStatsDays]);
+
     useEffect(() => {
         if (isAdmin) load();
     }, [isAdmin, load]);
+
+    useEffect(() => {
+        if (!isAdmin) return;
+        AdminService.getAppSettings()
+            .then(setAppSettings)
+            .catch(() => toast.error('Failed to load app settings'));
+    }, [isAdmin]);
+
+    const handleToggleAppSetting = async <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
+        setAppSettingsLoading(true);
+        try {
+            const updated = await AdminService.updateAppSettings({ [key]: value });
+            setAppSettings(updated);
+            toast.success('Setting updated');
+        } catch {
+            toast.error('Failed to update setting');
+        } finally {
+            setAppSettingsLoading(false);
+        }
+    };
 
     const handleAssignRole = async (user: AdminUser) => {
         if (!selectedRole) return;
@@ -127,7 +172,7 @@ export default function AdminPage() {
                             {([
                                 { label: 'Users', value: stats?.totalUsers, key: 'totalUsers' as StatKey },
                                 { label: 'Sensors', value: stats?.totalSensors, key: 'totalSensors' as StatKey },
-                                { label: 'Switches', value: stats?.totalSwitches, key: 'totalSwitches' as StatKey },
+                                { label: 'Sockets', value: stats?.totalSwitches, key: 'totalSwitches' as StatKey },
                                 { label: 'Active automations', value: stats?.activeAutomations, key: 'totalAutomations' as StatKey },
                             ]).map(({ label, value, key }) => {
                                 const isSelected = selectedStat === key;
@@ -154,7 +199,7 @@ export default function AdminPage() {
                                     title={{
                                         totalUsers: 'Users over time',
                                         totalSensors: 'Sensors over time',
-                                        totalSwitches: 'Switches over time',
+                                        totalSwitches: 'Sockets over time',
                                         totalAutomations: 'Automations over time',
                                     }[selectedStat]}
                                     data={history.map(s => ({
@@ -166,6 +211,98 @@ export default function AdminPage() {
                                 />
                             </div>
                         )}
+                    </Section>
+
+                    {/* System Health */}
+                    <Section title="System Health">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4 col-span-2 sm:col-span-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="relative flex w-2 h-2">
+                                        <span className="absolute inset-0 rounded-full bg-green-400 opacity-75 animate-ping" />
+                                        <span className="relative w-2 h-2 rounded-full bg-green-400 shadow-[0_0_6px_2px_rgba(74,222,128,0.35)]" />
+                                    </span>
+                                    <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">API</span>
+                                </div>
+                                <p className="text-sm font-semibold text-green-400">Operational</p>
+                            </div>
+                            <div className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                <p className="text-2xl font-bold text-gray-100 tabular-nums">{(stats?.totalSensors ?? 0) + (stats?.totalSwitches ?? 0)}</p>
+                                <p className="text-xs text-gray-500 mt-1">Total devices</p>
+                            </div>
+                            <div className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                <p className="text-xs text-gray-500 mb-1">Last refreshed</p>
+                                <p className="text-sm font-medium text-gray-300">{loadedAt ? loadedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '—'}</p>
+                            </div>
+                        </div>
+                    </Section>
+
+                    {/* Email Stats */}
+                    <Section title="Email (Brevo)">
+                        <div className="flex items-center justify-between mb-3">
+                            <p className="text-xs text-gray-500">Transactional email stats</p>
+                            <div className="flex gap-1">
+                                {([7, 30, 90] as const).map(d => (
+                                    <button
+                                        key={d}
+                                        onClick={() => setEmailStatsDays(d)}
+                                        className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${
+                                            emailStatsDays === d
+                                                ? 'bg-sky-600 text-white'
+                                                : 'bg-gray-700/60 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                                        }`}
+                                    >
+                                        {d}d
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        {emailStatsLoading ? (
+                            <LoadingDots height="h-16" />
+                        ) : emailStats ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                {([
+                                    { label: 'Sent', value: emailStats.requests },
+                                    { label: 'Delivered', value: emailStats.delivered },
+                                    { label: 'Hard bounces', value: emailStats.hardBounces },
+                                    { label: 'Soft bounces', value: emailStats.softBounces },
+                                    { label: 'Blocked', value: emailStats.blocked },
+                                    { label: 'Spam reports', value: emailStats.spamReports },
+                                    { label: 'Invalid', value: emailStats.invalid },
+                                ]).map(({ label, value }) => (
+                                    <div key={label} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                        <p className="text-2xl font-bold tabular-nums text-gray-100">{value}</p>
+                                        <p className="text-xs text-gray-500 mt-1">{label}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-xs text-gray-500">No data.</p>
+                        )}
+                    </Section>
+
+                    {/* Site Settings */}
+                    <Section title="Site Settings">
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-200">Cookie consent banner</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">Show banner asking users to accept cookies</p>
+                                </div>
+                                {appSettings === null ? (
+                                    <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />
+                                ) : (
+                                    <button
+                                        onClick={() => handleToggleAppSetting('cookieBannerEnabled', !appSettings.cookieBannerEnabled)}
+                                        disabled={appSettingsLoading}
+                                        aria-label="Toggle cookie banner"
+                                        className={`relative shrink-0 w-10 h-6 rounded-full transition-colors disabled:opacity-50 ${appSettings.cookieBannerEnabled ? 'bg-sky-600' : 'bg-gray-600'}`}
+                                    >
+                                        <span className={`absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow transition-transform ${appSettings.cookieBannerEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     </Section>
 
                     {/* Users */}

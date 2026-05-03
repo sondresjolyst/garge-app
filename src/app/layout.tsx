@@ -5,6 +5,8 @@ import Content from './content';
 import Navbar from './navbar';
 import Footer from './footer';
 import SessionProviderWrapper from './SessionProviderWrapper';
+import CookieBanner from '@/components/CookieBanner';
+import InstallPrompt from '@/components/InstallPrompt';
 import type { Metadata } from "next";
 import Script from 'next/script';
 import { Toaster } from 'sonner';
@@ -41,6 +43,8 @@ export default function Layout({
                         <Footer />
                         <FloatingNav />
                     </div>
+                    <CookieBanner />
+                    <InstallPrompt />
                     <Toaster position="bottom-center" theme="dark" richColors />
                 </SessionProviderWrapper>
             </body>

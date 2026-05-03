@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MagnifyingGlassIcon, ChevronDownIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ChevronDownIcon, PlusIcon, PencilIcon, TrashIcon, XMarkIcon, SignalIcon } from '@heroicons/react/24/outline';
 import { TYPE_CONFIG, DEFAULT_TYPE } from '@/lib/typeConfig';
 import { formatSensorValue } from '@/lib/typeUtils';
 import LoadingDots from '@/components/LoadingDots';
@@ -12,6 +12,7 @@ import DeviceDrawer from './DeviceDrawer';
 import SetupWizard from './SetupWizard';
 import ConfirmModal from '@/components/ConfirmModal';
 import { groupEmoji } from '@/lib/groupIcons';
+import { useLocalStorage } from '@/lib/useLocalStorage';
 import CollapsibleSection from '@/components/CollapsibleSection';
 
 // ── Type sort order for group cards ───────────────────────────────────────────
@@ -166,8 +167,8 @@ const DeviceDashboard: React.FC = () => {
     const [groups, setGroups]         = useState<Group[]>([]);
     const [loading, setLoading]       = useState(true);
     const [search, setSearch]         = useState('');
-    const [sort, setSort]             = useState<SortKey>('name-asc');
-    const [typeFilter, setTypeFilter] = useState<string>('all');
+    const [sort, setSort]             = useLocalStorage<SortKey>('device-sort', 'name-asc');
+    const [typeFilter, setTypeFilter] = useLocalStorage<string>('device-type-filter', 'all');
     const [selected, setSelected]     = useState<UnifiedDevice | null>(null);
     const [wizardOpen, setWizardOpen]   = useState(false);
     const [wizardStep, setWizardStep]   = useState(0);
@@ -393,6 +394,17 @@ const DeviceDashboard: React.FC = () => {
                             options={SORT_OPTIONS}
                             onChange={v => setSort(v as SortKey)}
                         />
+                        {(typeFilter !== 'all' || search.trim()) && (
+                            <button
+                                type="button"
+                                onClick={() => { setSearch(''); setTypeFilter('all'); }}
+                                aria-label="Clear filters"
+                                className="flex items-center gap-1 px-2.5 py-2 bg-gray-700/40 hover:bg-gray-700/60 border border-gray-600/30 rounded-xl text-xs text-gray-400 hover:text-gray-200 transition-all whitespace-nowrap"
+                            >
+                                <XMarkIcon className="h-3.5 w-3.5" />
+                                Clear
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -447,6 +459,7 @@ const DeviceDashboard: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => setDeleteGroup(group)}
+                                                    aria-label="Delete group"
                                                     className="p-1 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                                                 >
                                                     <TrashIcon className="h-3.5 w-3.5" />
@@ -499,14 +512,42 @@ const DeviceDashboard: React.FC = () => {
 
                 {/* Ungrouped devices */}
                 {devices.length === 0 ? (
-                    <div className="mt-16 text-center text-gray-400 space-y-3">
-                        <p className="text-base">No devices added yet.</p>
+                    <div className="mt-12 max-w-sm mx-auto">
+                        <div className="flex flex-col items-center text-center mb-8">
+                            <div className="relative mb-6 mx-auto w-20">
+                                <div className="w-20 h-20 rounded-2xl bg-gray-800/80 border border-gray-700/60 flex items-center justify-center">
+                                    <SignalIcon className="h-9 w-9 text-sky-500/70" />
+                                </div>
+                                <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-sky-600/30 border border-sky-500/50 flex items-center justify-center">
+                                    <PlusIcon className="h-3 w-3 text-sky-400" />
+                                </div>
+                            </div>
+                            <h2 className="text-xl font-display font-semibold text-gray-100 mb-2">No devices yet</h2>
+                            <p className="text-sm text-gray-400 leading-relaxed">Get started by adding a sensor or socket.</p>
+                        </div>
+                        <div className="space-y-2.5 mb-8">
+                            {[
+                                { step: '1', title: 'Add a device', desc: 'Enter the device code from your sensor or socket' },
+                                { step: '2', title: 'Organize into groups', desc: 'Group devices by vehicle or location' },
+                                { step: '3', title: 'Set up automations', desc: 'Automatically control sockets based on sensor readings' },
+                            ].map(item => (
+                                <div key={item.step} className="flex items-start gap-3 p-3 bg-gray-800/40 border border-gray-700/30 rounded-xl">
+                                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-sky-600/20 border border-sky-500/30 text-sky-400 text-xs font-bold flex items-center justify-center mt-0.5">
+                                        {item.step}
+                                    </span>
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-200">{item.title}</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                         <button
                             type="button"
-                            onClick={() => setWizardOpen(true)}
-                            className="inline-flex items-center gap-2 text-sm text-sky-400 hover:text-sky-300 transition-colors"
+                            onClick={() => { setWizardStep(0); setWizardOpen(true); }}
+                            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-sky-900/30"
                         >
-                            <PlusIcon className="h-4 w-4" />
+                            <PlusIcon className="h-5 w-5" />
                             Add your first device
                         </button>
                     </div>

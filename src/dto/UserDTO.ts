@@ -5,4 +5,6 @@ export interface UserDTO {
     lastName: string;
     emailConfirmed: boolean;
     priceZone: string;
+    pushNotificationsEnabled: boolean;
+    offlineAlertThresholdHours: number;
 }
