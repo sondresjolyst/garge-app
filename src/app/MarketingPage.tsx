@@ -89,11 +89,11 @@ export default function MarketingPage() {
                     </p>
                 </div>
                 <div className="flex gap-3 flex-wrap justify-center">
-                    <Link href="/login" className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-medium rounded-xl transition-all text-sm">
+                    <Link href="/register" className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-medium rounded-xl transition-all text-sm">
                         Get started
                     </Link>
-                    <Link href="/register" className="px-5 py-2.5 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/50 text-gray-200 font-medium rounded-xl transition-all text-sm">
-                        Create account
+                    <Link href="/login" className="px-5 py-2.5 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/50 text-gray-200 font-medium rounded-xl transition-all text-sm">
+                        Sign in
                     </Link>
                 </div>
             </section>

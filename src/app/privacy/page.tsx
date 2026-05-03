@@ -26,6 +26,15 @@ export default function PrivacyPage() {
                 </section>
 
                 <section className="space-y-2">
+                    <h2 className="text-base font-semibold text-gray-100">Legal basis for processing</h2>
+                    <p>We process your personal data under the following legal bases (GDPR Article 6):</p>
+                    <ul className="list-disc list-inside space-y-1">
+                        <li><span className="text-gray-300">Contract (Art. 6(1)(b))</span> — account data, sensor data, and transactional emails are necessary to deliver the service you signed up for.</li>
+                        <li><span className="text-gray-300">Legitimate interests (Art. 6(1)(f))</span> — server logs are retained for security monitoring and debugging. Our interest in operating a secure service does not override your rights.</li>
+                    </ul>
+                </section>
+
+                <section className="space-y-2">
                     <h2 className="text-base font-semibold text-gray-100">Data sharing</h2>
                     <p>We do not sell or trade your personal data. We use the following third-party data processors:</p>
                     <ul className="list-disc list-inside space-y-1">
