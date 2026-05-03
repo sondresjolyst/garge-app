@@ -43,6 +43,10 @@ export interface EmailStats {
     days: number;
 }
 
+export interface AppSettings {
+    cookieBannerEnabled: boolean;
+}
+
 const AdminService = {
     async getStats(): Promise<AdminStats> {
         const res = await axiosInstance.get<AdminStats>('/admin/stats');
@@ -85,6 +89,16 @@ const AdminService = {
 
     async getEmailStats(days = 30): Promise<EmailStats> {
         const res = await axiosInstance.get<EmailStats>('/admin/email-stats', { params: { days } });
+        return res.data;
+    },
+
+    async getAppSettings(): Promise<AppSettings> {
+        const res = await axiosInstance.get<AppSettings>('/admin/settings');
+        return res.data;
+    },
+
+    async updateAppSettings(patch: Partial<AppSettings>): Promise<AppSettings> {
+        const res = await axiosInstance.put<AppSettings>('/admin/settings', patch);
         return res.data;
     },
 };

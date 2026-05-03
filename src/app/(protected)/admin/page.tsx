@@ -11,7 +11,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
-import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats } from '@/services/adminService';
+import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats, AppSettings } from '@/services/adminService';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
 
@@ -50,6 +50,9 @@ export default function AdminPage() {
     const [userSearch, setUserSearch] = useState('');
     const [userPage, setUserPage] = useState(0);
     const PAGE_SIZE = 10;
+
+    const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
+    const [appSettingsLoading, setAppSettingsLoading] = useState(false);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -90,6 +93,26 @@ export default function AdminPage() {
     useEffect(() => {
         if (isAdmin) load();
     }, [isAdmin, load]);
+
+    useEffect(() => {
+        if (!isAdmin) return;
+        AdminService.getAppSettings()
+            .then(setAppSettings)
+            .catch(() => toast.error('Failed to load app settings'));
+    }, [isAdmin]);
+
+    const handleToggleAppSetting = async <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
+        setAppSettingsLoading(true);
+        try {
+            const updated = await AdminService.updateAppSettings({ [key]: value });
+            setAppSettings(updated);
+            toast.success('Setting updated');
+        } catch {
+            toast.error('Failed to update setting');
+        } finally {
+            setAppSettingsLoading(false);
+        }
+    };
 
     const handleAssignRole = async (user: AdminUser) => {
         if (!selectedRole) return;
@@ -256,6 +279,30 @@ export default function AdminPage() {
                         ) : (
                             <p className="text-xs text-gray-500">No data.</p>
                         )}
+                    </Section>
+
+                    {/* Site Settings */}
+                    <Section title="Site Settings">
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-200">Cookie consent banner</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">Show banner asking users to accept cookies</p>
+                                </div>
+                                {appSettings === null ? (
+                                    <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />
+                                ) : (
+                                    <button
+                                        onClick={() => handleToggleAppSetting('cookieBannerEnabled', !appSettings.cookieBannerEnabled)}
+                                        disabled={appSettingsLoading}
+                                        aria-label="Toggle cookie banner"
+                                        className={`relative shrink-0 w-10 h-6 rounded-full transition-colors disabled:opacity-50 ${appSettings.cookieBannerEnabled ? 'bg-sky-600' : 'bg-gray-600'}`}
+                                    >
+                                        <span className={`absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow transition-transform ${appSettings.cookieBannerEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     </Section>
 
                     {/* Users */}
