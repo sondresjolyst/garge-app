@@ -12,15 +12,28 @@ export default function CookieBanner() {
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            const record: ConsentRecord | null = raw ? JSON.parse(raw) : null;
-            if (!record || record.version !== CONSENT_VERSION) {
+        async function init() {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/settings`);
+                if (res.ok) {
+                    const settings = await res.json();
+                    if (!settings.cookieBannerEnabled) return;
+                }
+            } catch {
+                // backend unreachable — fall through to consent check
+            }
+
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                const record: ConsentRecord | null = raw ? JSON.parse(raw) : null;
+                if (!record || record.version !== CONSENT_VERSION) {
+                    setVisible(true);
+                }
+            } catch {
                 setVisible(true);
             }
-        } catch {
-            setVisible(true);
         }
+        init();
     }, []);
 
     function dismiss() {
