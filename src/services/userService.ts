@@ -175,9 +175,13 @@ const UserService = {
         }
     },
 
-    async updatePreferences(userId: string, priceZone: string): Promise<UserDTO> {
+    async updatePreferences(userId: string, data: {
+        priceZone: string;
+        pushNotificationsEnabled?: boolean;
+        offlineAlertThresholdHours?: number;
+    }): Promise<UserDTO> {
         try {
-            const response = await axiosInstance.put<UserDTO>(`/users/${userId}/preferences`, { priceZone });
+            const response = await axiosInstance.put<UserDTO>(`/users/${userId}/preferences`, data);
             return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {

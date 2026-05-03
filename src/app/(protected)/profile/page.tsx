@@ -7,7 +7,8 @@ import UserService from '@/services/userService';
 import { UserDTO } from '@/dto/UserDTO';
 import SensorService, { Sensor } from '@/services/sensorService';
 import SwitchService, { Switch } from '@/services/switchService';
-import { PencilIcon, CheckIcon, XMarkIcon, TrashIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, CheckIcon, XMarkIcon, TrashIcon, ClipboardDocumentIcon, BellIcon, BellSlashIcon } from '@heroicons/react/24/outline';
+import { isPushSupported, isPushSubscribed, subscribeToPush, unsubscribeFromPush, sendTestNotification } from '@/services/pushNotificationService';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
 import Section from '@/components/Section';
@@ -52,6 +53,12 @@ const Profile: React.FC = () => {
     const [showDeleteAccount, setShowDeleteAccount] = useState(false);
     const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
     const [exportLoading, setExportLoading] = useState(false);
+    const [pushEnabled, setPushEnabled] = useState(false);
+    const [pushLoading, setPushLoading] = useState(false);
+    const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
+    const [offlineThreshold, setOfflineThreshold] = useState(4);
+    const [thresholdSaving, setThresholdSaving] = useState(false);
+    const [testNotifLoading, setTestNotifLoading] = useState(false);
 
     function sortSensorsByName(sensors: Sensor[]): Sensor[] {
         return [...sensors].sort((a, b) =>
@@ -74,7 +81,16 @@ const Profile: React.FC = () => {
 
     useEffect(() => {
         if (!isAuthenticated) { router.push('/login'); return; }
-        UserService.getUserProfile().then(u => { setUser(u); setPriceZone(u.priceZone ?? 'NO2'); }).catch(console.error).finally(() => setProfileLoading(false));
+        UserService.getUserProfile().then(u => {
+            setUser(u);
+            setPriceZone(u.priceZone ?? 'NO2');
+            setPushEnabled(u.pushNotificationsEnabled ?? false);
+            setOfflineThreshold(u.offlineAlertThresholdHours > 0 ? u.offlineAlertThresholdHours : 4);
+        }).catch(console.error).finally(() => setProfileLoading(false));
+        if (isPushSupported()) {
+            setPushPermission(Notification.permission);
+            isPushSubscribed().then(subscribed => setPushEnabled(prev => prev && subscribed)).catch(() => {});
+        }
         setSensorsLoading(true);
         refreshSensors().catch(console.error).finally(() => setSensorsLoading(false));
         setSwitchesLoading(true);
@@ -107,9 +123,57 @@ const Profile: React.FC = () => {
         setPriceZone(zone);
         setPriceZoneSaving(true);
         try {
-            await UserService.updatePreferences(user.id, zone);
+            await UserService.updatePreferences(user.id, { priceZone: zone });
         } catch { /* silent fail — zone is still set locally */ }
         finally { setPriceZoneSaving(false); }
+    };
+
+    const handleTogglePush = async () => {
+        if (!user?.id || pushLoading) return;
+        setPushLoading(true);
+        try {
+            if (!pushEnabled) {
+                await subscribeToPush();
+                await UserService.updatePreferences(user.id, { priceZone, pushNotificationsEnabled: true, offlineAlertThresholdHours: offlineThreshold });
+                setPushEnabled(true);
+                setPushPermission(Notification.permission);
+                toast.success('Offline alerts enabled');
+            } else {
+                await unsubscribeFromPush();
+                await UserService.updatePreferences(user.id, { priceZone, pushNotificationsEnabled: false });
+                setPushEnabled(false);
+                toast.success('Offline alerts disabled');
+            }
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : 'Failed to update notification settings';
+            toast.error(msg);
+            setPushPermission(Notification.permission);
+        } finally {
+            setPushLoading(false);
+        }
+    };
+
+    const handleSendTestNotification = async () => {
+        setTestNotifLoading(true);
+        try {
+            await sendTestNotification();
+            toast.success('Test notification sent');
+        } catch {
+            toast.error('Failed to send test notification');
+        } finally {
+            setTestNotifLoading(false);
+        }
+    };
+
+    const handleThresholdChange = async (hours: number) => {
+        if (!user?.id) return;
+        const clamped = Math.min(168, Math.max(1, hours));
+        setOfflineThreshold(clamped);
+        setThresholdSaving(true);
+        try {
+            await UserService.updatePreferences(user.id, { priceZone, pushNotificationsEnabled: pushEnabled, offlineAlertThresholdHours: clamped });
+        } catch { /* silent */ }
+        finally { setThresholdSaving(false); }
     };
 
     const handleConfirmEmail = async () => {
@@ -599,6 +663,67 @@ const Profile: React.FC = () => {
                     </div>
                 </Section>
                 </div>
+
+                {/* Notifications */}
+                <Section title="Notifications">
+                    {!isPushSupported() ? (
+                        <p className="text-sm text-gray-500">Push notifications are not supported in this browser.</p>
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-100 font-medium">Offline alerts</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">Notify when a sensor hasn't reported for a while. Requires the app to be installed.</p>
+                                </div>
+                                <button
+                                    onClick={handleTogglePush}
+                                    disabled={pushLoading || profileLoading}
+                                    aria-label={pushEnabled ? 'Disable offline alerts' : 'Enable offline alerts'}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${pushEnabled ? 'bg-sky-600' : 'bg-gray-700'}`}
+                                >
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${pushEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
+                            </div>
+                            {pushEnabled && (
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm text-gray-100 font-medium">Alert after</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">Hours of no data before notifying (1–168).</p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={168}
+                                            value={offlineThreshold}
+                                            onChange={e => handleThresholdChange(Number(e.target.value))}
+                                            className="w-20 bg-gray-900/70 border border-gray-700/60 rounded-xl text-gray-200 text-sm px-3 py-2 focus:outline-none focus:border-sky-500 transition-colors"
+                                        />
+                                        <span className="text-sm text-gray-500">h{thresholdSaving && <span className="ml-1 text-xs text-gray-600">saving…</span>}</span>
+                                    </div>
+                                </div>
+                            )}
+                            {pushEnabled && (
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm text-gray-100 font-medium">Test notification</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">Send a test to confirm notifications are working.</p>
+                                    </div>
+                                    <button
+                                        onClick={handleSendTestNotification}
+                                        disabled={testNotifLoading}
+                                        className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all whitespace-nowrap"
+                                    >
+                                        {testNotifLoading ? 'Sending…' : 'Send test'}
+                                    </button>
+                                </div>
+                            )}
+                            {pushPermission === 'denied' && (
+                                <Alert variant="error">Notifications blocked in browser settings. Enable them to use offline alerts.</Alert>
+                            )}
+                        </div>
+                    )}
+                </Section>
 
                 {/* Your data */}
                 <Section title="Your data">
