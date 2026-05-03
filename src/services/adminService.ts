@@ -32,6 +32,17 @@ export interface DiscoveredDevice {
     timestamp: string;
 }
 
+export interface EmailStats {
+    requests: number;
+    delivered: number;
+    hardBounces: number;
+    softBounces: number;
+    spamReports: number;
+    blocked: number;
+    invalid: number;
+    days: number;
+}
+
 const AdminService = {
     async getStats(): Promise<AdminStats> {
         const res = await axiosInstance.get<AdminStats>('/admin/stats');
@@ -70,6 +81,11 @@ const AdminService = {
         const res = await axiosInstance.get<StatSnapshot[] | { $values: StatSnapshot[] }>('/admin/stats/history');
         const data = res.data;
         return '$values' in data ? data.$values : data;
+    },
+
+    async getEmailStats(days = 30): Promise<EmailStats> {
+        const res = await axiosInstance.get<EmailStats>('/admin/email-stats', { params: { days } });
+        return res.data;
     },
 };
 
