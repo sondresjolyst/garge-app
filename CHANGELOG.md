@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.1](https://github.com/sondresjolyst/garge-app/compare/v1.12.0...v1.12.1) (2026-05-03)
+
+
+### Bug Fixes
+
+* make push notification toggle per-device ([#220](https://github.com/sondresjolyst/garge-app/issues/220)) ([ad5ddbd](https://github.com/sondresjolyst/garge-app/commit/ad5ddbd7700fdabe58659fcdd26c339681a0bcfb))
+* prevent notification toggle from shrinking on mobile ([#221](https://github.com/sondresjolyst/garge-app/issues/221)) ([222a5f6](https://github.com/sondresjolyst/garge-app/commit/222a5f64ac623968af58f7ac0c7e17afcb3274fd))
+
 ## [1.12.0](https://github.com/sondresjolyst/garge-app/compare/v1.11.0...v1.12.0) (2026-05-03)
 
 
