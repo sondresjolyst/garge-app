@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.12.0](https://github.com/sondresjolyst/garge-app/compare/v1.11.0...v1.12.0) (2026-05-03)
+
+
+### Features
+
+* add Brevo email stats section to admin page ([#212](https://github.com/sondresjolyst/garge-app/issues/212)) ([b44c037](https://github.com/sondresjolyst/garge-app/commit/b44c0379169505c05c17c78a5a1ba6d5e744979f))
+* add cookie banner toggle to admin site settings ([#216](https://github.com/sondresjolyst/garge-app/issues/216)) ([1e11894](https://github.com/sondresjolyst/garge-app/commit/1e11894b4c0d6c77aa08675e856ab6c14b11c3bf))
+* add PWA push notifications with service worker and profile UI ([#214](https://github.com/sondresjolyst/garge-app/issues/214)) ([7d3b7d5](https://github.com/sondresjolyst/garge-app/commit/7d3b7d5e2ab153679ec603f0ef4074df7f51991d))
+* declutter profile page with device sub-pages ([#215](https://github.com/sondresjolyst/garge-app/issues/215)) ([c96f0ae](https://github.com/sondresjolyst/garge-app/commit/c96f0ae97129426d7259cf058ce56bcabc488b6e))
+* persist device sort/filter and remove automations subtitle ([#210](https://github.com/sondresjolyst/garge-app/issues/210)) ([8c134b0](https://github.com/sondresjolyst/garge-app/commit/8c134b0e038953d837b51264c13cf0c53b2f1f78))
+* UX and GDPR improvements ([#213](https://github.com/sondresjolyst/garge-app/issues/213)) ([4091667](https://github.com/sondresjolyst/garge-app/commit/4091667e4cb12212a5b42019dd07536c21ac47a0))
+* UX improvements across dashboard, automations, admin, and profile ([#211](https://github.com/sondresjolyst/garge-app/issues/211)) ([94ac76f](https://github.com/sondresjolyst/garge-app/commit/94ac76ff562dcce4baab50d9e8e9ee11ce6aaa0f))
+
+
+### Bug Fixes
+
+* use standalone output to reduce inotify watchers in k8s ([#217](https://github.com/sondresjolyst/garge-app/issues/217)) ([38ca579](https://github.com/sondresjolyst/garge-app/commit/38ca579b2cfff66edb1f5073db68f11f34e9bb35))
+
 ## [1.11.0](https://github.com/sondresjolyst/garge-app/compare/v1.10.0...v1.11.0) (2026-05-02)
 
 
