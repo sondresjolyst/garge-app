@@ -12,6 +12,7 @@ function getApiOrigin(): string {
 }
 
 const nextConfig: NextConfig = {
+    output: 'standalone',
     images: {
         qualities: [75, 100],
     },
