@@ -289,6 +289,22 @@ const Profile: React.FC = () => {
                     )}
                 </Section>
 
+                <Section title="Billing">
+                    <Link
+                        href="/profile/billing"
+                        className="flex items-center justify-between p-3 rounded-xl bg-gray-900/50 border border-gray-700/40 hover:border-gray-600/60 hover:bg-gray-800/50 transition-all group"
+                    >
+                        <div className="flex items-center gap-3">
+                            <span className="text-lg">💳</span>
+                            <div>
+                                <p className="text-sm font-medium text-gray-100">Subscription & orders</p>
+                                <p className="text-xs text-gray-500">Manage plan and view purchase history</p>
+                            </div>
+                        </div>
+                        <ChevronRightIcon className="h-4 w-4 text-gray-600 group-hover:text-gray-400 transition-colors" />
+                    </Link>
+                </Section>
+
                 <Section title="Devices">
                     <div className="space-y-4">
                         <div>

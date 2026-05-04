@@ -45,6 +45,7 @@ export interface EmailStats {
 
 export interface AppSettings {
     cookieBannerEnabled: boolean;
+    vatEnabled: boolean;
 }
 
 const AdminService = {

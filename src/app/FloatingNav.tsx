@@ -7,12 +7,14 @@ import {
     BoltIcon,
     WrenchScrewdriverIcon,
     UserCircleIcon,
+    ShoppingBagIcon,
 } from '@heroicons/react/24/outline';
 
 const navItems = [
     { href: '/',            label: 'Devices',     Icon: HomeIcon },
     { href: '/electricity', label: 'Electricity', Icon: BoltIcon },
     { href: '/automations', label: 'Auto',        Icon: WrenchScrewdriverIcon },
+    { href: '/shop',        label: 'Shop',        Icon: ShoppingBagIcon },
     { href: '/profile',     label: 'Profile',     Icon: UserCircleIcon },
 ];
 
