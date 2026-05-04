@@ -1,5 +1,48 @@
 # Changelog
 
+## [1.12.1](https://github.com/sondresjolyst/garge-app/compare/v1.12.0...v1.12.1) (2026-05-03)
+
+
+### Bug Fixes
+
+* make push notification toggle per-device ([#220](https://github.com/sondresjolyst/garge-app/issues/220)) ([ad5ddbd](https://github.com/sondresjolyst/garge-app/commit/ad5ddbd7700fdabe58659fcdd26c339681a0bcfb))
+* prevent notification toggle from shrinking on mobile ([#221](https://github.com/sondresjolyst/garge-app/issues/221)) ([222a5f6](https://github.com/sondresjolyst/garge-app/commit/222a5f64ac623968af58f7ac0c7e17afcb3274fd))
+
+## [1.12.0](https://github.com/sondresjolyst/garge-app/compare/v1.11.0...v1.12.0) (2026-05-03)
+
+
+### Features
+
+* add Brevo email stats section to admin page ([#212](https://github.com/sondresjolyst/garge-app/issues/212)) ([b44c037](https://github.com/sondresjolyst/garge-app/commit/b44c0379169505c05c17c78a5a1ba6d5e744979f))
+* add cookie banner toggle to admin site settings ([#216](https://github.com/sondresjolyst/garge-app/issues/216)) ([1e11894](https://github.com/sondresjolyst/garge-app/commit/1e11894b4c0d6c77aa08675e856ab6c14b11c3bf))
+* add PWA push notifications with service worker and profile UI ([#214](https://github.com/sondresjolyst/garge-app/issues/214)) ([7d3b7d5](https://github.com/sondresjolyst/garge-app/commit/7d3b7d5e2ab153679ec603f0ef4074df7f51991d))
+* declutter profile page with device sub-pages ([#215](https://github.com/sondresjolyst/garge-app/issues/215)) ([c96f0ae](https://github.com/sondresjolyst/garge-app/commit/c96f0ae97129426d7259cf058ce56bcabc488b6e))
+* persist device sort/filter and remove automations subtitle ([#210](https://github.com/sondresjolyst/garge-app/issues/210)) ([8c134b0](https://github.com/sondresjolyst/garge-app/commit/8c134b0e038953d837b51264c13cf0c53b2f1f78))
+* UX and GDPR improvements ([#213](https://github.com/sondresjolyst/garge-app/issues/213)) ([4091667](https://github.com/sondresjolyst/garge-app/commit/4091667e4cb12212a5b42019dd07536c21ac47a0))
+* UX improvements across dashboard, automations, admin, and profile ([#211](https://github.com/sondresjolyst/garge-app/issues/211)) ([94ac76f](https://github.com/sondresjolyst/garge-app/commit/94ac76ff562dcce4baab50d9e8e9ee11ce6aaa0f))
+
+
+### Bug Fixes
+
+* use standalone output to reduce inotify watchers in k8s ([#217](https://github.com/sondresjolyst/garge-app/issues/217)) ([38ca579](https://github.com/sondresjolyst/garge-app/commit/38ca579b2cfff66edb1f5073db68f11f34e9bb35))
+
+## [1.11.0](https://github.com/sondresjolyst/garge-app/compare/v1.10.0...v1.11.0) (2026-05-02)
+
+
+### Features
+
+* add Vitest unit tests and Playwright E2E tests ([#208](https://github.com/sondresjolyst/garge-app/issues/208)) ([7e1fcfe](https://github.com/sondresjolyst/garge-app/commit/7e1fcfe8473a7bbe30f6e771db53bbe92cdb5195))
+* design refresh — fonts, animations, scroll reveals ([#201](https://github.com/sondresjolyst/garge-app/issues/201)) ([f8cf7f5](https://github.com/sondresjolyst/garge-app/commit/f8cf7f58818045757965f85d0167aeacc321efe3))
+* redesign automations and electricity pages ([#203](https://github.com/sondresjolyst/garge-app/issues/203)) ([b5d1f76](https://github.com/sondresjolyst/garge-app/commit/b5d1f7635b6a87c4a980b3a945b610acf24a14ec))
+
+
+### Bug Fixes
+
+* exclude vitest and playwright configs from Next.js typecheck ([c07c360](https://github.com/sondresjolyst/garge-app/commit/c07c36068909f857dfd528fdc5d00e7f3d34beb0))
+* replace all any types with proper TypeScript types ([#200](https://github.com/sondresjolyst/garge-app/issues/200)) ([4c75c84](https://github.com/sondresjolyst/garge-app/commit/4c75c841a163f513a5519ebdef4429c2a3300539))
+* replace native datetime-local input with DatePicker and fix dark theme time list ([#204](https://github.com/sondresjolyst/garge-app/issues/204)) ([cdb7207](https://github.com/sondresjolyst/garge-app/commit/cdb720748bb73d0b8bfd1a5f3eef5c399257cb71))
+* resolve security advisory GHSA-7gff-xmf6-56c5 ([#205](https://github.com/sondresjolyst/garge-app/issues/205)) ([20430d7](https://github.com/sondresjolyst/garge-app/commit/20430d76736e243ed364dd9ca986ed2332934c5a))
+
 ## [1.10.0](https://github.com/sondresjolyst/garge-app/compare/v1.9.0...v1.10.0) (2026-04-29)
 
 
