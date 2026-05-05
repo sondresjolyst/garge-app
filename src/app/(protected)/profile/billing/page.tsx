@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
+import TestModeBanner from '@/components/TestModeBanner';
 import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
 import AdminService, { AppSettings } from '@/services/adminService';
@@ -71,11 +72,7 @@ export default function BillingPage() {
                 <h1 className="text-xl font-display font-bold text-gray-100">Billing</h1>
             </div>
 
-            {appSettings?.vippsTestMode && (
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3">
-                    <p className="text-xs font-medium text-amber-400">Vipps test mode is active — no real payments will be processed</p>
-                </div>
-            )}
+            <TestModeBanner settings={appSettings} />
 
             <Section title="Subscription">
                 {hasActive && subscription ? (
