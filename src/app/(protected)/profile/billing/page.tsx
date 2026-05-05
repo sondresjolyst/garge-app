@@ -71,6 +71,12 @@ export default function BillingPage() {
                 <h1 className="text-xl font-display font-bold text-gray-100">Billing</h1>
             </div>
 
+            {appSettings?.vippsTestMode && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3">
+                    <p className="text-xs font-medium text-amber-400">Vipps test mode is active — no real payments will be processed</p>
+                </div>
+            )}
+
             <Section title="Subscription">
                 {hasActive && subscription ? (
                     <div className="bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 space-y-3">

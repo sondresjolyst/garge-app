@@ -321,6 +321,24 @@ export default function AdminPage() {
                                     </button>
                                 )}
                             </div>
+                            <div className="flex items-center justify-between bg-gray-900/50 border border-amber-700/30 rounded-xl p-4">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-200">Vipps test mode</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">Use Vipps test environment. Test subscriptions only gate access while this is on.</p>
+                                </div>
+                                {appSettings === null ? (
+                                    <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />
+                                ) : (
+                                    <button
+                                        onClick={() => handleToggleAppSetting('vippsTestMode', !appSettings.vippsTestMode)}
+                                        disabled={appSettingsLoading}
+                                        aria-label="Toggle Vipps test mode"
+                                        className={`relative shrink-0 w-10 h-6 rounded-full transition-colors disabled:opacity-50 ${appSettings.vippsTestMode ? 'bg-amber-500' : 'bg-gray-600'}`}
+                                    >
+                                        <span className={`absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow transition-transform ${appSettings.vippsTestMode ? 'translate-x-5' : 'translate-x-1'}`} />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </Section>
 

@@ -11,6 +11,7 @@ export interface Subscription {
     interval: string;
     vippsAgreementId: string;
     status: SubscriptionStatus;
+    isTest: boolean;
     startDate: string | null;
     nextChargeDate: string | null;
     createdAt: string;

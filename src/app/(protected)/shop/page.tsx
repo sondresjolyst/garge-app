@@ -93,6 +93,12 @@ export default function ShopPage() {
         <div className="max-w-2xl mx-auto px-4 py-6 space-y-5 pb-32">
             <h1 className="text-xl font-display font-bold text-gray-100">Shop</h1>
 
+            {appSettings?.vippsTestMode && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3">
+                    <p className="text-xs font-medium text-amber-400">Vipps test mode is active — no real payments will be processed</p>
+                </div>
+            )}
+
             {items.length > 0 && (
                 <Section title="Products">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

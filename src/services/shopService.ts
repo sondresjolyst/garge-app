@@ -37,6 +37,7 @@ export interface Order {
     vippsOrderId: string | null;
     status: OrderStatus;
     totalInOre: number;
+    isTest: boolean;
     items: OrderItem[];
     createdAt: string;
     updatedAt: string;
