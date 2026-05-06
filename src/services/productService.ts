@@ -1,6 +1,7 @@
 import axiosInstance from '@/services/axiosInstance';
 
 export type BillingInterval = 'Monthly' | 'Yearly';
+export type ProductType = 'Primary' | 'AddOn';
 
 export interface Product {
     id: number;
@@ -8,6 +9,7 @@ export interface Product {
     description: string | null;
     priceInOre: number;
     interval: BillingInterval;
+    type: ProductType;
     isActive: boolean;
     createdAt: string;
 }
@@ -17,6 +19,7 @@ export interface CreateProductPayload {
     description?: string;
     priceInOre: number;
     interval: 0 | 1;
+    type: 0 | 1;
 }
 
 export interface UpdateProductPayload extends CreateProductPayload {

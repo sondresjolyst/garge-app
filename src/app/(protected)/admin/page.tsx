@@ -16,7 +16,7 @@ import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats, AppSetti
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
 
-const ALL_ROLES = ['Admin', 'Default', 'Electricity', 'SensorAdmin', 'MqttAdmin', 'AutomationAdmin', 'SwitchAdmin'];
+const ALL_ROLES = ['Admin', 'Default', 'Electricity', 'SensorAdmin', 'MqttAdmin', 'AutomationAdmin', 'SwitchAdmin', 'ComplimentaryUser'];
 
 
 export default function AdminPage() {

@@ -1,12 +1,14 @@
 import axiosInstance from '@/services/axiosInstance';
 
 export type SubscriptionStatus = 'Pending' | 'Active' | 'Stopped' | 'Expired';
+export type SubscriptionProductType = 'Primary' | 'AddOn';
 
 export interface Subscription {
     id: number;
     userId: string;
     productId: number;
     productName: string;
+    productType: SubscriptionProductType;
     priceInOre: number;
     interval: string;
     vippsAgreementId: string;
@@ -21,7 +23,7 @@ export interface Subscription {
 export interface InitiateSubscriptionPayload {
     productId: number;
     phoneNumber: string;
-    redirectUrl: string;
+    consentToWaiveWithdrawal: boolean;
 }
 
 export interface InitiateSubscriptionResponse {
@@ -31,15 +33,9 @@ export interface InitiateSubscriptionResponse {
 }
 
 const SubscriptionService = {
-    async getMySubscription(): Promise<Subscription | null> {
-        try {
-            const res = await axiosInstance.get<Subscription>('/subscriptions/my');
-            if (res.status === 204) return null;
-            return res.data;
-        } catch (e: unknown) {
-            if ((e as { response?: { status?: number } })?.response?.status === 204) return null;
-            throw e;
-        }
+    async getMySubscriptions(): Promise<Subscription[]> {
+        const res = await axiosInstance.get<Subscription[]>('/subscriptions/my');
+        return res.data;
     },
 
     async initiateSubscription(payload: InitiateSubscriptionPayload): Promise<InitiateSubscriptionResponse> {
@@ -47,8 +43,13 @@ const SubscriptionService = {
         return res.data;
     },
 
-    async cancelSubscription(): Promise<void> {
-        await axiosInstance.post('/subscriptions/cancel');
+    async cancelSubscription(id: number): Promise<void> {
+        await axiosInstance.post(`/subscriptions/cancel/${id}`);
+    },
+
+    async getConfirmationUrl(id: number): Promise<string> {
+        const res = await axiosInstance.get<{ vippsConfirmationUrl: string }>(`/subscriptions/${id}/confirmation-url`);
+        return res.data.vippsConfirmationUrl;
     },
 };
 

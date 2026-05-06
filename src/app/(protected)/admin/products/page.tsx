@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import ProductService, { Product, CreateProductPayload, UpdateProductPayload } from '@/services/productService';
 import { formatNok } from '@/lib/formatUtils';
 
-const emptyForm = { name: '', description: '', priceNok: '', interval: 0 as 0 | 1 };
+const emptyForm = { name: '', description: '', priceNok: '', interval: 0 as 0 | 1, type: 0 as 0 | 1 };
 
 export default function AdminProductsPage() {
     const { data: session, status } = useSession();
@@ -57,6 +57,7 @@ export default function AdminProductsPage() {
             description: p.description ?? '',
             priceNok: (p.priceInOre / 100).toFixed(2),
             interval: p.interval === 'Monthly' ? 0 : 1,
+            type: p.type === 'Primary' ? 0 : 1,
         });
         setShowForm(true);
     }
@@ -80,6 +81,7 @@ export default function AdminProductsPage() {
                     description: form.description.trim() || undefined,
                     priceInOre,
                     interval: form.interval,
+                    type: form.type,
                     isActive: editTarget.isActive,
                 };
                 await ProductService.updateProduct(editTarget.id, payload);
@@ -90,6 +92,7 @@ export default function AdminProductsPage() {
                     description: form.description.trim() || undefined,
                     priceInOre,
                     interval: form.interval,
+                    type: form.type,
                 };
                 await ProductService.createProduct(payload);
                 toast.success('Plan created');
@@ -144,7 +147,10 @@ export default function AdminProductsPage() {
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <span className="text-sm font-semibold text-gray-100">{p.name}</span>
                                             <span className="text-xs font-medium text-sky-400">
-                                                {formatNok(p.priceInOre)} / {p.interval === 'Monthly' ? 'mnd' : 'år'}
+                                                {formatNok(p.priceInOre)} / {p.interval === 'Monthly' ? 'mo' : 'yr'}
+                                            </span>
+                                            <span className={`px-1.5 py-0.5 border rounded text-xs font-medium ${p.type === 'Primary' ? 'bg-sky-900/30 border-sky-700/40 text-sky-400' : 'bg-purple-900/30 border-purple-700/40 text-purple-400'}`}>
+                                                {p.type === 'Primary' ? 'Primary' : 'Add-on'}
                                             </span>
                                             {!p.isActive && (
                                                 <span className="px-1.5 py-0.5 bg-gray-700/50 border border-gray-600/40 text-gray-500 text-xs rounded">Inactive</span>
@@ -213,6 +219,14 @@ export default function AdminProductsPage() {
                                     >
                                         <option value={0}>Monthly</option>
                                         <option value={1}>Yearly</option>
+                                    </select>
+                                    <select
+                                        value={form.type}
+                                        onChange={e => setForm(f => ({ ...f, type: Number(e.target.value) as 0 | 1 }))}
+                                        className="bg-gray-900/60 border border-gray-700/60 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60"
+                                    >
+                                        <option value={0}>Primary</option>
+                                        <option value={1}>Add-on</option>
                                     </select>
                                 </div>
                                 <div className="flex gap-2">

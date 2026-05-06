@@ -1,31 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import TestModeBanner from '@/components/TestModeBanner';
+import PaymentPhoneModal from '@/components/PaymentPhoneModal';
+import RedirectingOverlay from '@/components/RedirectingOverlay';
 import { toast } from 'sonner';
 import AdminService, { AppSettings } from '@/services/adminService';
 import ProductService, { Product } from '@/services/productService';
 import ShopService, { ShopItem } from '@/services/shopService';
 import SubscriptionService from '@/services/subscriptionService';
 import { formatNok } from '@/lib/formatUtils';
-
-function effectivePrice(priceInOre: number, vatEnabled: boolean): number {
-    return vatEnabled ? Math.round(priceInOre * 1.25) : priceInOre;
-}
-
-function vatLabel(vatEnabled: boolean): string {
-    return vatEnabled ? 'inkl. mva' : 'ekskl. mva';
-}
-
-function normalizePhone(raw: string): string {
-    const digits = raw.replace(/\D/g, '');
-    if (digits.startsWith('47') && digits.length >= 10) return digits;
-    if (digits.length === 8) return `47${digits}`;
-    return digits;
-}
+import { effectivePriceInOre, vatLabel } from '@/lib/pricing';
+import { useLocalStorage } from '@/lib/useLocalStorage';
+import { formatApiError } from '@/lib/errorMessages';
 
 export default function ShopPage() {
     const [items, setItems] = useState<ShopItem[]>([]);
@@ -33,11 +23,14 @@ export default function ShopPage() {
     const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const [phoneItemModal, setPhoneItemModal] = useState<ShopItem | null>(null);
+    const [phoneItemModal, setPhoneItemModal] = useState<{ item: ShopItem; quantity: number } | null>(null);
     const [phoneSubModal, setPhoneSubModal] = useState<Product | null>(null);
-    const [phone, setPhone] = useState('');
-    const [agreedWithdrawal, setAgreedWithdrawal] = useState(false);
+    const [savedPhone, setSavedPhone] = useLocalStorage('garge-phone', '');
+    const [savedAddress, setSavedAddress] = useLocalStorage('garge-shipping-address', '');
+    const [pendingAddress, setPendingAddress] = useState('');
     const [purchasing, setPurchasing] = useState(false);
+    const [redirecting, setRedirecting] = useState(false);
+    const [quantities, setQuantities] = useState<Record<number, number>>({});
 
     useEffect(() => {
         Promise.all([
@@ -50,40 +43,70 @@ export default function ShopPage() {
                 setProducts(prods);
                 setAppSettings(settings);
             })
-            .catch(() => toast.error('Failed to load shop'))
+            .catch(err => toast.error(formatApiError(err, 'Failed to load shop')))
             .finally(() => setLoading(false));
     }, []);
 
     const vatEnabled = appSettings?.vatEnabled ?? false;
 
-    async function handleCheckout(item: ShopItem) {
-        if (!phone.trim()) { toast.error('Phone number required'); return; }
+    function getQty(itemId: number): number {
+        return quantities[itemId] ?? 1;
+    }
+
+    function setQty(itemId: number, q: number, max: number) {
+        const clamped = Math.max(1, Math.min(q, max === -1 ? 99 : max));
+        setQuantities(prev => ({ ...prev, [itemId]: clamped }));
+    }
+
+    function openItemModal(item: ShopItem) {
+        setPhoneItemModal({ item, quantity: getQty(item.id) });
+        setPendingAddress(savedAddress);
+    }
+
+    function openSubModal(product: Product) {
+        const hasPrimary = false;
+        if (product.type === 'AddOn' && !hasPrimary) {
+            // Server enforces this; UI nudge here too.
+        }
+        setPhoneSubModal(product);
+    }
+
+    async function handleCheckout(item: ShopItem, quantity: number, msisdn: string) {
+        const address = pendingAddress.trim();
+        if (!address) {
+            toast.error('Shipping address required');
+            return;
+        }
         setPurchasing(true);
         try {
             const res = await ShopService.checkout({
-                items: [{ shopItemId: item.id, quantity: 1 }],
-                phoneNumber: phone.trim(),
-                redirectUrl: `${window.location.origin}/shop/return`,
+                items: [{ shopItemId: item.id, quantity }],
+                phoneNumber: msisdn,
+                shippingAddress: address,
             });
+            setSavedPhone(msisdn);
+            setSavedAddress(address);
+            setRedirecting(true);
             window.location.href = res.redirectUrl;
-        } catch {
-            toast.error('Failed to initiate payment');
+        } catch (err) {
+            toast.error(formatApiError(err, 'Failed to initiate payment'));
             setPurchasing(false);
         }
     }
 
-    async function handleInitiate(product: Product) {
-        if (!phone.trim()) { toast.error('Phone number required'); return; }
+    async function handleInitiate(product: Product, msisdn: string) {
         setPurchasing(true);
         try {
             const res = await SubscriptionService.initiateSubscription({
                 productId: product.id,
-                phoneNumber: normalizePhone(phone),
-                redirectUrl: `${window.location.origin}/profile/billing/return`,
+                phoneNumber: msisdn,
+                consentToWaiveWithdrawal: true,
             });
+            setSavedPhone(msisdn);
+            setRedirecting(true);
             window.location.href = res.vippsConfirmationUrl;
-        } catch {
-            toast.error('Failed to initiate subscription');
+        } catch (err) {
+            toast.error(formatApiError(err, 'Failed to initiate subscription'));
             setPurchasing(false);
         }
     }
@@ -99,36 +122,68 @@ export default function ShopPage() {
             {items.length > 0 && (
                 <Section title="Products">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {items.map(item => (
-                            <div
-                                key={item.id}
-                                className="bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 flex flex-col gap-3"
-                            >
-                                <div className="flex-1">
-                                    <p className="text-sm font-semibold text-gray-100">{item.name}</p>
-                                    <p className="text-lg font-bold text-sky-400 mt-1">
-                                        {formatNok(effectivePrice(item.priceInOre, vatEnabled))}
-                                        <span className="text-xs font-normal text-gray-500 ml-1">{vatLabel(vatEnabled)}</span>
-                                    </p>
-                                    {item.description && (
-                                        <p className="text-xs text-gray-500 mt-1">{item.description}</p>
+                        {items.map(item => {
+                            const outOfStock = item.stockCount === 0;
+                            const qty = getQty(item.id);
+                            const max = item.stockCount === -1 ? 99 : item.stockCount;
+                            return (
+                                <div
+                                    key={item.id}
+                                    className={`relative bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 flex flex-col gap-3 ${
+                                        outOfStock ? 'opacity-60 grayscale' : ''
+                                    }`}
+                                >
+                                    {outOfStock && (
+                                        <span className="absolute top-2 right-2 px-1.5 py-0.5 bg-red-500/20 border border-red-500/40 text-red-400 text-[10px] font-bold uppercase tracking-wider rounded">
+                                            Out of stock
+                                        </span>
                                     )}
-                                    {item.stockCount !== -1 && item.stockCount > 0 && item.stockCount <= 5 && (
-                                        <p className="text-xs text-amber-400 mt-1">Only {item.stockCount} left</p>
-                                    )}
-                                    {item.stockCount === 0 && (
-                                        <p className="text-xs text-red-400 mt-1">Out of stock</p>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold text-gray-100">{item.name}</p>
+                                        <p className="text-lg font-bold text-sky-400 mt-1">
+                                            {formatNok(effectivePriceInOre(item.priceInOre, vatEnabled) * qty)}
+                                            <span className="text-xs font-normal text-gray-500 ml-1">{vatLabel(vatEnabled)}</span>
+                                        </p>
+                                        {item.description && (
+                                            <p className="text-xs text-gray-500 mt-1">{item.description}</p>
+                                        )}
+                                        {item.stockCount !== -1 && item.stockCount > 0 && item.stockCount <= 5 && (
+                                            <p className="text-xs text-amber-400 mt-1">Only {item.stockCount} left</p>
+                                        )}
+                                    </div>
+
+                                    {!outOfStock && (
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1 bg-gray-800/60 border border-gray-700/40 rounded-lg p-0.5">
+                                                <button
+                                                    onClick={() => setQty(item.id, qty - 1, max)}
+                                                    disabled={qty <= 1}
+                                                    aria-label="Decrease quantity"
+                                                    className="p-1.5 rounded text-gray-400 hover:text-gray-200 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    <MinusIcon className="h-3.5 w-3.5" />
+                                                </button>
+                                                <span className="text-sm font-medium text-gray-100 w-6 text-center tabular-nums">{qty}</span>
+                                                <button
+                                                    onClick={() => setQty(item.id, qty + 1, max)}
+                                                    disabled={qty >= max}
+                                                    aria-label="Increase quantity"
+                                                    className="p-1.5 rounded text-gray-400 hover:text-gray-200 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    <PlusIcon className="h-3.5 w-3.5" />
+                                                </button>
+                                            </div>
+                                            <button
+                                                onClick={() => openItemModal(item)}
+                                                className="flex-1 px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
+                                            >
+                                                Buy
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
-                                <button
-                                    onClick={() => { setPhoneItemModal(item); setPhone(''); }}
-                                    disabled={item.stockCount === 0}
-                                    className="w-full px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
-                                >
-                                    Buy
-                                </button>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </Section>
             )}
@@ -143,7 +198,7 @@ export default function ShopPage() {
                                 <div className="flex-1">
                                     <p className="text-sm font-semibold text-gray-100">{p.name}</p>
                                     <p className="text-lg font-bold text-sky-400 mt-1">
-                                        {formatNok(effectivePrice(p.priceInOre, vatEnabled))}
+                                        {formatNok(effectivePriceInOre(p.priceInOre, vatEnabled))}
                                         <span className="text-xs font-normal text-gray-500 ml-1">
                                             / {p.interval === 'Monthly' ? 'month' : 'year'} · {vatLabel(vatEnabled)}
                                         </span>
@@ -151,7 +206,7 @@ export default function ShopPage() {
                                     {p.description && <p className="text-xs text-gray-500 mt-1">{p.description}</p>}
                                 </div>
                                 <button
-                                    onClick={() => { setPhoneSubModal(p); setPhone(''); setAgreedWithdrawal(false); }}
+                                    onClick={() => openSubModal(p)}
                                     className="w-full px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
                                 >
                                     Subscribe
@@ -162,91 +217,54 @@ export default function ShopPage() {
                 )}
             </Section>
 
-            {/* Hardware purchase modal */}
             {phoneItemModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-gray-900 border border-gray-700/60 rounded-2xl p-5 w-full max-w-sm space-y-4">
-                        <p className="text-sm font-semibold text-gray-100">Pay with Vipps</p>
-                        <p className="text-xs text-gray-500">
-                            <span className="text-gray-300">{phoneItemModal.name}</span> — {formatNok(effectivePrice(phoneItemModal.priceInOre, vatEnabled))} {vatLabel(vatEnabled)}
-                        </p>
+                <PaymentPhoneModal
+                    title="Pay with Vipps"
+                    summary={
+                        <>
+                            <span className="text-gray-300">{phoneItemModal.item.name}</span>
+                            {' × '}{phoneItemModal.quantity}
+                            {' — '}
+                            {formatNok(effectivePriceInOre(phoneItemModal.item.priceInOre, vatEnabled) * phoneItemModal.quantity)} {vatLabel(vatEnabled)}
+                        </>
+                    }
+                    extraField={
                         <input
-                            type="tel"
-                            value={phone}
-                            onChange={e => setPhone(e.target.value)}
-                            placeholder="Phone number"
+                            type="text"
+                            value={pendingAddress}
+                            onChange={e => setPendingAddress(e.target.value)}
+                            placeholder="Shipping address"
+                            aria-label="Shipping address"
+                            autoComplete="street-address"
                             className="w-full bg-gray-800/60 border border-gray-700/60 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60"
                         />
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => handleCheckout(phoneItemModal)}
-                                disabled={purchasing}
-                                className="flex-1 px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-                            >
-                                {purchasing ? 'Redirecting…' : 'Continue to Vipps'}
-                            </button>
-                            <button
-                                onClick={() => setPhoneItemModal(null)}
-                                className="px-4 py-2 bg-gray-700/60 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                    }
+                    initialPhone={savedPhone}
+                    submitting={purchasing}
+                    onSubmit={(msisdn) => handleCheckout(phoneItemModal.item, phoneItemModal.quantity, msisdn)}
+                    onCancel={() => setPhoneItemModal(null)}
+                />
             )}
 
-            {/* Subscription purchase modal */}
             {phoneSubModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-gray-900 border border-gray-700/60 rounded-2xl p-5 w-full max-w-sm space-y-4">
-                        <p className="text-sm font-semibold text-gray-100">Pay with Vipps</p>
-                        <p className="text-xs text-gray-500">
+                <PaymentPhoneModal
+                    title="Pay with Vipps"
+                    summary={
+                        <>
                             <span className="text-gray-300">{phoneSubModal.name}</span>
                             {' — '}
-                            {formatNok(effectivePrice(phoneSubModal.priceInOre, vatEnabled))} / {phoneSubModal.interval === 'Monthly' ? 'month' : 'year'}
-                            {' '}· {vatLabel(vatEnabled)}
-                        </p>
-                        <input
-                            type="tel"
-                            value={phone}
-                            onChange={e => setPhone(e.target.value)}
-                            placeholder="Phone number"
-                            className="w-full bg-gray-800/60 border border-gray-700/60 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60"
-                        />
-                        <label className="flex items-start gap-2.5 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={agreedWithdrawal}
-                                onChange={e => setAgreedWithdrawal(e.target.checked)}
-                                className="mt-0.5 accent-sky-500 shrink-0"
-                            />
-                            <span className="text-xs text-gray-500 leading-relaxed">
-                                I request immediate access and waive my 14-day right of withdrawal (angrerettloven).
-                            </span>
-                        </label>
-                        <p className="text-xs text-gray-600">
-                            By continuing you accept our{' '}
-                            <Link href="/terms" className="text-sky-500 hover:text-sky-400 transition-colors">Terms of Service</Link>.
-                        </p>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => handleInitiate(phoneSubModal)}
-                                disabled={purchasing || !agreedWithdrawal}
-                                className="flex-1 px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-                            >
-                                {purchasing ? 'Redirecting…' : 'Continue to Vipps'}
-                            </button>
-                            <button
-                                onClick={() => setPhoneSubModal(null)}
-                                className="px-4 py-2 bg-gray-700/60 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                            {formatNok(effectivePriceInOre(phoneSubModal.priceInOre, vatEnabled))} / {phoneSubModal.interval === 'Monthly' ? 'month' : 'year'} · {vatLabel(vatEnabled)}
+                        </>
+                    }
+                    requireConsent
+                    initialPhone={savedPhone}
+                    submitting={purchasing}
+                    onSubmit={(msisdn) => handleInitiate(phoneSubModal, msisdn)}
+                    onCancel={() => setPhoneSubModal(null)}
+                />
             )}
+
+            {redirecting && <RedirectingOverlay />}
         </div>
     );
 }

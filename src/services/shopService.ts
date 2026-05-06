@@ -37,6 +37,9 @@ export interface Order {
     vippsOrderId: string | null;
     status: OrderStatus;
     totalInOre: number;
+    shippingAddress: string | null;
+    shippedAt: string | null;
+    hasInvoice: boolean;
     isTest: boolean;
     items: OrderItem[];
     createdAt: string;
@@ -51,7 +54,7 @@ export interface AdminOrder extends Order {
 export interface CheckoutPayload {
     items: { shopItemId: number; quantity: number }[];
     phoneNumber: string;
-    redirectUrl: string;
+    shippingAddress: string;
 }
 
 export interface CheckoutResponse {
@@ -104,6 +107,18 @@ const ShopService = {
 
     async cancelOrder(id: number): Promise<void> {
         await axiosInstance.post(`/shop/orders/${id}/cancel`);
+    },
+
+    async downloadInvoice(orderId: number): Promise<void> {
+        const res = await axiosInstance.get(`/shop/orders/${orderId}/invoice`, { responseType: 'blob' });
+        const url = URL.createObjectURL(res.data as Blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `invoice-order-${orderId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
     },
 };
 
