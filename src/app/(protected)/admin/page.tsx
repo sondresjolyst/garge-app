@@ -242,7 +242,7 @@ export default function AdminPage() {
                                 { label: 'Active', value: stats?.subscriptions.active },
                                 { label: 'Pending confirm', value: stats?.subscriptions.pendingConfirm },
                                 { label: 'Stopped this month', value: stats?.subscriptions.stoppedThisMonth },
-                                { label: 'MRR', value: stats ? formatNok(stats.subscriptions.monthlyRecurringInOre) : undefined },
+                                { label: 'Monthly recurring revenue', value: stats ? formatNok(stats.subscriptions.monthlyRecurringInOre) : undefined },
                             ]).map(({ label, value }) => (
                                 <div key={label} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
                                     <p className="text-2xl font-bold text-gray-100 tabular-nums">{value ?? '—'}</p>
