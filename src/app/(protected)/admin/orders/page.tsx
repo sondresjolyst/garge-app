@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -65,6 +65,14 @@ export default function AdminOrdersPage() {
             setCancelTarget(null);
         } catch (err) {
             toast.error(formatApiError(err, 'Failed to cancel order'));
+        }
+    }
+
+    async function handleDownloadInvoice(orderId: number) {
+        try {
+            await ShopService.downloadInvoice(orderId);
+        } catch (err) {
+            toast.error(formatApiError(err, 'Failed to download invoice'));
         }
     }
 
@@ -146,6 +154,18 @@ export default function AdminOrdersPage() {
                                                     className="px-3 py-1.5 bg-gray-700/60 hover:bg-red-900/40 border border-gray-600/40 hover:border-red-700/50 text-gray-400 hover:text-red-400 text-xs rounded-lg transition-all"
                                                 >
                                                     Cancel order
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {order.hasInvoice && (
+                                            <div className="flex pt-1">
+                                                <button
+                                                    onClick={() => handleDownloadInvoice(order.id)}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-800/60 hover:bg-gray-700/80 border border-gray-700/50 text-gray-300 text-xs rounded-lg transition-colors"
+                                                >
+                                                    <ArrowDownTrayIcon className="h-3.5 w-3.5" aria-hidden />
+                                                    Download invoice
                                                 </button>
                                             </div>
                                         )}
