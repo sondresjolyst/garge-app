@@ -26,8 +26,6 @@ export default function ShopPage() {
     const [phoneItemModal, setPhoneItemModal] = useState<{ item: ShopItem; quantity: number } | null>(null);
     const [phoneSubModal, setPhoneSubModal] = useState<Product | null>(null);
     const [savedPhone, setSavedPhone] = useLocalStorage('garge-phone', '');
-    const [savedAddress, setSavedAddress] = useLocalStorage('garge-shipping-address', '');
-    const [pendingAddress, setPendingAddress] = useState('');
     const [purchasing, setPurchasing] = useState(false);
     const [redirecting, setRedirecting] = useState(false);
     const [quantities, setQuantities] = useState<Record<number, number>>({});
@@ -60,7 +58,6 @@ export default function ShopPage() {
 
     function openItemModal(item: ShopItem) {
         setPhoneItemModal({ item, quantity: getQty(item.id) });
-        setPendingAddress(savedAddress);
     }
 
     function openSubModal(product: Product) {
@@ -72,20 +69,13 @@ export default function ShopPage() {
     }
 
     async function handleCheckout(item: ShopItem, quantity: number, msisdn: string) {
-        const address = pendingAddress.trim();
-        if (!address) {
-            toast.error('Shipping address required');
-            return;
-        }
         setPurchasing(true);
         try {
             const res = await ShopService.checkout({
                 items: [{ shopItemId: item.id, quantity }],
                 phoneNumber: msisdn,
-                shippingAddress: address,
             });
             setSavedPhone(msisdn);
-            setSavedAddress(address);
             setRedirecting(true);
             window.location.href = res.redirectUrl;
         } catch (err) {
@@ -227,17 +217,6 @@ export default function ShopPage() {
                             {' — '}
                             {formatNok(effectivePriceInOre(phoneItemModal.item.priceInOre, vatEnabled) * phoneItemModal.quantity)} {vatLabel(vatEnabled)}
                         </>
-                    }
-                    extraField={
-                        <input
-                            type="text"
-                            value={pendingAddress}
-                            onChange={e => setPendingAddress(e.target.value)}
-                            placeholder="Shipping address"
-                            aria-label="Shipping address"
-                            autoComplete="street-address"
-                            className="w-full bg-gray-800/60 border border-gray-700/60 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60"
-                        />
                     }
                     initialPhone={savedPhone}
                     submitting={purchasing}
