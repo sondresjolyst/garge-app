@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { EnvelopeIcon } from "@heroicons/react/24/outline";
+import { COMPANY } from "@/lib/company";
 
 export default function ContactPage() {
     return (
@@ -17,8 +18,8 @@ export default function ContactPage() {
                     </div>
                     <div>
                         <p className="text-xs text-gray-500 mb-0.5">Email us at</p>
-                        <a href="mailto:sondresjoelyst@gmail.com" className="text-sm font-medium text-sky-400 hover:text-sky-300 transition-colors">
-                            sondresjoelyst@gmail.com
+                        <a href={`mailto:${COMPANY.email}`} className="text-sm font-medium text-sky-400 hover:text-sky-300 transition-colors">
+                            {COMPANY.email}
                         </a>
                     </div>
                 </div>

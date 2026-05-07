@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { COMPANY } from '@/lib/company';
 
 export default function Footer() {
     return (
@@ -30,7 +31,7 @@ export default function Footer() {
                 </nav>
 
                 {/* Bottom */}
-                <p className="text-xs text-gray-600">© 2026 Sjølyst Innovations · Org. nr. 934 531 035</p>
+                <p className="text-xs text-gray-600">© 2026 {COMPANY.legalName} · Org. nr. {COMPANY.orgNumber}</p>
 
             </div>
         </footer>

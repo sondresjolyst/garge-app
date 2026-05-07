@@ -3,7 +3,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { TrashIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { TrashIcon, PlusIcon, XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import dynamic from 'next/dynamic';
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
@@ -15,7 +16,7 @@ import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats, AppSetti
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
 
-const ALL_ROLES = ['Admin', 'Default', 'Electricity', 'SensorAdmin', 'MqttAdmin', 'AutomationAdmin', 'SwitchAdmin'];
+const ALL_ROLES = ['Admin', 'Default', 'Electricity', 'SensorAdmin', 'MqttAdmin', 'AutomationAdmin', 'SwitchAdmin', 'ComplimentaryUser'];
 
 
 export default function AdminPage() {
@@ -302,6 +303,65 @@ export default function AdminPage() {
                                     </button>
                                 )}
                             </div>
+                            <div className="flex items-center justify-between bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-200">VAT (mva 25%)</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">Add 25% VAT to prices. Disable if below the 50,000 NOK threshold.</p>
+                                </div>
+                                {appSettings === null ? (
+                                    <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />
+                                ) : (
+                                    <button
+                                        onClick={() => handleToggleAppSetting('vatEnabled', !appSettings.vatEnabled)}
+                                        disabled={appSettingsLoading}
+                                        aria-label="Toggle VAT"
+                                        className={`relative shrink-0 w-10 h-6 rounded-full transition-colors disabled:opacity-50 ${appSettings.vatEnabled ? 'bg-sky-600' : 'bg-gray-600'}`}
+                                    >
+                                        <span className={`absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow transition-transform ${appSettings.vatEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
+                                    </button>
+                                )}
+                            </div>
+                            <div className="flex items-center justify-between bg-gray-900/50 border border-amber-700/30 rounded-xl p-4">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-200">Vipps test mode</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">Use Vipps test environment. Test subscriptions only gate access while this is on.</p>
+                                </div>
+                                {appSettings === null ? (
+                                    <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />
+                                ) : (
+                                    <button
+                                        onClick={() => handleToggleAppSetting('vippsTestMode', !appSettings.vippsTestMode)}
+                                        disabled={appSettingsLoading}
+                                        aria-label="Toggle Vipps test mode"
+                                        className={`relative shrink-0 w-10 h-6 rounded-full transition-colors disabled:opacity-50 ${appSettings.vippsTestMode ? 'bg-amber-500' : 'bg-gray-600'}`}
+                                    >
+                                        <span className={`absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow transition-transform ${appSettings.vippsTestMode ? 'translate-x-5' : 'translate-x-1'}`} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </Section>
+
+                    {/* Management */}
+                    <Section title="Manage">
+                        <div className="space-y-2">
+                            {([
+                                { href: '/admin/products', label: 'Subscription Plans', description: 'Create and manage monthly/yearly plans' },
+                                { href: '/admin/shop', label: 'Shop Items', description: 'Manage physical products and stock' },
+                                { href: '/admin/orders', label: 'Orders', description: 'View and capture or cancel shop orders' },
+                            ]).map(({ href, label, description }) => (
+                                <Link
+                                    key={href}
+                                    href={href}
+                                    className="flex items-center justify-between bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 hover:border-gray-600/60 hover:bg-gray-900/60 transition-all group"
+                                >
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-200 group-hover:text-gray-100">{label}</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">{description}</p>
+                                    </div>
+                                    <ChevronRightIcon className="h-4 w-4 text-gray-600 group-hover:text-gray-400 shrink-0" />
+                                </Link>
+                            ))}
                         </div>
                     </Section>
 
