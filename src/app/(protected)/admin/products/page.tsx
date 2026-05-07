@@ -124,7 +124,7 @@ export default function AdminProductsPage() {
     }
 
     return (
-        <div className="max-w-3xl mx-auto px-4 py-6 space-y-5 pb-32">
+        <div className="max-w-7xl mx-auto px-4 py-6 space-y-5 pb-32">
             <div className="flex items-center gap-3">
                 <Link href="/admin" className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700/60 transition-all">
                     <ArrowLeftIcon className="h-4 w-4" />
