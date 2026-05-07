@@ -183,7 +183,7 @@ test.describe('Shop page — subscription modal', () => {
 
     test('AddOn locked when user has no active core subscription', async ({ page }) => {
         await setup(page, { products: [primaryProduct, addOnProduct], mySubscriptions: [] })
-        await expect(page.getByText(/requires an active core subscription/i)).toBeVisible()
+        await expect(page.getByText(/requires an active primary subscription/i)).toBeVisible()
 
         const subscribeButtons = page.getByRole('button', { name: /^Subscribe$/ })
         await expect(subscribeButtons.nth(0)).toBeEnabled()   // Primary
@@ -195,7 +195,7 @@ test.describe('Shop page — subscription modal', () => {
             products: [primaryProduct, addOnProduct],
             mySubscriptions: [activePrimarySubscription],
         })
-        await expect(page.getByText(/requires an active core subscription/i)).not.toBeVisible()
+        await expect(page.getByText(/requires an active primary subscription/i)).not.toBeVisible()
 
         const subscribeButtons = page.getByRole('button', { name: /^Subscribe$/ })
         await expect(subscribeButtons.nth(0)).toBeEnabled()

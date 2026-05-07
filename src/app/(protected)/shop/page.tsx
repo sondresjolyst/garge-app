@@ -66,7 +66,7 @@ export default function ShopPage() {
 
     function openSubModal(product: Product) {
         if (product.type === 'AddOn' && !hasActivePrimary) {
-            toast.error('Subscribe to the core plan first.');
+            toast.error('Subscribe to the primary plan first.');
             return;
         }
         setPhoneSubModal(product);
@@ -206,7 +206,7 @@ export default function ShopPage() {
                                         </p>
                                         {p.description && <p className="text-xs text-gray-500 mt-1">{p.description}</p>}
                                         {addOnLocked && (
-                                            <p className="text-xs text-amber-400 mt-2">Requires an active core subscription</p>
+                                            <p className="text-xs text-amber-400 mt-2">Requires an active primary subscription</p>
                                         )}
                                     </div>
                                     <button
