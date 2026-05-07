@@ -23,7 +23,8 @@ const primaryProduct = {
 }
 
 async function setup(page: Page, opts: {
-    items?: unknown[]; products?: unknown[]; vatEnabled?: boolean; vippsTestMode?: boolean
+    items?: unknown[]; products?: unknown[]; vatEnabled?: boolean; vippsTestMode?: boolean;
+    mySubscriptions?: unknown[];
 } = {}) {
     await mockSession(page, regularUser)
     await mockApi(page, '/admin/settings', {
@@ -32,7 +33,22 @@ async function setup(page: Page, opts: {
     })
     await mockApi(page, '/shop/items', opts.items ?? [])
     await mockApi(page, '/products', opts.products ?? [])
+    await mockApi(page, '/subscriptions/my', opts.mySubscriptions ?? [])
     await page.goto('/shop')
+}
+
+const addOnProduct = {
+    id: 2, name: 'Garge Extra Sensor', description: 'Add another vehicle',
+    priceInOre: 4900, interval: 'Monthly', type: 'AddOn',
+    isActive: true, createdAt: '2026-01-01',
+}
+
+const activePrimarySubscription = {
+    id: 1, userId: 'user-1', productId: 1, productName: 'Garge Basic',
+    productType: 'Primary', priceInOre: 29900, interval: 'Monthly',
+    vippsAgreementId: 'agr-1', status: 'Active', isTest: false,
+    startDate: '2026-01-01', nextChargeDate: '2026-02-01',
+    createdAt: '2026-01-01', updatedAt: '2026-01-01',
 }
 
 test.describe('Shop page — items', () => {
@@ -163,5 +179,26 @@ test.describe('Shop page — subscription modal', () => {
         await page.getByRole('button', { name: /subscribe/i }).click()
         const terms = page.getByRole('dialog').getByRole('link', { name: /terms of service/i })
         await expect(terms).toHaveAttribute('target', '_blank')
+    })
+
+    test('AddOn locked when user has no active core subscription', async ({ page }) => {
+        await setup(page, { products: [primaryProduct, addOnProduct], mySubscriptions: [] })
+        await expect(page.getByText(/requires an active primary subscription/i)).toBeVisible()
+
+        const subscribeButtons = page.getByRole('button', { name: /^Subscribe$/ })
+        await expect(subscribeButtons.nth(0)).toBeEnabled()   // Primary
+        await expect(subscribeButtons.nth(1)).toBeDisabled()  // AddOn
+    })
+
+    test('AddOn unlocked when user has active core subscription', async ({ page }) => {
+        await setup(page, {
+            products: [primaryProduct, addOnProduct],
+            mySubscriptions: [activePrimarySubscription],
+        })
+        await expect(page.getByText(/requires an active primary subscription/i)).not.toBeVisible()
+
+        const subscribeButtons = page.getByRole('button', { name: /^Subscribe$/ })
+        await expect(subscribeButtons.nth(0)).toBeEnabled()
+        await expect(subscribeButtons.nth(1)).toBeEnabled()
     })
 })
