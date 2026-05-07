@@ -219,13 +219,13 @@ export default function AdminPage() {
                     <Section title="Orders">
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             {([
-                                { label: 'Today', value: stats?.orders.today },
-                                { label: 'This week', value: stats?.orders.thisWeek },
-                                { label: 'This month', value: stats?.orders.thisMonth },
-                                { label: 'Pending capture', value: stats?.orders.pendingCapture },
-                                { label: 'Failed / cancelled', value: stats?.orders.failedOrCancelled },
-                                { label: 'Month revenue', value: stats ? formatNok(stats.orders.monthRevenueInOre) : undefined },
-                                { label: 'Total revenue', value: stats ? formatNok(stats.orders.totalRevenueInOre) : undefined },
+                                { label: 'Today', value: stats?.orders?.today },
+                                { label: 'This week', value: stats?.orders?.thisWeek },
+                                { label: 'This month', value: stats?.orders?.thisMonth },
+                                { label: 'Pending capture', value: stats?.orders?.pendingCapture },
+                                { label: 'Failed / cancelled', value: stats?.orders?.failedOrCancelled },
+                                { label: 'Month revenue', value: stats?.orders ? formatNok(stats.orders.monthRevenueInOre) : undefined },
+                                { label: 'Total revenue', value: stats?.orders ? formatNok(stats.orders.totalRevenueInOre) : undefined },
                             ]).map(({ label, value }) => (
                                 <div key={label} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
                                     <p className="text-2xl font-bold text-gray-100 tabular-nums">{value ?? '—'}</p>
@@ -239,10 +239,10 @@ export default function AdminPage() {
                     <Section title="Subscriptions">
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             {([
-                                { label: 'Active', value: stats?.subscriptions.active },
-                                { label: 'Pending confirm', value: stats?.subscriptions.pendingConfirm },
-                                { label: 'Stopped this month', value: stats?.subscriptions.stoppedThisMonth },
-                                { label: 'Monthly recurring revenue', value: stats ? formatNok(stats.subscriptions.monthlyRecurringInOre) : undefined },
+                                { label: 'Active', value: stats?.subscriptions?.active },
+                                { label: 'Pending confirm', value: stats?.subscriptions?.pendingConfirm },
+                                { label: 'Stopped this month', value: stats?.subscriptions?.stoppedThisMonth },
+                                { label: 'Monthly recurring revenue', value: stats?.subscriptions ? formatNok(stats.subscriptions.monthlyRecurringInOre) : undefined },
                             ]).map(({ label, value }) => (
                                 <div key={label} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
                                     <p className="text-2xl font-bold text-gray-100 tabular-nums">{value ?? '—'}</p>
