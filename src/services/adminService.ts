@@ -1,10 +1,29 @@
 import axiosInstance from './axiosInstance';
 
+export interface AdminOrderStats {
+    today: number;
+    thisWeek: number;
+    thisMonth: number;
+    pendingCapture: number;
+    failedOrCancelled: number;
+    totalRevenueInOre: number;
+    monthRevenueInOre: number;
+}
+
+export interface AdminSubscriptionStats {
+    active: number;
+    pendingConfirm: number;
+    stoppedThisMonth: number;
+    monthlyRecurringInOre: number;
+}
+
 export interface AdminStats {
     totalUsers: number;
     totalSensors: number;
     totalSwitches: number;
     activeAutomations: number;
+    orders: AdminOrderStats;
+    subscriptions: AdminSubscriptionStats;
 }
 
 export interface AdminUser {
