@@ -108,7 +108,7 @@ export default function ShopPage() {
     if (loading) return <LoadingDots height="h-64" />;
 
     return (
-        <div className="max-w-2xl mx-auto px-4 py-6 space-y-5 pb-32">
+        <div className="max-w-7xl mx-auto px-4 py-6 space-y-5 pb-32">
             <h1 className="text-xl font-display font-bold text-gray-100">Shop</h1>
 
             <TestModeBanner settings={appSettings} />
