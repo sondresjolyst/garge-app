@@ -21,6 +21,7 @@ export default function ShopPage() {
     const [items, setItems] = useState<ShopItem[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
     const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
+    const [hasActivePrimary, setHasActivePrimary] = useState(false);
     const [loading, setLoading] = useState(true);
 
     const [phoneItemModal, setPhoneItemModal] = useState<{ item: ShopItem; quantity: number } | null>(null);
@@ -35,11 +36,14 @@ export default function ShopPage() {
             ShopService.getShopItems(),
             ProductService.getProducts(),
             AdminService.getAppSettings(),
+            // A 401/empty mySubs shouldn't break the shop, so swallow + treat as no primary.
+            SubscriptionService.getMySubscriptions().catch(() => []),
         ])
-            .then(([shopItems, prods, settings]) => {
+            .then(([shopItems, prods, settings, mySubs]) => {
                 setItems(shopItems);
                 setProducts(prods);
                 setAppSettings(settings);
+                setHasActivePrimary(mySubs.some(s => s.status === 'Active' && s.productType === 'Primary'));
             })
             .catch(err => toast.error(formatApiError(err, 'Failed to load shop')))
             .finally(() => setLoading(false));
@@ -61,9 +65,9 @@ export default function ShopPage() {
     }
 
     function openSubModal(product: Product) {
-        const hasPrimary = false;
-        if (product.type === 'AddOn' && !hasPrimary) {
-            // Server enforces this; UI nudge here too.
+        if (product.type === 'AddOn' && !hasActivePrimary) {
+            toast.error('Subscribe to the core plan first.');
+            return;
         }
         setPhoneSubModal(product);
     }
@@ -183,26 +187,42 @@ export default function ShopPage() {
                     <p className="text-sm text-gray-500">No plans available.</p>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {products.map(p => (
-                            <div key={p.id} className="bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 flex flex-col gap-3">
-                                <div className="flex-1">
-                                    <p className="text-sm font-semibold text-gray-100">{p.name}</p>
-                                    <p className="text-lg font-bold text-sky-400 mt-1">
-                                        {formatNok(effectivePriceInOre(p.priceInOre, vatEnabled))}
-                                        <span className="text-xs font-normal text-gray-500 ml-1">
-                                            / {p.interval === 'Monthly' ? 'month' : 'year'} · {vatLabel(vatEnabled)}
-                                        </span>
-                                    </p>
-                                    {p.description && <p className="text-xs text-gray-500 mt-1">{p.description}</p>}
-                                </div>
-                                <button
-                                    onClick={() => openSubModal(p)}
-                                    className="w-full px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
+                        {products.map(p => {
+                            const addOnLocked = p.type === 'AddOn' && !hasActivePrimary;
+                            return (
+                                <div
+                                    key={p.id}
+                                    className={`bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 flex flex-col gap-3 ${
+                                        addOnLocked ? 'opacity-60 grayscale' : ''
+                                    }`}
                                 >
-                                    Subscribe
-                                </button>
-                            </div>
-                        ))}
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold text-gray-100">{p.name}</p>
+                                        <p className="text-lg font-bold text-sky-400 mt-1">
+                                            {formatNok(effectivePriceInOre(p.priceInOre, vatEnabled))}
+                                            <span className="text-xs font-normal text-gray-500 ml-1">
+                                                / {p.interval === 'Monthly' ? 'month' : 'year'} · {vatLabel(vatEnabled)}
+                                            </span>
+                                        </p>
+                                        {p.description && <p className="text-xs text-gray-500 mt-1">{p.description}</p>}
+                                        {addOnLocked && (
+                                            <p className="text-xs text-amber-400 mt-2">Requires an active core subscription</p>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={() => openSubModal(p)}
+                                        disabled={addOnLocked}
+                                        className={`w-full px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors ${
+                                            addOnLocked
+                                                ? 'bg-gray-700 cursor-not-allowed'
+                                                : 'bg-sky-600 hover:bg-sky-500'
+                                        }`}
+                                    >
+                                        Subscribe
+                                    </button>
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </Section>
