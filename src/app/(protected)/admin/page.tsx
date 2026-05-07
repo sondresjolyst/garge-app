@@ -32,6 +32,8 @@ export default function AdminPage() {
     }, [status, isAdmin, router]);
 
     const [stats, setStats] = useState<AdminStats | null>(null);
+    const [statsTest, setStatsTest] = useState(false);
+    const [statsLoading, setStatsLoading] = useState(false);
     const [history, setHistory] = useState<StatSnapshot[]>([]);
     const [selectedStat, setSelectedStat] = useState<StatKey | null>('totalUsers');
     const [users, setUsers] = useState<AdminUser[]>([]);
@@ -61,7 +63,7 @@ export default function AdminPage() {
         setError(null);
         try {
             const [s, u, h] = await Promise.all([
-                AdminService.getStats(),
+                AdminService.getStats({ test: statsTest }),
                 AdminService.getUsers(),
                 AdminService.getStatsHistory(),
             ]);
@@ -73,6 +75,20 @@ export default function AdminPage() {
             setError('Failed to load admin data');
         } finally {
             setLoading(false);
+        }
+    }, [statsTest]);
+
+    const reloadStatsForTestToggle = useCallback(async (test: boolean) => {
+        setStatsTest(test);
+        setStatsLoading(true);
+        try {
+            const s = await AdminService.getStats({ test });
+            setStats(s);
+            setLoadedAt(new Date());
+        } catch {
+            toast.error('Failed to reload stats');
+        } finally {
+            setStatsLoading(false);
         }
     }, []);
 
@@ -214,6 +230,36 @@ export default function AdminPage() {
                             </div>
                         )}
                     </Section>
+
+                    {/* Live / Test toggle for the commerce stats */}
+                    <div className="flex items-center justify-between bg-gray-900/40 border border-gray-700/30 rounded-xl px-4 py-3">
+                        <div>
+                            <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Commerce data</p>
+                            <p className="text-sm text-gray-300 mt-0.5">{statsTest ? 'Showing Vipps test orders + subscriptions' : 'Showing live orders + subscriptions'}</p>
+                        </div>
+                        <div className="flex bg-gray-800/60 border border-gray-700/40 rounded-lg p-0.5">
+                            {([
+                                { label: 'Live', value: false },
+                                { label: 'Test', value: true },
+                            ]).map(({ label, value }) => {
+                                const active = statsTest === value;
+                                return (
+                                    <button
+                                        key={label}
+                                        onClick={() => active || statsLoading ? null : reloadStatsForTestToggle(value)}
+                                        disabled={statsLoading}
+                                        className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                                            active
+                                                ? 'bg-sky-600 text-white'
+                                                : 'text-gray-400 hover:text-gray-200'
+                                        }`}
+                                    >
+                                        {label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
 
                     {/* Orders */}
                     <Section title="Orders">

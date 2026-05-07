@@ -71,8 +71,10 @@ export interface AppSettings {
 }
 
 const AdminService = {
-    async getStats(): Promise<AdminStats> {
-        const res = await axiosInstance.get<AdminStats>('/admin/stats');
+    async getStats(opts?: { test?: boolean }): Promise<AdminStats> {
+        const res = await axiosInstance.get<AdminStats>('/admin/stats', {
+            params: opts?.test ? { test: true } : undefined,
+        });
         return res.data;
     },
 
