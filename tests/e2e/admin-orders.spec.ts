@@ -50,6 +50,12 @@ test.describe('Admin orders page', () => {
         await expect(page.getByTitle('Test mode')).toBeVisible()
     })
 
+    test('shows shipping address', async ({ page }) => {
+        await setup(page, [reservedOrder({ id: 1, createdDaysAgo: 1 })])
+        await expect(page.getByText(/ship to/i)).toBeVisible()
+        await expect(page.getByText('Testgata 1')).toBeVisible()
+    })
+
     test('Capture button opens confirm modal', async ({ page }) => {
         await setup(page, [reservedOrder({ id: 1, createdDaysAgo: 1 })])
         await page.getByRole('button', { name: /capture payment/i }).click()

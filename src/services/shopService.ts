@@ -54,7 +54,7 @@ export interface AdminOrder extends Order {
 export interface CheckoutPayload {
     items: { shopItemId: number; quantity: number }[];
     phoneNumber: string;
-    shippingAddress: string;
+    shippingAddress?: string;
 }
 
 export interface CheckoutResponse {

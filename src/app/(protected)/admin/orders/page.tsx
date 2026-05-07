@@ -126,6 +126,13 @@ export default function AdminOrdersPage() {
                                             ))}
                                         </ul>
 
+                                        {order.shippingAddress && (
+                                            <div className="pt-2 border-t border-gray-700/30">
+                                                <p className="text-[10px] uppercase tracking-wider text-gray-500">Ship to</p>
+                                                <p className="text-xs text-gray-300 whitespace-pre-wrap">{order.shippingAddress}</p>
+                                            </div>
+                                        )}
+
                                         {reserved && (
                                             <div className="flex gap-2 pt-1">
                                                 <button

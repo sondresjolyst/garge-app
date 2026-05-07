@@ -124,14 +124,6 @@ test.describe('Shop page — payment modal', () => {
         await expect(page.getByRole('button', { name: /continue to vipps/i })).toBeDisabled()
     })
 
-    test('Continue still disabled when valid phone but missing shipping', async ({ page }) => {
-        await setup(page, { items: [sensorItem] })
-        await page.getByRole('button', { name: /^Buy$/ }).click()
-        await page.locator('input[type="tel"]').fill('91234567')
-        await page.getByRole('button', { name: /continue to vipps/i }).click()
-        await expect(page.getByText(/shipping address required/i)).toBeVisible()
-    })
-
     test('Escape closes modal', async ({ page }) => {
         await setup(page, { items: [sensorItem] })
         await page.getByRole('button', { name: /^Buy$/ }).click()
