@@ -22,8 +22,10 @@ export interface AdminStats {
     totalSensors: number;
     totalSwitches: number;
     activeAutomations: number;
-    orders: AdminOrderStats;
-    subscriptions: AdminSubscriptionStats;
+    // Optional so the UI keeps loading even if it talks to an older API build
+    // that hasn't shipped the new commerce stats yet.
+    orders?: AdminOrderStats;
+    subscriptions?: AdminSubscriptionStats;
 }
 
 export interface AdminUser {
