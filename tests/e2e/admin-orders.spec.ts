@@ -16,6 +16,19 @@ function reservedOrder(opts: {
     }
 }
 
+function paidOrder(opts: { id: number; hasInvoice: boolean }): unknown {
+    const created = new Date()
+    return {
+        id: opts.id, userId: 'user-1', userEmail: 'buyer@example.com', userName: 'Buyer Bob',
+        vippsOrderId: String(opts.id), status: 'Paid', totalInOre: 50000,
+        shippingAddress: 'Testgata 1', shippedAt: created.toISOString(),
+        hasInvoice: opts.hasInvoice, isTest: false,
+        items: [{ id: 1, shopItemId: 1, shopItemName: 'Sensor', quantity: 1, priceAtPurchaseInOre: 50000 }],
+        createdAt: created.toISOString(),
+        updatedAt: created.toISOString(),
+    }
+}
+
 async function setup(page: Page, orders: unknown[]) {
     await mockSession(page, adminUser)
     await mockApi(page, '/shop/orders', orders)
@@ -74,5 +87,15 @@ test.describe('Admin orders page', () => {
         await page.getByRole('button', { name: /capture payment/i }).click()
         await page.keyboard.press('Escape')
         await expect(page.getByRole('alertdialog')).not.toBeVisible()
+    })
+
+    test('Paid order with invoice shows Download invoice button', async ({ page }) => {
+        await setup(page, [paidOrder({ id: 7, hasInvoice: true })])
+        await expect(page.getByRole('button', { name: /download invoice/i })).toBeVisible()
+    })
+
+    test('Paid order without invoice hides Download invoice button', async ({ page }) => {
+        await setup(page, [paidOrder({ id: 8, hasInvoice: false })])
+        await expect(page.getByRole('button', { name: /download invoice/i })).toHaveCount(0)
     })
 })
