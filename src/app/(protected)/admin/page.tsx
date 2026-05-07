@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
 import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats, AppSettings } from '@/services/adminService';
+import { formatNok } from '@/lib/formatUtils';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
 
@@ -212,6 +213,43 @@ export default function AdminPage() {
                                 />
                             </div>
                         )}
+                    </Section>
+
+                    {/* Orders */}
+                    <Section title="Orders">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {([
+                                { label: 'Today', value: stats?.orders.today },
+                                { label: 'This week', value: stats?.orders.thisWeek },
+                                { label: 'This month', value: stats?.orders.thisMonth },
+                                { label: 'Pending capture', value: stats?.orders.pendingCapture },
+                                { label: 'Failed / cancelled', value: stats?.orders.failedOrCancelled },
+                                { label: 'Month revenue', value: stats ? formatNok(stats.orders.monthRevenueInOre) : undefined },
+                                { label: 'Total revenue', value: stats ? formatNok(stats.orders.totalRevenueInOre) : undefined },
+                            ]).map(({ label, value }) => (
+                                <div key={label} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                    <p className="text-2xl font-bold text-gray-100 tabular-nums">{value ?? '—'}</p>
+                                    <p className="text-xs text-gray-500 mt-1">{label}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </Section>
+
+                    {/* Subscriptions */}
+                    <Section title="Subscriptions">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {([
+                                { label: 'Active', value: stats?.subscriptions.active },
+                                { label: 'Pending confirm', value: stats?.subscriptions.pendingConfirm },
+                                { label: 'Stopped this month', value: stats?.subscriptions.stoppedThisMonth },
+                                { label: 'MRR', value: stats ? formatNok(stats.subscriptions.monthlyRecurringInOre) : undefined },
+                            ]).map(({ label, value }) => (
+                                <div key={label} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                    <p className="text-2xl font-bold text-gray-100 tabular-nums">{value ?? '—'}</p>
+                                    <p className="text-xs text-gray-500 mt-1">{label}</p>
+                                </div>
+                            ))}
+                        </div>
                     </Section>
 
                     {/* System Health */}
