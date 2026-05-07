@@ -111,10 +111,10 @@ test.describe('Shop page — payment modal', () => {
         const phone = page.locator('input[type="tel"]')
 
         await phone.fill('123')
-        await expect(page.getByText(/use a norwegian number/i)).toBeVisible()
+        await expect(page.getByText(/enter a valid phone number/i)).toBeVisible()
 
         await phone.fill('91234567')
-        await expect(page.getByText(/norwegian mobile or landline/i)).toBeVisible()
+        await expect(page.getByText(/enter a valid phone number/i)).not.toBeVisible()
     })
 
     test('Continue button disabled when phone invalid', async ({ page }) => {

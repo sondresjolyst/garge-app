@@ -86,11 +86,11 @@ export default function PaymentPhoneModal({
                             <CheckIcon className="absolute right-2.5 top-2.5 h-4 w-4 text-green-400" aria-hidden />
                         )}
                     </div>
-                    <p id="phone-hint" className="text-[11px] text-gray-600">
-                        {phoneTouched && !phoneValid
-                            ? 'Use a Norwegian number (8 digits, optionally prefixed with +47).'
-                            : 'Norwegian mobile or landline. Spaces and +47 OK.'}
-                    </p>
+                    {phoneTouched && !phoneValid && (
+                        <p id="phone-hint" role="alert" className="text-[11px] text-red-400">
+                            Enter a valid phone number.
+                        </p>
+                    )}
                 </div>
 
                 {extraField}
