@@ -10,6 +10,8 @@ import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { inputClass } from '@/components/TextInput';
 import Alert from '@/components/Alert';
 
+const TERMS_VERSION = 'v1-2026-05';
+
 const Register: React.FC = () => {
     const [userName, setUserName] = useState('');
     const [firstName, setFirstName] = useState('');
@@ -18,6 +20,7 @@ const Register: React.FC = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [agreedToTerms, setAgreedToTerms] = useState(false);
+    const [confirmAge16Plus, setConfirmAge16Plus] = useState(false);
     const [errors, setErrors] = useState<{ userName?: string[]; firstName?: string[]; lastName?: string[]; email?: string[]; password?: string[] }>({});
     const [apiMessage, setApiMessage] = useState('');
     const [loading, setLoading] = useState(false);
@@ -29,10 +32,15 @@ const Register: React.FC = () => {
 
     const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!agreedToTerms) return;
+        if (!agreedToTerms || !confirmAge16Plus) return;
         setLoading(true);
         try {
-            await AuthService.register({ userName, firstName, lastName, email, password });
+            await AuthService.register({
+                userName, firstName, lastName, email, password,
+                confirmAge16Plus,
+                acceptTerms: agreedToTerms,
+                termsVersion: TERMS_VERSION,
+            });
             setErrors({});
             const result = await signIn('credentials', { redirect: true, email, password });
             if (result?.error) { setApiMessage(result.error); setLoading(false); }
@@ -116,6 +124,18 @@ const Register: React.FC = () => {
                         <label className="flex items-start gap-2.5 cursor-pointer">
                             <input
                                 type="checkbox"
+                                checked={confirmAge16Plus}
+                                onChange={e => setConfirmAge16Plus(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded border-gray-600 bg-gray-800 text-sky-500 focus:ring-sky-500 focus:ring-offset-gray-900 flex-shrink-0"
+                            />
+                            <span className="text-xs text-gray-400 leading-relaxed">
+                                I confirm I am 16 or older.
+                            </span>
+                        </label>
+
+                        <label className="flex items-start gap-2.5 cursor-pointer">
+                            <input
+                                type="checkbox"
                                 checked={agreedToTerms}
                                 onChange={e => setAgreedToTerms(e.target.checked)}
                                 className="mt-0.5 h-4 w-4 rounded border-gray-600 bg-gray-800 text-sky-500 focus:ring-sky-500 focus:ring-offset-gray-900 flex-shrink-0"
@@ -131,7 +151,7 @@ const Register: React.FC = () => {
                         <button
                             className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all text-sm"
                             type="submit"
-                            disabled={loading || !agreedToTerms}
+                            disabled={loading || !agreedToTerms || !confirmAge16Plus}
                         >
                             {loading ? 'Creating account…' : 'Create account'}
                         </button>

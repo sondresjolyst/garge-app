@@ -47,6 +47,10 @@ const Profile: React.FC = () => {
     const [offlineThreshold, setOfflineThreshold] = useState(4);
     const [thresholdSaving, setThresholdSaving] = useState(false);
     const [testNotifLoading, setTestNotifLoading] = useState(false);
+    const [editFirstName, setEditFirstName] = useState('');
+    const [editLastName, setEditLastName] = useState('');
+    const [editPhone, setEditPhone] = useState('');
+    const [profileSaving, setProfileSaving] = useState(false);
 
     useEffect(() => {
         if (!isAuthenticated) { router.push('/login'); return; }
@@ -55,6 +59,9 @@ const Profile: React.FC = () => {
             setPriceZone(u.priceZone ?? 'NO2');
             setPushEnabled(u.pushNotificationsEnabled ?? false);
             setOfflineThreshold(u.offlineAlertThresholdHours > 0 ? u.offlineAlertThresholdHours : 4);
+            setEditFirstName(u.firstName ?? '');
+            setEditLastName(u.lastName ?? '');
+            setEditPhone(u.phoneNumber ?? '');
         }).catch(console.error).finally(() => setProfileLoading(false));
         if (isPushSupported()) {
             setPushPermission(Notification.permission);
@@ -70,6 +77,28 @@ const Profile: React.FC = () => {
         const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
         return () => clearTimeout(timer);
     }, [countdown]);
+
+    const handleProfileSave = async () => {
+        if (!user?.id) return;
+        if (!editFirstName.trim() || !editLastName.trim()) {
+            toast.error('First name and last name are required.');
+            return;
+        }
+        setProfileSaving(true);
+        try {
+            await UserService.updateProfile(user.id, {
+                firstName: editFirstName.trim(),
+                lastName: editLastName.trim(),
+                phoneNumber: editPhone.trim() || undefined,
+            });
+            setUser(prev => prev ? { ...prev, firstName: editFirstName.trim(), lastName: editLastName.trim(), phoneNumber: editPhone.trim() } : prev);
+            toast.success('Profile updated.');
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'Failed to update profile.');
+        } finally {
+            setProfileSaving(false);
+        }
+    };
 
     const handleResendConfirmation = async () => {
         if (!user) return;
@@ -287,6 +316,32 @@ const Profile: React.FC = () => {
                             )}
                         </div>
                     )}
+                </Section>
+
+                <Section title="Edit profile">
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-xs font-medium text-gray-400 mb-1.5">First name</label>
+                                <input className={inputClass} type="text" value={editFirstName} onChange={e => setEditFirstName(e.target.value)} />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-400 mb-1.5">Last name</label>
+                                <input className={inputClass} type="text" value={editLastName} onChange={e => setEditLastName(e.target.value)} />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-400 mb-1.5">Phone number</label>
+                            <input className={inputClass} type="tel" placeholder="optional" value={editPhone} onChange={e => setEditPhone(e.target.value)} />
+                        </div>
+                        <button
+                            onClick={handleProfileSave}
+                            disabled={profileSaving}
+                            className="px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-all"
+                        >
+                            {profileSaving ? 'Saving…' : 'Save'}
+                        </button>
+                    </div>
                 </Section>
 
                 <Section title="Billing">
