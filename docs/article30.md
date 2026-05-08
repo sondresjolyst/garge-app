@@ -13,7 +13,9 @@
 | Org. number | 934 531 035 |
 | Address | Mårvegen 21a, 4347 Lye, Norway |
 | General contact | sondresjoelyst@gmail.com |
-| Privacy contact | privacy@garge.no |
+| Privacy contact | sondresjoelyst@gmail.com |
+
+(Contact emails are sourced from `garge-app/src/lib/company.ts`. Update both there and here together.)
 
 No joint controllers. No DPO designated (not required — no special-category processing, no large-scale public-area monitoring, fewer than 250 employees).
 
@@ -42,7 +44,7 @@ No joint controllers. No DPO designated (not required — no special-category pr
 | Field | Value |
 |---|---|
 | Purpose | Process recurring subscription payments and produce legally-required invoices |
-| Lawful basis | Art. 6(1)(b) Contract; Norwegian bokføringsloven §13 for invoice retention |
+| Lawful basis | Art. 6(1)(b) Contract; the Norwegian Bookkeeping Act (bokføringsloven §13) for invoice retention |
 | Categories of data | Vipps agreement ID, charge IDs, billing address, consent timestamp, truncated consent IP (/24 IPv4 / /48 IPv6) |
 | Source | Customer via Vipps consent flow |
 | Recipients | Vipps Mobilepay AS (Norway, EEA) |
@@ -130,13 +132,13 @@ The Garge platform is **self-hosted** by Sjølyst Innovations on infrastructure 
 
 - **Access (Art. 15) + Portability (Art. 20):** `GET /api/users/{id}/export` returns JSON with all customer data (account, sensors, switches, readings, activities, photos).
 - **Rectification (Art. 16):** `PUT /api/users/{id}/profile` (name + phone) and `PUT /api/users/{id}/preferences` (settings). Email change requires re-verification (planned follow-up).
-- **Erasure (Art. 17):** `DELETE /api/users/{id}/account` — soft-deletes the user (PII scrubbed, account locked), retains Orders and Invoices for the 5-year bokføringsloven obligation, deletes RefreshTokens / PushSubscriptions / WebhookSubscriptions / custom names / activities.
+- **Erasure (Art. 17):** `DELETE /api/users/{id}/account` — soft-deletes the user (PII scrubbed, account locked), retains Orders and Invoices for the 5-year Norwegian Bookkeeping Act obligation, deletes RefreshTokens / PushSubscriptions / WebhookSubscriptions / custom names / activities.
 - **Restriction / Object (Art. 18, 21):** No automated decision-making. No direct-marketing processing. Users can soft-delete to stop processing.
-- **Withdraw consent (Art. 7(3)):** Push permissions: revoke in browser settings. Subscription waiver of right of withdrawal: cannot be retroactively withdrawn (Angrerettsloven §22, by design).
+- **Withdraw consent (Art. 7(3)):** Push permissions: revoke in browser settings. Subscription waiver of right of withdrawal: cannot be retroactively withdrawn (the Norwegian Right of Withdrawal Act (angrerettsloven §22), by design).
 
 ## 6. Breach response
 
-- 72-hour Datatilsynet notification window per Art. 33.
+- 72-hour Norwegian Data Protection Authority (Datatilsynet) notification window per Art. 33.
 - Customer notification per Art. 34 if high risk.
 - Internal incident playbook tracked separately.
 

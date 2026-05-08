@@ -7,7 +7,7 @@
 
 ## 1. Necessity of the DPIA
 
-Garge processes sensor readings continuously, ties them to identifiable customers, and uses them in automation rules that control physical equipment (power sockets, fans). Per GDPR Art. 35(3)(c) and Datatilsynet guidance, systematic monitoring of customer behaviour (even if voluntary, even if their own equipment) triggers a DPIA threshold.
+Garge processes sensor readings continuously, ties them to identifiable customers, and uses them in automation rules that control physical equipment (power sockets, fans). Per GDPR Art. 35(3)(c) and the Norwegian Data Protection Authority (Datatilsynet) guidance, systematic monitoring of customer behaviour (even if voluntary, even if their own equipment) triggers a DPIA threshold.
 
 ## 2. Description of processing
 

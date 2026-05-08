@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COMPANY } from "@/lib/company";
 
 export default function PrivacyPage() {
     return (
@@ -56,7 +57,7 @@ export default function PrivacyPage() {
                     <ul className="list-disc list-inside space-y-1">
                         <li><span className="text-gray-300">Account &amp; preferences</span> — until you delete your account, after which your name, email, phone and password are scrubbed.</li>
                         <li><span className="text-gray-300">Sensor &amp; switch data</span> — retained for the lifetime of your subscription. After account deletion, the link to you is severed and the readings remain only as anonymized historical data.</li>
-                        <li><span className="text-gray-300">Invoices &amp; orders</span> — retained for 5 years after the last invoice as required by Norwegian bokføringsloven §13.</li>
+                        <li><span className="text-gray-300">Invoices &amp; orders</span> — retained for 5 years after the last invoice as required by the Norwegian Bookkeeping Act (bokføringsloven §13).</li>
                         <li><span className="text-gray-300">Server logs</span> — 90 days. <span className="text-gray-300">Metrics</span> — 60 days.</li>
                         <li><span className="text-gray-300">Database backups</span> — 3 daily, 4 weekly, 3 monthly, 1 yearly snapshots, encrypted at rest. After account deletion, residual data may persist in backups for up to 12 months until the yearly snapshot rotates; backups are not used for any processing.</li>
                     </ul>
@@ -71,7 +72,7 @@ export default function PrivacyPage() {
                         <li><span className="text-gray-300">Erasure</span> — permanently delete your account and all associated data from your <Link href="/profile" className="text-sky-400 hover:text-sky-300">profile page</Link>.</li>
                         <li><span className="text-gray-300">Correction</span> — update your name and phone number from your <Link href="/profile" className="text-sky-400 hover:text-sky-300">profile page</Link>. For email changes, <Link href="/contact" className="text-sky-400 hover:text-sky-300">contact us</Link>.</li>
                     </ul>
-                    <p>Privacy questions and data subject requests: <a href="mailto:privacy@garge.no" className="text-sky-400 hover:text-sky-300">privacy@garge.no</a>.</p>
+                    <p>Privacy questions and data subject requests: <a href={`mailto:${COMPANY.email}`} className="text-sky-400 hover:text-sky-300">{COMPANY.email}</a>.</p>
                 </section>
 
                 <section className="space-y-2">
