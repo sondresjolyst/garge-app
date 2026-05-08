@@ -2,15 +2,30 @@ export const COMPANY = {
     name: 'Garge',
     legalName: 'Sjølyst Innovations',
     orgNumber: '934 531 035',
-    // Flip to true once registered for Norwegian VAT (MVA) with the Tax
-    // Authority. Per bokføringsforskriften §5-1-1 nr. 2 the "MVA" suffix
-    // must be shown on the organisation number on all sales documents
-    // for VAT-registered businesses. Keep in sync with AppSettings.VatEnabled
-    // on the backend.
-    vatRegistered: false,
     address: 'Mårvegen 21a, 4347 Lye',
     email: 'sondresjoelyst@gmail.com',
 } as const;
 
-export const formatOrgNumber = () =>
-    COMPANY.vatRegistered ? `${COMPANY.orgNumber} MVA` : COMPANY.orgNumber;
+/**
+ * Fetches AppSettings.VatEnabled from the backend. Per bokføringsforskriften
+ * §5-1-1 nr. 2 the "MVA" suffix must follow the organisation number on
+ * sales documents when the business is registered for Norwegian VAT.
+ * Single source of truth: AppSettings.VatEnabled on the backend, toggled
+ * from the admin settings page.
+ */
+export async function fetchVatEnabled(): Promise<boolean> {
+    try {
+        const base = process.env.NEXT_PUBLIC_API_URL;
+        if (!base) return false;
+        const res = await fetch(`${base}/admin/settings`, { cache: 'no-store' });
+        if (!res.ok) return false;
+        const data = await res.json();
+        return Boolean(data?.vatEnabled);
+    } catch {
+        return false;
+    }
+}
+
+export function formatOrgNumber(orgNumber: string, vatEnabled: boolean) {
+    return vatEnabled ? `${orgNumber} MVA` : orgNumber;
+}

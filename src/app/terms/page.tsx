@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { COMPANY, formatOrgNumber } from "@/lib/company";
+import { COMPANY, fetchVatEnabled, formatOrgNumber } from "@/lib/company";
 
-export default function TermsPage() {
+export default async function TermsPage() {
+    const vatEnabled = await fetchVatEnabled();
     return (
         <div className="max-w-2xl mx-auto px-4 py-10 space-y-6">
             <h1 className="text-3xl font-display font-bold text-gray-100">Terms of Service</h1>
@@ -13,7 +14,7 @@ export default function TermsPage() {
                     <p>The seller is:</p>
                     <ul className="list-none space-y-0.5 pl-2">
                         <li><span className="text-gray-300">Company name:</span> {COMPANY.legalName}</li>
-                        <li><span className="text-gray-300">Organisation number:</span> {formatOrgNumber()}</li>
+                        <li><span className="text-gray-300">Organisation number:</span> {formatOrgNumber(COMPANY.orgNumber, vatEnabled)}</li>
                         <li><span className="text-gray-300">Address:</span> {COMPANY.address}</li>
                         <li><span className="text-gray-300">Email:</span> {COMPANY.email}</li>
                     </ul>
