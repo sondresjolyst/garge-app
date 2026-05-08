@@ -134,7 +134,7 @@ The Garge platform is **self-hosted** by Sjølyst Innovations on infrastructure 
 - **Rectification (Art. 16):** `PUT /api/users/{id}/profile` (name + phone) and `PUT /api/users/{id}/preferences` (settings). Email change requires re-verification (planned follow-up).
 - **Erasure (Art. 17):** `DELETE /api/users/{id}/account` — soft-deletes the user (PII scrubbed, account locked), retains Orders and Invoices for the 5-year Norwegian Bookkeeping Act obligation, deletes RefreshTokens / PushSubscriptions / WebhookSubscriptions / custom names / activities.
 - **Restriction / Object (Art. 18, 21):** No automated decision-making. No direct-marketing processing. Users can soft-delete to stop processing.
-- **Withdraw consent (Art. 7(3)):** Push permissions: revoke in browser settings. Subscription waiver of right of withdrawal: cannot be retroactively withdrawn (the Norwegian Right of Withdrawal Act (angrerettsloven §22), by design).
+- **Withdraw consent (Art. 7(3)):** Push permissions: revoke in browser settings. Subscription waiver of right of withdrawal: cannot be retroactively withdrawn (the Norwegian Right of Withdrawal Act (angrerettloven §22 letter n), by design).
 
 ## 6. Breach response
 
