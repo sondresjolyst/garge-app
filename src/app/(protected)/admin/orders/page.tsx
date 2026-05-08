@@ -30,6 +30,7 @@ export default function AdminOrdersPage() {
 
     const [captureTarget, setCaptureTarget] = useState<AdminOrder | null>(null);
     const [cancelTarget, setCancelTarget] = useState<AdminOrder | null>(null);
+    const [refundTarget, setRefundTarget] = useState<AdminOrder | null>(null);
 
     useEffect(() => {
         async function load() {
@@ -44,29 +45,33 @@ export default function AdminOrdersPage() {
         load();
     }, []);
 
-    async function handleCapture() {
-        if (!captureTarget) return;
+    async function runOrderAction(
+        target: AdminOrder | null,
+        clear: () => void,
+        call: (id: number) => Promise<void>,
+        newStatus: AdminOrder['status'],
+        successMsg: string,
+        errorMsg: string,
+    ) {
+        if (!target) return;
         try {
-            await ShopService.captureOrder(captureTarget.id);
-            toast.success(`Order #${captureTarget.id} captured`);
-            setOrders(prev => prev.map(o => o.id === captureTarget.id ? { ...o, status: 'Paid' as const } : o));
-            setCaptureTarget(null);
+            await call(target.id);
+            toast.success(successMsg);
+            setOrders(prev => prev.map(o => o.id === target.id ? { ...o, status: newStatus } : o));
+            clear();
         } catch (err) {
-            toast.error(formatApiError(err, 'Failed to capture order'));
+            toast.error(formatApiError(err, errorMsg));
         }
     }
 
-    async function handleCancel() {
-        if (!cancelTarget) return;
-        try {
-            await ShopService.cancelOrder(cancelTarget.id);
-            toast.success(`Order #${cancelTarget.id} cancelled`);
-            setOrders(prev => prev.map(o => o.id === cancelTarget.id ? { ...o, status: 'Cancelled' as const } : o));
-            setCancelTarget(null);
-        } catch (err) {
-            toast.error(formatApiError(err, 'Failed to cancel order'));
-        }
-    }
+    const handleCapture = () => runOrderAction(captureTarget, () => setCaptureTarget(null),
+        ShopService.captureOrder, 'Paid', `Order #${captureTarget?.id} charged & shipped`, 'Failed to capture order');
+
+    const handleCancel = () => runOrderAction(cancelTarget, () => setCancelTarget(null),
+        ShopService.cancelOrder, 'Cancelled', `Order #${cancelTarget?.id} cancelled`, 'Failed to cancel order');
+
+    const handleRefund = () => runOrderAction(refundTarget, () => setRefundTarget(null),
+        ShopService.refundOrder, 'Refunded', `Order #${refundTarget?.id} refunded`, 'Failed to refund order');
 
     async function handleDownloadInvoice(orderId: number) {
         try {
@@ -147,13 +152,24 @@ export default function AdminOrdersPage() {
                                                     onClick={() => setCaptureTarget(order)}
                                                     className="px-3 py-1.5 bg-green-600/80 hover:bg-green-500 text-white text-xs font-medium rounded-lg transition-colors"
                                                 >
-                                                    Capture payment
+                                                    Charge &amp; ship
                                                 </button>
                                                 <button
                                                     onClick={() => setCancelTarget(order)}
                                                     className="px-3 py-1.5 bg-gray-700/60 hover:bg-red-900/40 border border-gray-600/40 hover:border-red-700/50 text-gray-400 hover:text-red-400 text-xs rounded-lg transition-all"
                                                 >
                                                     Cancel order
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {order.status === 'Paid' && (
+                                            <div className="flex pt-1">
+                                                <button
+                                                    onClick={() => setRefundTarget(order)}
+                                                    className="px-3 py-1.5 bg-gray-700/60 hover:bg-amber-900/40 border border-gray-600/40 hover:border-amber-700/50 text-gray-400 hover:text-amber-400 text-xs rounded-lg transition-all"
+                                                >
+                                                    Refund order
                                                 </button>
                                             </div>
                                         )}
@@ -179,9 +195,9 @@ export default function AdminOrdersPage() {
 
             {captureTarget && (
                 <ConfirmModal
-                    title="Capture payment"
-                    message={`Capture ${formatNok(captureTarget.totalInOre)} for order #${captureTarget.id} from ${captureTarget.userName}? Only do this when the order has been shipped.`}
-                    confirmLabel="Capture"
+                    title="Charge & ship"
+                    message={`Charge ${formatNok(captureTarget.totalInOre)} for order #${captureTarget.id} from ${captureTarget.userName} and mark it shipped now?`}
+                    confirmLabel="Charge & ship"
                     onConfirm={handleCapture}
                     onCancel={() => setCaptureTarget(null)}
                 />
@@ -194,6 +210,16 @@ export default function AdminOrdersPage() {
                     confirmLabel="Cancel order"
                     onConfirm={handleCancel}
                     onCancel={() => setCancelTarget(null)}
+                />
+            )}
+
+            {refundTarget && (
+                <ConfirmModal
+                    title="Refund order"
+                    message={`Refund ${formatNok(refundTarget.totalInOre)} to ${refundTarget.userName} for order #${refundTarget.id}? This cannot be undone.`}
+                    confirmLabel="Refund"
+                    onConfirm={handleRefund}
+                    onCancel={() => setRefundTarget(null)}
                 />
             )}
         </div>

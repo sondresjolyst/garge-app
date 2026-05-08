@@ -109,6 +109,10 @@ const ShopService = {
         await axiosInstance.post(`/shop/orders/${id}/cancel`);
     },
 
+    async refundOrder(id: number): Promise<void> {
+        await axiosInstance.post(`/shop/orders/${id}/refund`);
+    },
+
     async downloadInvoice(orderId: number): Promise<void> {
         const res = await axiosInstance.get(`/shop/orders/${orderId}/invoice`, { responseType: 'blob' });
         const url = URL.createObjectURL(res.data as Blob);
