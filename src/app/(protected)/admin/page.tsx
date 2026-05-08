@@ -433,6 +433,7 @@ export default function AdminPage() {
                                 { href: '/admin/products', label: 'Subscription Plans', description: 'Create and manage monthly/yearly plans' },
                                 { href: '/admin/shop', label: 'Shop Items', description: 'Manage physical products and stock' },
                                 { href: '/admin/orders', label: 'Orders', description: 'View and capture or cancel shop orders' },
+                                { href: '/admin/subscriptions', label: 'Subscriptions', description: 'View recurring subscriptions and download invoices' },
                             ]).map(({ href, label, description }) => (
                                 <Link
                                     key={href}

@@ -32,10 +32,57 @@ export interface InitiateSubscriptionResponse {
     vippsAgreementId: string;
 }
 
+export interface AdminSubscription {
+    id: number;
+    userId: string;
+    userEmail: string;
+    userName: string;
+    productName: string;
+    productType: SubscriptionProductType;
+    priceInOre: number;
+    interval: string;
+    status: SubscriptionStatus;
+    isTest: boolean;
+    startDate: string | null;
+    nextChargeDate: string | null;
+    invoiceCount: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface SubscriptionInvoice {
+    id: number;
+    issuedAt: string;
+    amountInOre: number;
+    vippsChargeId: string | null;
+}
+
 const SubscriptionService = {
     async getMySubscriptions(): Promise<Subscription[]> {
         const res = await axiosInstance.get<Subscription[]>('/subscriptions/my');
         return res.data;
+    },
+
+    async getAllSubscriptions(): Promise<AdminSubscription[]> {
+        const res = await axiosInstance.get<AdminSubscription[]>('/subscriptions/all');
+        return res.data;
+    },
+
+    async getSubscriptionInvoices(subscriptionId: number): Promise<SubscriptionInvoice[]> {
+        const res = await axiosInstance.get<SubscriptionInvoice[]>(`/subscriptions/${subscriptionId}/invoices`);
+        return res.data;
+    },
+
+    async downloadSubscriptionInvoice(invoiceId: number): Promise<void> {
+        const res = await axiosInstance.get(`/subscriptions/invoices/${invoiceId}/pdf`, { responseType: 'blob' });
+        const url = URL.createObjectURL(res.data as Blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `invoice-${invoiceId.toString().padStart(4, '0')}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
     },
 
     async initiateSubscription(payload: InitiateSubscriptionPayload): Promise<InitiateSubscriptionResponse> {
