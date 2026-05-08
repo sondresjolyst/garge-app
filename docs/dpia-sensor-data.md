@@ -74,7 +74,7 @@ Garge processes sensor readings continuously, ties them to identifiable customer
 
 | Risk | Mitigation in place |
 |---|---|
-| R1 | Per-customer access only; no analytics shared with third parties; logs do not contain readings |
+| R1 | Per-customer access only; no analytics shared with third parties; successful-path sensor reading values are scrubbed from log lines (only sensor/switch IDs are logged for diagnostics). Rare bad-request and parse-failure warnings retain the literal value for debugging. Older log lines in Loki retention (≤90 days) may still contain reading values until rotation completes |
 | R2 | Billing address only displayed to the customer themselves and on their own invoice; not exposed to other Garge users |
 | R3 | Soft-delete severs the customer link; sensor + reading rows remain but contain no name/email/phone |
 | R4 | Write endpoints (`CreateSensorData*`, `UpdateSensor`, `DeleteSensor*`) require `Admin` or `SensorAdmin` role; same for switch endpoints with `SwitchAdmin`. Verified in `Controllers/SensorController.cs` |
