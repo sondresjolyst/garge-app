@@ -54,7 +54,12 @@ export function useDeviceStream(handlers: Handlers): void {
         let connection: HubConnection | null = null;
 
         (async () => {
-            const hubUrl = `${apiBase.replace(/\/$/, '')}/hubs/devices`;
+            // NEXT_PUBLIC_API_URL is the REST root (e.g. https://host/api).
+            // The SignalR hub is mapped at /hubs/devices on the api host —
+            // outside the /api segment — so strip a trailing /api before
+            // appending the hub path. Tolerates trailing slashes either way.
+            const hubUrl =
+                `${apiBase.replace(/\/?api\/?$/, '').replace(/\/$/, '')}/hubs/devices`;
 
             connection = new HubConnectionBuilder()
                 .withUrl(hubUrl, {
@@ -86,6 +91,10 @@ export function useDeviceStream(handlers: Handlers): void {
                     await connection.stop();
                 }
             } catch (err) {
+                // React StrictMode mounts twice in dev; the first cleanup
+                // aborts the in-flight start(). Treat that abort as expected
+                // and stay quiet so it doesn't pollute the console.
+                if (cancelled) return;
                 if (process.env.NODE_ENV === 'development') {
                     console.error('useDeviceStream connect failed:', err);
                 }
@@ -94,6 +103,8 @@ export function useDeviceStream(handlers: Handlers): void {
 
         return () => {
             cancelled = true;
+            // Suppress AbortError from stopping a connection that is still
+            // negotiating — see comment above on StrictMode double-mount.
             connection?.stop().catch(() => { });
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
