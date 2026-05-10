@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.1](https://github.com/sondresjolyst/garge-app/compare/v1.13.0...v1.13.1) (2026-05-10)
+
+
+### Bug Fixes
+
+* **csp:** allow wss:// to api host for SignalR ([#251](https://github.com/sondresjolyst/garge-app/issues/251)) ([#252](https://github.com/sondresjolyst/garge-app/issues/252)) ([4feba65](https://github.com/sondresjolyst/garge-app/commit/4feba652b6dcfbc3bb96770d8625d9ce4d666cbe))
+
 ## [1.13.0](https://github.com/sondresjolyst/garge-app/compare/v1.12.1...v1.13.0) (2026-05-10)
 
 
