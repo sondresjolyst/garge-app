@@ -17,8 +17,6 @@ import { formatNok } from '@/lib/formatUtils';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
 
-const ALL_ROLES = ['Admin', 'Default', 'Electricity', 'SensorAdmin', 'MqttAdmin', 'AutomationAdmin', 'SwitchAdmin', 'ComplimentaryUser'];
-
 
 export default function AdminPage() {
     const { data: session, status } = useSession();
@@ -43,6 +41,7 @@ export default function AdminPage() {
     const [addRoleFor, setAddRoleFor] = useState<string | null>(null);
     const [selectedRole, setSelectedRole] = useState('');
     const [roleLoading, setRoleLoading] = useState(false);
+    const [allRoles, setAllRoles] = useState<string[]>([]);
 
     const [emailStats, setEmailStats] = useState<EmailStats | null>(null);
     const [emailStatsDays, setEmailStatsDays] = useState(30);
@@ -111,6 +110,13 @@ export default function AdminPage() {
     useEffect(() => {
         if (isAdmin) load();
     }, [isAdmin, load]);
+
+    useEffect(() => {
+        if (!isAdmin) return;
+        AdminService.getAllRoles()
+            .then(setAllRoles)
+            .catch(() => toast.error('Failed to load roles'));
+    }, [isAdmin]);
 
     useEffect(() => {
         if (!isAdmin) return;
@@ -476,7 +482,7 @@ export default function AdminPage() {
                                     <ul className="space-y-3">
                                         {paged.map((u) => {
                                             const isAddingRole = addRoleFor === u.id;
-                                            const available = ALL_ROLES.filter(r => !u.roles.includes(r));
+                                            const available = allRoles.filter(r => !u.roles.includes(r));
                                             return (
                                                 <li key={u.id} className="bg-gray-900/40 border border-gray-700/30 rounded-xl p-3 space-y-2">
                                                     <div className="flex items-start justify-between gap-2">
