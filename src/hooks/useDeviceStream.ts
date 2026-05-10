@@ -18,16 +18,35 @@ export interface SensorEvent {
     timestamp: string;
 }
 
+export interface DeviceCreatedEvent {
+    kind: 'switch' | 'sensor';
+    id: number;
+}
+
 interface Handlers {
     onSwitch?: (e: SwitchEvent) => void;
     onSensor?: (e: SensorEvent) => void;
+    onDeviceCreated?: (e: DeviceCreatedEvent) => void;
+    onForceLogout?: () => void;
 }
 
-export function useDeviceStream({ onSwitch, onSensor }: Handlers): void {
-    const handlersRef = useRef<Handlers>({ onSwitch, onSensor });
-    handlersRef.current = { onSwitch, onSensor };
+/**
+ * Opens a SignalR connection to garge-api's DeviceHub for the current
+ * authenticated user and forwards events to the supplied handlers.
+ *
+ * Dependency array is intentionally `[]`: the connection lifecycle is tied
+ * to the component lifetime, not to handler identity. The latest handlers
+ * are captured into a ref on every render so consumers don't need to
+ * memoize callbacks; the ref is read inside the connection-event closures.
+ */
+export function useDeviceStream(handlers: Handlers): void {
+    const handlersRef = useRef<Handlers>(handlers);
 
     useEffect(() => {
+        // Refresh the ref each effect run so closures see latest handlers
+        // without re-creating the SignalR connection.
+        handlersRef.current = handlers;
+
         const apiBase = process.env.NEXT_PUBLIC_API_URL;
         if (!apiBase) return;
 
@@ -54,6 +73,12 @@ export function useDeviceStream({ onSwitch, onSensor }: Handlers): void {
             connection.on('sensor', (payload: SensorEvent) => {
                 handlersRef.current.onSensor?.(payload);
             });
+            connection.on('device-created', (payload: DeviceCreatedEvent) => {
+                handlersRef.current.onDeviceCreated?.(payload);
+            });
+            connection.on('forceLogout', () => {
+                handlersRef.current.onForceLogout?.();
+            });
 
             try {
                 await connection.start();
@@ -71,5 +96,6 @@ export function useDeviceStream({ onSwitch, onSensor }: Handlers): void {
             cancelled = true;
             connection?.stop().catch(() => { });
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 }

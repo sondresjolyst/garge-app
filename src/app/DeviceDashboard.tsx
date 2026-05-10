@@ -303,6 +303,12 @@ const DeviceDashboard: React.FC = () => {
 
     useEffect(() => { loadData(); }, [loadData]);
 
+    const refetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const debouncedReload = useCallback(() => {
+        if (refetchTimer.current) clearTimeout(refetchTimer.current);
+        refetchTimer.current = setTimeout(() => { loadData(); }, 500);
+    }, [loadData]);
+
     useDeviceStream({
         onSwitch: (e) => {
             const newState = (e.value || '').trim().toUpperCase() || 'UNKNOWN';
@@ -324,6 +330,12 @@ const DeviceDashboard: React.FC = () => {
                     }
                     : d
             ));
+        },
+        onDeviceCreated: () => {
+            // New device appeared in the user's accessible set — re-fetch the
+            // full list. Debounced so a burst (e.g., onboarding several
+            // devices) collapses to a single network round-trip.
+            debouncedReload();
         },
     });
 
