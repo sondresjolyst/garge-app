@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.13.0](https://github.com/sondresjolyst/garge-app/compare/v1.12.1...v1.13.0) (2026-05-10)
+
+
+### Features
+
+* /admin/subscriptions page with invoice drilldown ([#240](https://github.com/sondresjolyst/garge-app/issues/240)) ([a4ea3df](https://github.com/sondresjolyst/garge-app/commit/a4ea3dfab257878e56dc08b2a8cf7106249e3e5e))
+* admin can download invoices from /admin/orders ([#234](https://github.com/sondresjolyst/garge-app/issues/234)) ([38f6a3d](https://github.com/sondresjolyst/garge-app/commit/38f6a3d4916db54f73217f79da87b5bf655b7d14))
+* admin can refund paid orders, capture relabeled to Charge & ship ([#243](https://github.com/sondresjolyst/garge-app/issues/243)) ([d0147a4](https://github.com/sondresjolyst/garge-app/commit/d0147a4f92a8767ee19f6d8bc21e79b4471f668a))
+* drop checkout shipping form and surface address in admin orders ([#232](https://github.com/sondresjolyst/garge-app/issues/232)) ([daad48f](https://github.com/sondresjolyst/garge-app/commit/daad48f1d4502faad098eebcc23156ff4b1be70b))
+* grey out AddOn plans when user has no active core subscription ([#238](https://github.com/sondresjolyst/garge-app/issues/238)) ([b852a9b](https://github.com/sondresjolyst/garge-app/commit/b852a9b9242d46029dbf052fb2fe05b313004090))
+* live / test toggle for admin commerce stats ([#237](https://github.com/sondresjolyst/garge-app/issues/237)) ([ea1d20e](https://github.com/sondresjolyst/garge-app/commit/ea1d20ef571c8c3b426ceeeaed572e4b4b235f74))
+* render order + subscription stats on /admin landing ([#235](https://github.com/sondresjolyst/garge-app/issues/235)) ([3022a06](https://github.com/sondresjolyst/garge-app/commit/3022a065ab9f5f8a71c1ba1436bb5e3728ff6213))
+* shop and billing pages for Vipps payments ([#231](https://github.com/sondresjolyst/garge-app/issues/231)) ([29f4934](https://github.com/sondresjolyst/garge-app/commit/29f4934dff257ccabd4c5a9ce2b4b095ca425c1a))
+
+
+### Bug Fixes
+
+* **admin:** fetch role list from api instead of hardcoding ([#247](https://github.com/sondresjolyst/garge-app/issues/247)) ([68b59df](https://github.com/sondresjolyst/garge-app/commit/68b59dfcb690b3aca8d855e3ff3b2f5e9477305c))
+* defensive optional chaining on admin stats ([#236](https://github.com/sondresjolyst/garge-app/issues/236)) ([d96aee1](https://github.com/sondresjolyst/garge-app/commit/d96aee10b54e5fb20768500dd663d1fd0d16c9ef))
+* drop phone hint, show error only on invalid input ([#233](https://github.com/sondresjolyst/garge-app/issues/233)) ([8478d55](https://github.com/sondresjolyst/garge-app/commit/8478d55c04124a074ed1554ef5c6407deb169f6e))
+* **security+gdpr:** security audit + GDPR compliance pass ([#244](https://github.com/sondresjolyst/garge-app/issues/244)) ([0f48a88](https://github.com/sondresjolyst/garge-app/commit/0f48a88ab8801ad1ad7d3c994e5c79601a78928c))
+* **signalr:** strip trailing /api from hub URL ([#249](https://github.com/sondresjolyst/garge-app/issues/249)) ([3bb902d](https://github.com/sondresjolyst/garge-app/commit/3bb902df957f88556bd1bd0a3b2fe2adae0ff8d4))
+
 ## [1.12.1](https://github.com/sondresjolyst/garge-app/compare/v1.12.0...v1.12.1) (2026-05-03)
 
 
