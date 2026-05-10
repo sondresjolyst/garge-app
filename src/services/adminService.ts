@@ -90,6 +90,13 @@ const AdminService = {
         return '$values' in data ? data.$values : data;
     },
 
+    async getAllRoles(): Promise<string[]> {
+        const res = await axiosInstance.get<{ name: string }[] | { $values: { name: string }[] }>('/roles');
+        const data = res.data;
+        const list = '$values' in data ? data.$values : data;
+        return list.map(r => r.name);
+    },
+
     async assignRole(userEmail: string, roleName: string): Promise<void> {
         await axiosInstance.post(`/roles/${encodeURIComponent(roleName)}/users`, null, {
             params: { userEmail },
