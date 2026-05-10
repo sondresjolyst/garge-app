@@ -92,6 +92,16 @@ describe('useDeviceStream', () => {
         );
     });
 
+    it('strips trailing /api when building hub url', async () => {
+        process.env.NEXT_PUBLIC_API_URL = 'https://api.test/api';
+        render(<Probe onSwitch={() => { }} />);
+        await waitFor(() => expect(builderInstance.withUrl).toHaveBeenCalled());
+        expect(builderInstance.withUrl).toHaveBeenCalledWith(
+            'https://api.test/hubs/devices',
+            expect.objectContaining({ accessTokenFactory: expect.any(Function) }),
+        );
+    });
+
     it('stops the connection on unmount', async () => {
         const { unmount } = render(<Probe onSwitch={() => { }} />);
         await waitFor(() => expect(mockConnection.start).toHaveBeenCalled());
