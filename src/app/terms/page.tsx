@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { COMPANY } from "@/lib/company";
+import { COMPANY, fetchVatEnabled, formatOrgNumber } from "@/lib/company";
 
-export default function TermsPage() {
+export default async function TermsPage() {
+    const vatEnabled = await fetchVatEnabled();
     return (
         <div className="max-w-2xl mx-auto px-4 py-10 space-y-6">
             <h1 className="text-3xl font-display font-bold text-gray-100">Terms of Service</h1>
@@ -13,7 +14,7 @@ export default function TermsPage() {
                     <p>The seller is:</p>
                     <ul className="list-none space-y-0.5 pl-2">
                         <li><span className="text-gray-300">Company name:</span> {COMPANY.legalName}</li>
-                        <li><span className="text-gray-300">Organisation number:</span> {COMPANY.orgNumber}</li>
+                        <li><span className="text-gray-300">Organisation number:</span> {formatOrgNumber(COMPANY.orgNumber, vatEnabled)}</li>
                         <li><span className="text-gray-300">Address:</span> {COMPANY.address}</li>
                         <li><span className="text-gray-300">Email:</span> {COMPANY.email}</li>
                     </ul>
@@ -64,7 +65,7 @@ export default function TermsPage() {
 
                 <section className="space-y-2">
                     <h2 className="text-base font-semibold text-gray-100">10. Right of withdrawal — subscription</h2>
-                    <p>Under the Norwegian Right of Cancellation Act (angrerettloven), consumers generally have a 14-day right of withdrawal from digital service agreements. Because Garge subscriptions grant immediate access upon activation, we ask you to explicitly waive this right during checkout. By checking the confirmation box at checkout you acknowledge that the service has started and that the right of withdrawal is waived accordingly.</p>
+                    <p>Under the Norwegian Right of Withdrawal Act (angrerettloven §22 letter n), consumers generally have a 14-day right of withdrawal from digital service agreements. Because Garge subscriptions grant immediate access upon activation, we ask you to explicitly waive this right during checkout. By checking the confirmation box at checkout you acknowledge that the service has started and that the right of withdrawal is waived accordingly.</p>
                     <p>If you prefer not to waive this right, do not activate the service during the 14-day period and <Link href="/contact" className="text-sky-400 hover:text-sky-300">contact us</Link> to cancel before first use.</p>
                 </section>
 
@@ -86,7 +87,7 @@ export default function TermsPage() {
 
                 <section className="space-y-2">
                     <h2 className="text-base font-semibold text-gray-100">14. Right of withdrawal — physical goods</h2>
-                    <p>You have a 14-day right of withdrawal for physical products under the Right of Cancellation Act (angrerettloven), starting from the day you receive the item. You do not need to give a reason. To exercise this right, <Link href="/contact" className="text-sky-400 hover:text-sky-300">contact us</Link> within 14 days of receipt. Return shipping costs are at your expense. We will issue a full refund within 14 days of receiving the returned goods in acceptable condition.</p>
+                    <p>You have a 14-day right of withdrawal for physical products under the Norwegian Right of Withdrawal Act (angrerettloven), starting from the day you receive the item. You do not need to give a reason. To exercise this right, <Link href="/contact" className="text-sky-400 hover:text-sky-300">contact us</Link> within 14 days of receipt. Return shipping costs are at your expense. We will issue a full refund within 14 days of receiving the returned goods in acceptable condition.</p>
                 </section>
 
                 <section className="space-y-2">

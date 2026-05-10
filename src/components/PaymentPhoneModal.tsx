@@ -111,7 +111,7 @@ export default function PaymentPhoneModal({
                 {requireConsent && (
                     <p className="text-xs text-gray-600">
                         By continuing you accept our{' '}
-                        <Link href="/terms" target="_blank" className="text-sky-500 hover:text-sky-400 transition-colors">Terms of Service</Link>.
+                        <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-sky-500 hover:text-sky-400 transition-colors">Terms of Service</Link>.
                     </p>
                 )}
 

@@ -3,6 +3,7 @@ export interface UserDTO {
     email: string;
     firstName: string;
     lastName: string;
+    phoneNumber?: string;
     emailConfirmed: boolean;
     priceZone: string;
     pushNotificationsEnabled: boolean;
