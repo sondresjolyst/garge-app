@@ -18,7 +18,13 @@ const nextConfig: NextConfig = {
     },
     async headers() {
         const apiOrigin = getApiOrigin();
-        const connectSrc = ['self', apiOrigin].filter(Boolean).map(s => s === 'self' ? "'self'" : s).join(' ');
+        // SignalR WebSocket transport uses ws/wss on the same host as the
+        // REST origin. CSP connect-src needs both schemes.
+        const apiWsOrigin = apiOrigin.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:');
+        const connectSrc = ['self', apiOrigin, apiWsOrigin]
+            .filter(Boolean)
+            .map(s => s === 'self' ? "'self'" : s)
+            .join(' ');
 
         const isDev = process.env.NODE_ENV !== 'production';
         const scriptSrc = isDev
