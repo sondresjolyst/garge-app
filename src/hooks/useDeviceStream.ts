@@ -69,7 +69,11 @@ export function useDeviceStream(handlers: Handlers): void {
                     },
                 })
                 .withAutomaticReconnect()
-                .configureLogging(LogLevel.Warning)
+                // None in dev silences SignalR's internal logger noise from
+                // StrictMode double-mount aborts and from auto-fallback when
+                // WebSocket is blocked by Firefox+self-signed-cert. Production
+                // gets Warning so real connectivity issues surface.
+                .configureLogging(process.env.NODE_ENV === 'development' ? LogLevel.None : LogLevel.Warning)
                 .build();
 
             connection.on('switch', (payload: SwitchEvent) => {
