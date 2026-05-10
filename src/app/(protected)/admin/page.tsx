@@ -3,7 +3,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { TrashIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { TrashIcon, PlusIcon, XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import dynamic from 'next/dynamic';
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
@@ -12,10 +13,9 @@ import { toast } from 'sonner';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
 import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats, AppSettings } from '@/services/adminService';
+import { formatNok } from '@/lib/formatUtils';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
-
-const ALL_ROLES = ['Admin', 'Default', 'Electricity', 'SensorAdmin', 'MqttAdmin', 'AutomationAdmin', 'SwitchAdmin'];
 
 
 export default function AdminPage() {
@@ -30,6 +30,8 @@ export default function AdminPage() {
     }, [status, isAdmin, router]);
 
     const [stats, setStats] = useState<AdminStats | null>(null);
+    const [statsTest, setStatsTest] = useState(false);
+    const [statsLoading, setStatsLoading] = useState(false);
     const [history, setHistory] = useState<StatSnapshot[]>([]);
     const [selectedStat, setSelectedStat] = useState<StatKey | null>('totalUsers');
     const [users, setUsers] = useState<AdminUser[]>([]);
@@ -39,6 +41,7 @@ export default function AdminPage() {
     const [addRoleFor, setAddRoleFor] = useState<string | null>(null);
     const [selectedRole, setSelectedRole] = useState('');
     const [roleLoading, setRoleLoading] = useState(false);
+    const [allRoles, setAllRoles] = useState<string[]>([]);
 
     const [emailStats, setEmailStats] = useState<EmailStats | null>(null);
     const [emailStatsDays, setEmailStatsDays] = useState(30);
@@ -59,7 +62,7 @@ export default function AdminPage() {
         setError(null);
         try {
             const [s, u, h] = await Promise.all([
-                AdminService.getStats(),
+                AdminService.getStats({ test: statsTest }),
                 AdminService.getUsers(),
                 AdminService.getStatsHistory(),
             ]);
@@ -71,6 +74,20 @@ export default function AdminPage() {
             setError('Failed to load admin data');
         } finally {
             setLoading(false);
+        }
+    }, [statsTest]);
+
+    const reloadStatsForTestToggle = useCallback(async (test: boolean) => {
+        setStatsTest(test);
+        setStatsLoading(true);
+        try {
+            const s = await AdminService.getStats({ test });
+            setStats(s);
+            setLoadedAt(new Date());
+        } catch {
+            toast.error('Failed to reload stats');
+        } finally {
+            setStatsLoading(false);
         }
     }, []);
 
@@ -93,6 +110,13 @@ export default function AdminPage() {
     useEffect(() => {
         if (isAdmin) load();
     }, [isAdmin, load]);
+
+    useEffect(() => {
+        if (!isAdmin) return;
+        AdminService.getAllRoles()
+            .then(setAllRoles)
+            .catch(() => toast.error('Failed to load roles'));
+    }, [isAdmin]);
 
     useEffect(() => {
         if (!isAdmin) return;
@@ -213,6 +237,73 @@ export default function AdminPage() {
                         )}
                     </Section>
 
+                    {/* Live / Test toggle for the commerce stats */}
+                    <div className="flex items-center justify-between bg-gray-900/40 border border-gray-700/30 rounded-xl px-4 py-3">
+                        <div>
+                            <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Commerce data</p>
+                            <p className="text-sm text-gray-300 mt-0.5">{statsTest ? 'Showing Vipps test orders + subscriptions' : 'Showing live orders + subscriptions'}</p>
+                        </div>
+                        <div className="flex bg-gray-800/60 border border-gray-700/40 rounded-lg p-0.5">
+                            {([
+                                { label: 'Live', value: false },
+                                { label: 'Test', value: true },
+                            ]).map(({ label, value }) => {
+                                const active = statsTest === value;
+                                return (
+                                    <button
+                                        key={label}
+                                        onClick={() => active || statsLoading ? null : reloadStatsForTestToggle(value)}
+                                        disabled={statsLoading}
+                                        className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                                            active
+                                                ? 'bg-sky-600 text-white'
+                                                : 'text-gray-400 hover:text-gray-200'
+                                        }`}
+                                    >
+                                        {label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Orders */}
+                    <Section title="Orders">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {([
+                                { label: 'Today', value: stats?.orders?.today },
+                                { label: 'This week', value: stats?.orders?.thisWeek },
+                                { label: 'This month', value: stats?.orders?.thisMonth },
+                                { label: 'Pending capture', value: stats?.orders?.pendingCapture },
+                                { label: 'Failed / cancelled', value: stats?.orders?.failedOrCancelled },
+                                { label: 'Month revenue', value: stats?.orders ? formatNok(stats.orders.monthRevenueInOre) : undefined },
+                                { label: 'Total revenue', value: stats?.orders ? formatNok(stats.orders.totalRevenueInOre) : undefined },
+                            ]).map(({ label, value }) => (
+                                <div key={label} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                    <p className="text-2xl font-bold text-gray-100 tabular-nums">{value ?? '—'}</p>
+                                    <p className="text-xs text-gray-500 mt-1">{label}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </Section>
+
+                    {/* Subscriptions */}
+                    <Section title="Subscriptions">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {([
+                                { label: 'Active', value: stats?.subscriptions?.active },
+                                { label: 'Pending confirm', value: stats?.subscriptions?.pendingConfirm },
+                                { label: 'Stopped this month', value: stats?.subscriptions?.stoppedThisMonth },
+                                { label: 'Monthly recurring revenue', value: stats?.subscriptions ? formatNok(stats.subscriptions.monthlyRecurringInOre) : undefined },
+                            ]).map(({ label, value }) => (
+                                <div key={label} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                    <p className="text-2xl font-bold text-gray-100 tabular-nums">{value ?? '—'}</p>
+                                    <p className="text-xs text-gray-500 mt-1">{label}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </Section>
+
                     {/* System Health */}
                     <Section title="System Health">
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -302,6 +393,66 @@ export default function AdminPage() {
                                     </button>
                                 )}
                             </div>
+                            <div className="flex items-center justify-between bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-200">VAT (mva 25%)</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">Add 25% VAT to prices. Disable if below the 50,000 NOK threshold.</p>
+                                </div>
+                                {appSettings === null ? (
+                                    <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />
+                                ) : (
+                                    <button
+                                        onClick={() => handleToggleAppSetting('vatEnabled', !appSettings.vatEnabled)}
+                                        disabled={appSettingsLoading}
+                                        aria-label="Toggle VAT"
+                                        className={`relative shrink-0 w-10 h-6 rounded-full transition-colors disabled:opacity-50 ${appSettings.vatEnabled ? 'bg-sky-600' : 'bg-gray-600'}`}
+                                    >
+                                        <span className={`absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow transition-transform ${appSettings.vatEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
+                                    </button>
+                                )}
+                            </div>
+                            <div className="flex items-center justify-between bg-gray-900/50 border border-amber-700/30 rounded-xl p-4">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-200">Vipps test mode</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">Use Vipps test environment. Test subscriptions only gate access while this is on.</p>
+                                </div>
+                                {appSettings === null ? (
+                                    <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />
+                                ) : (
+                                    <button
+                                        onClick={() => handleToggleAppSetting('vippsTestMode', !appSettings.vippsTestMode)}
+                                        disabled={appSettingsLoading}
+                                        aria-label="Toggle Vipps test mode"
+                                        className={`relative shrink-0 w-10 h-6 rounded-full transition-colors disabled:opacity-50 ${appSettings.vippsTestMode ? 'bg-amber-500' : 'bg-gray-600'}`}
+                                    >
+                                        <span className={`absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow transition-transform ${appSettings.vippsTestMode ? 'translate-x-5' : 'translate-x-1'}`} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </Section>
+
+                    {/* Management */}
+                    <Section title="Manage">
+                        <div className="space-y-2">
+                            {([
+                                { href: '/admin/products', label: 'Subscription Plans', description: 'Create and manage monthly/yearly plans' },
+                                { href: '/admin/shop', label: 'Shop Items', description: 'Manage physical products and stock' },
+                                { href: '/admin/orders', label: 'Orders', description: 'View and capture or cancel shop orders' },
+                                { href: '/admin/subscriptions', label: 'Subscriptions', description: 'View recurring subscriptions and download invoices' },
+                            ]).map(({ href, label, description }) => (
+                                <Link
+                                    key={href}
+                                    href={href}
+                                    className="flex items-center justify-between bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 hover:border-gray-600/60 hover:bg-gray-900/60 transition-all group"
+                                >
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-200 group-hover:text-gray-100">{label}</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">{description}</p>
+                                    </div>
+                                    <ChevronRightIcon className="h-4 w-4 text-gray-600 group-hover:text-gray-400 shrink-0" />
+                                </Link>
+                            ))}
                         </div>
                     </Section>
 
@@ -331,7 +482,7 @@ export default function AdminPage() {
                                     <ul className="space-y-3">
                                         {paged.map((u) => {
                                             const isAddingRole = addRoleFor === u.id;
-                                            const available = ALL_ROLES.filter(r => !u.roles.includes(r));
+                                            const available = allRoles.filter(r => !u.roles.includes(r));
                                             return (
                                                 <li key={u.id} className="bg-gray-900/40 border border-gray-700/30 rounded-xl p-3 space-y-2">
                                                     <div className="flex items-start justify-between gap-2">

@@ -21,15 +21,10 @@ const ABSOLUTE_SESSION_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 
 function parseApiToken(token: string): DecodedToken {
     const secret = process.env.GARGE_API_JWT_SECRET;
-    if (secret) {
-        return jwt.verify(token, secret) as DecodedToken;
+    if (!secret) {
+        throw new Error('GARGE_API_JWT_SECRET is not configured. Refusing to accept unverified API tokens.');
     }
-    const decoded = jwt.decode(token) as DecodedToken | null;
-    if (!decoded) throw new Error('Invalid token structure');
-    const now = Math.floor(Date.now() / 1000);
-    if (decoded.exp && decoded.exp < now) throw new Error('Token expired');
-    if (decoded.nbf && decoded.nbf > now) throw new Error('Token not yet valid');
-    return decoded;
+    return jwt.verify(token, secret) as DecodedToken;
 }
 
 type ExtendedUser = {

@@ -8,6 +8,9 @@ interface RegisterData extends LoginData {
     firstName: string;
     lastName: string;
     userName: string;
+    confirmAge16Plus: boolean;
+    acceptTerms: boolean;
+    termsVersion: string;
 }
 
 interface LoginData {
@@ -198,6 +201,22 @@ const UserService = {
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 throw new Error(error.response?.data.message || 'Failed to delete account');
+            } else {
+                throw new Error('An unknown error occurred');
+            }
+        }
+    },
+
+    async updateProfile(userId: string, data: {
+        firstName: string;
+        lastName: string;
+        phoneNumber?: string;
+    }): Promise<void> {
+        try {
+            await axiosInstance.put(`/users/${userId}/profile`, data);
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(error.response?.data.message || 'Failed to update profile');
             } else {
                 throw new Error('An unknown error occurred');
             }

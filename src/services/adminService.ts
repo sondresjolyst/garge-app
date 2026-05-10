@@ -1,10 +1,31 @@
 import axiosInstance from './axiosInstance';
 
+export interface AdminOrderStats {
+    today: number;
+    thisWeek: number;
+    thisMonth: number;
+    pendingCapture: number;
+    failedOrCancelled: number;
+    totalRevenueInOre: number;
+    monthRevenueInOre: number;
+}
+
+export interface AdminSubscriptionStats {
+    active: number;
+    pendingConfirm: number;
+    stoppedThisMonth: number;
+    monthlyRecurringInOre: number;
+}
+
 export interface AdminStats {
     totalUsers: number;
     totalSensors: number;
     totalSwitches: number;
     activeAutomations: number;
+    // Optional so the UI keeps loading even if it talks to an older API build
+    // that hasn't shipped the new commerce stats yet.
+    orders?: AdminOrderStats;
+    subscriptions?: AdminSubscriptionStats;
 }
 
 export interface AdminUser {
@@ -45,11 +66,15 @@ export interface EmailStats {
 
 export interface AppSettings {
     cookieBannerEnabled: boolean;
+    vatEnabled: boolean;
+    vippsTestMode: boolean;
 }
 
 const AdminService = {
-    async getStats(): Promise<AdminStats> {
-        const res = await axiosInstance.get<AdminStats>('/admin/stats');
+    async getStats(opts?: { test?: boolean }): Promise<AdminStats> {
+        const res = await axiosInstance.get<AdminStats>('/admin/stats', {
+            params: opts?.test ? { test: true } : undefined,
+        });
         return res.data;
     },
 
@@ -63,6 +88,13 @@ const AdminService = {
         const res = await axiosInstance.get<AdminUser[] | { $values: AdminUser[] }>('/users');
         const data = res.data;
         return '$values' in data ? data.$values : data;
+    },
+
+    async getAllRoles(): Promise<string[]> {
+        const res = await axiosInstance.get<{ name: string }[] | { $values: { name: string }[] }>('/roles');
+        const data = res.data;
+        const list = '$values' in data ? data.$values : data;
+        return list.map(r => r.name);
     },
 
     async assignRole(userEmail: string, roleName: string): Promise<void> {

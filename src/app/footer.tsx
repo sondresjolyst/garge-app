@@ -1,10 +1,10 @@
-"use client"
-
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { COMPANY, fetchVatEnabled, formatOrgNumber } from '@/lib/company';
 
-export default function Footer() {
+export default async function Footer() {
+    const vatEnabled = await fetchVatEnabled();
     return (
         <footer className="border-t border-gray-800/60 bg-gray-900/80 backdrop-blur-xl pb-32">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6 flex flex-col items-center text-center">
@@ -30,7 +30,7 @@ export default function Footer() {
                 </nav>
 
                 {/* Bottom */}
-                <p className="text-xs text-gray-600">© 2026 Sjølyst Innovations · Org. nr. 934 531 035</p>
+                <p className="text-xs text-gray-600">© 2026 {COMPANY.legalName} · Org. nr. {formatOrgNumber(COMPANY.orgNumber, vatEnabled)}</p>
 
             </div>
         </footer>
