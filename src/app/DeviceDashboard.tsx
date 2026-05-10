@@ -14,6 +14,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { groupEmoji } from '@/lib/groupIcons';
 import { useLocalStorage } from '@/lib/useLocalStorage';
 import CollapsibleSection from '@/components/CollapsibleSection';
+import { useDeviceStream } from '@/hooks/useDeviceStream';
 
 // ── Type sort order for group cards ───────────────────────────────────────────
 const TYPE_ORDER: Record<string, number> = { voltage: 0, temperature: 1, humidity: 2, socket: 3 };
@@ -301,6 +302,42 @@ const DeviceDashboard: React.FC = () => {
     }, []);
 
     useEffect(() => { loadData(); }, [loadData]);
+
+    const refetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const debouncedReload = useCallback(() => {
+        if (refetchTimer.current) clearTimeout(refetchTimer.current);
+        refetchTimer.current = setTimeout(() => { loadData(); }, 500);
+    }, [loadData]);
+
+    useDeviceStream({
+        onSwitch: (e) => {
+            const newState = (e.value || '').trim().toUpperCase() || 'UNKNOWN';
+            setDevices(prev => prev.map(d =>
+                d.kind === 'socket' && d.id === e.switchId
+                    ? { ...d, latestState: newState, isActive: newState !== 'UNKNOWN' }
+                    : d
+            ));
+        },
+        onSensor: (e) => {
+            const numericValue = Number(e.value);
+            setDevices(prev => prev.map(d =>
+                d.kind === 'sensor' && d.id === e.sensorId
+                    ? {
+                        ...d,
+                        latestValue: Number.isFinite(numericValue) ? numericValue : d.latestValue,
+                        latestTimestamp: e.timestamp,
+                        isActive: true,
+                    }
+                    : d
+            ));
+        },
+        onDeviceCreated: () => {
+            // New device appeared in the user's accessible set — re-fetch the
+            // full list. Debounced so a burst (e.g., onboarding several
+            // devices) collapses to a single network round-trip.
+            debouncedReload();
+        },
+    });
 
     const filterPills = useMemo(() => {
         const types = [...new Set(devices.map(d => d.type))].sort();
