@@ -10,14 +10,19 @@ import {
 } from '@/lib/cart';
 
 describe('clampToStock', () => {
-    it('returns 0 for stock <= 0', () => {
+    it('returns 0 for stock = 0 (out of stock)', () => {
         expect(clampToStock(5, 0)).toBe(0);
-        expect(clampToStock(5, -1)).toBe(0);
+    });
+
+    it('treats negative stock as unlimited', () => {
+        expect(clampToStock(5, -1)).toBe(5);
+        expect(clampToStock(999, -1)).toBe(999);
     });
 
     it('returns 0 for qty < 1', () => {
         expect(clampToStock(0, 10)).toBe(0);
         expect(clampToStock(-3, 10)).toBe(0);
+        expect(clampToStock(0, -1)).toBe(0);
     });
 
     it('caps qty to stock', () => {
@@ -51,6 +56,20 @@ describe('addToCart', () => {
     it('ignores add when stock is 0', () => {
         const cart: CartLine[] = [];
         expect(addToCart(cart, 1, 0)).toBe(cart);
+    });
+
+    it('adds when stock is -1 (unlimited)', () => {
+        expect(addToCart([], 1, -1)).toEqual([{ shopItemId: 1, quantity: 1 }]);
+    });
+
+    it('increments existing line under unlimited stock', () => {
+        const cart: CartLine[] = [{ shopItemId: 1, quantity: 5 }];
+        expect(addToCart(cart, 1, -1, 100)).toEqual([{ shopItemId: 1, quantity: 105 }]);
+    });
+
+    it('returns same cart ref when increment would not change qty (already at stock cap)', () => {
+        const cart: CartLine[] = [{ shopItemId: 1, quantity: 5 }];
+        expect(addToCart(cart, 1, 5)).toBe(cart);
     });
 
     it('respects delta param', () => {

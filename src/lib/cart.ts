@@ -6,16 +6,18 @@ export interface CartLine {
 }
 
 export function clampToStock(qty: number, stockCount: number): number {
-    if (stockCount <= 0) return 0;
+    if (stockCount === 0) return 0;
     if (qty < 1) return 0;
+    if (stockCount < 0) return qty;
     return Math.min(qty, stockCount);
 }
 
 export function addToCart(cart: CartLine[], itemId: number, stockCount: number, delta = 1): CartLine[] {
-    if (stockCount <= 0 || delta <= 0) return cart;
+    if (stockCount === 0 || delta <= 0) return cart;
     const existing = cart.find(l => l.shopItemId === itemId);
     if (existing) {
         const nextQty = clampToStock(existing.quantity + delta, stockCount);
+        if (nextQty === existing.quantity) return cart;
         if (nextQty === 0) return cart.filter(l => l.shopItemId !== itemId);
         return cart.map(l => l.shopItemId === itemId ? { ...l, quantity: nextQty } : l);
     }

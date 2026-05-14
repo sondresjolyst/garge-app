@@ -60,7 +60,9 @@ export default function CartDrawer({
 
     const total = cartTotalInOre(priceableLines, vatEnabled);
 
-    const hasUnavailable = resolved.some(r => !r.item || !r.item.isActive || r.line.quantity > r.item.stockCount);
+    const hasUnavailable = resolved.some(r =>
+        !r.item || !r.item.isActive || (r.item.stockCount >= 0 && r.line.quantity > r.item.stockCount)
+    );
     const normalized = normalizeNoPhone(phone);
     const phoneValid = normalized !== null;
     const phoneTouched = phone.length > 0;
@@ -118,8 +120,10 @@ export default function CartDrawer({
                                     </div>
                                 );
                             }
-                            const overStock = line.quantity > item.stockCount;
+                            const unlimited = item.stockCount < 0;
+                            const overStock = !unlimited && line.quantity > item.stockCount;
                             const max = item.stockCount;
+                            const atMax = !unlimited && line.quantity >= max;
                             return (
                                 <div key={line.shopItemId} className="flex flex-col gap-2 p-3 bg-gray-800/40 border border-gray-700/40 rounded-xl">
                                     <div className="flex items-start justify-between gap-3">
@@ -149,7 +153,7 @@ export default function CartDrawer({
                                             <span className="text-sm font-medium text-gray-100 w-6 text-center tabular-nums">{line.quantity}</span>
                                             <button
                                                 onClick={() => onChange(setLineQty(cart, line.shopItemId, line.quantity + 1, max))}
-                                                disabled={line.quantity >= max}
+                                                disabled={atMax}
                                                 aria-label="Increase quantity"
                                                 className="p-1.5 rounded text-gray-400 hover:text-gray-200 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                             >
@@ -180,7 +184,7 @@ export default function CartDrawer({
                         </div>
 
                         <div className="space-y-1">
-                            <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Phone for Vipps</label>
+                            <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-wider">Phone number</label>
                             <div className="relative">
                                 <input
                                     ref={phoneRef}
