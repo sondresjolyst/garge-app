@@ -77,9 +77,15 @@ export default function QuantityChangeModal({
                     </span>
                 </div>
 
-                <p className="text-[11px] text-gray-500">
-                    The next scheduled charge will reflect the new total. No Vipps action required.
-                </p>
+                {qty > subscription.quantity ? (
+                    <p className="text-[11px] text-amber-400">
+                        Increasing quantity raises the agreement ceiling. Confirm the change in your Vipps app before the next charge.
+                    </p>
+                ) : qty < subscription.quantity ? (
+                    <p className="text-[11px] text-gray-500">
+                        Decreasing quantity takes effect on the next charge. No Vipps action required.
+                    </p>
+                ) : null}
 
                 <div className="flex gap-2">
                     <button
