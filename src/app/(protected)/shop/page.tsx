@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CheckBadgeIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { BuildingStorefrontIcon, CheckBadgeIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import TestModeBanner from '@/components/TestModeBanner';
@@ -199,10 +199,8 @@ export default function ShopPage() {
                 </Section>
             )}
 
-            <Section title="Subscription plans">
-                {products.length === 0 ? (
-                    <p className="text-sm text-gray-500">No plans available.</p>
-                ) : (
+            {products.length > 0 && (
+                <Section title="Subscription plans">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {products.map(p => {
                             const isPrimary = p.type === 'Primary';
@@ -290,8 +288,16 @@ export default function ShopPage() {
                             );
                         })}
                     </div>
-                )}
-            </Section>
+                </Section>
+            )}
+
+            {items.length === 0 && products.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-gray-900/40 border border-gray-700/30 rounded-2xl">
+                    <BuildingStorefrontIcon className="h-12 w-12 text-gray-700 mb-3" />
+                    <p className="text-sm font-medium text-gray-300">Shop is empty</p>
+                    <p className="text-xs text-gray-500 mt-1">No products or subscriptions are available right now. Check back later.</p>
+                </div>
+            )}
 
             {phoneItemModal && (
                 <PaymentPhoneModal
