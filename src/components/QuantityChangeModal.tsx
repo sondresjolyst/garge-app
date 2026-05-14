@@ -77,8 +77,8 @@ export default function QuantityChangeModal({
                     </span>
                 </div>
 
-                <p className="text-[11px] text-amber-400">
-                    You will need to confirm the new price in your Vipps app before it takes effect.
+                <p className="text-[11px] text-gray-500">
+                    The next scheduled charge will reflect the new total. No Vipps action required.
                 </p>
 
                 <div className="flex gap-2">
