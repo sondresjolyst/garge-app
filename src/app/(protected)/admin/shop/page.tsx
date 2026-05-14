@@ -10,6 +10,9 @@ import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
 import ShopService, { ShopItem, CreateShopItemPayload, UpdateShopItemPayload } from '@/services/shopService';
+import ShopItemPhotoService from '@/services/shopItemPhotoService';
+import PhotoUploader from '@/components/PhotoUploader';
+import type { Photo } from '@/services/photoServiceFactory';
 import { formatNok } from '@/lib/formatUtils';
 
 const emptyForm = { name: '', description: '', priceNok: '', stock: '-1' };
@@ -32,6 +35,7 @@ export default function AdminShopPage() {
     const [deleteTarget, setDeleteTarget] = useState<ShopItem | null>(null);
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
+    const [editPhoto, setEditPhoto] = useState<Photo | null>(null);
 
     async function refresh() {
         const all = await ShopService.getShopItems();
@@ -47,6 +51,7 @@ export default function AdminShopPage() {
     function openCreate() {
         setEditTarget(null);
         setForm(emptyForm);
+        setEditPhoto(null);
         setShowForm(true);
     }
 
@@ -58,12 +63,17 @@ export default function AdminShopPage() {
             priceNok: (item.priceInOre / 100).toFixed(2),
             stock: item.stockCount.toString(),
         });
+        setEditPhoto(null);
         setShowForm(true);
+        if (item.hasImage) {
+            ShopItemPhotoService.get(item.id).then(p => setEditPhoto(p));
+        }
     }
 
     function closeForm() {
         setShowForm(false);
         setEditTarget(null);
+        setEditPhoto(null);
     }
 
     async function handleSave() {
@@ -196,6 +206,19 @@ export default function AdminShopPage() {
                                     placeholder="Description (optional)"
                                     className="w-full bg-gray-900/60 border border-gray-700/60 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60"
                                 />
+                                {editTarget ? (
+                                    <PhotoUploader
+                                        photo={editPhoto}
+                                        service={ShopItemPhotoService}
+                                        parentId={editTarget.id}
+                                        alt={`${editTarget.name} image`}
+                                        aspectRatio="video"
+                                        addLabel="Add image"
+                                        onChange={p => { setEditPhoto(p); refresh().catch(() => {}); }}
+                                    />
+                                ) : (
+                                    <p className="text-xs text-gray-600 italic">Save the item first to add an image.</p>
+                                )}
                                 <div className="flex gap-2">
                                     <div className="relative flex-1">
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">NOK</span>
