@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { BuildingStorefrontIcon, CheckBadgeIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { BuildingStorefrontIcon, CheckBadgeIcon, MinusIcon, PlusIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import TestModeBanner from '@/components/TestModeBanner';
 import PaymentPhoneModal from '@/components/PaymentPhoneModal';
 import RedirectingOverlay from '@/components/RedirectingOverlay';
+import CartFab from '@/components/CartFab';
+import CartDrawer from '@/components/CartDrawer';
 import { toast } from 'sonner';
 import AdminService, { AppSettings } from '@/services/adminService';
 import ProductService, { Product } from '@/services/productService';
@@ -18,6 +20,7 @@ import { formatNok } from '@/lib/formatUtils';
 import { effectivePriceInOre, vatLabel } from '@/lib/pricing';
 import { useLocalStorage } from '@/lib/useLocalStorage';
 import { formatApiError } from '@/lib/errorMessages';
+import { CartLine, addToCart, cartItemCount } from '@/lib/cart';
 
 export default function ShopPage() {
     const [items, setItems] = useState<ShopItem[]>([]);
@@ -26,7 +29,6 @@ export default function ShopPage() {
     const [hasActivePrimary, setHasActivePrimary] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    const [phoneItemModal, setPhoneItemModal] = useState<{ item: ShopItem; quantity: number } | null>(null);
     const [phoneSubModal, setPhoneSubModal] = useState<{ product: Product; quantity: number } | null>(null);
     const [subQuantities, setSubQuantities] = useState<Record<number, number>>({});
     const [savedPhone, setSavedPhone] = useLocalStorage('garge-phone', '');
@@ -34,6 +36,9 @@ export default function ShopPage() {
     const [purchasing, setPurchasing] = useState(false);
     const [redirecting, setRedirecting] = useState(false);
     const [quantities, setQuantities] = useState<Record<number, number>>({});
+
+    const [cart, setCart] = useLocalStorage<CartLine[]>('garge-cart-items', []);
+    const [cartOpen, setCartOpen] = useState(false);
 
     useEffect(() => {
         Promise.all([
@@ -67,8 +72,16 @@ export default function ShopPage() {
         setQuantities(prev => ({ ...prev, [itemId]: clamped }));
     }
 
-    function openItemModal(item: ShopItem) {
-        setPhoneItemModal({ item, quantity: getQty(item.id) });
+    function handleAddToCart(item: ShopItem) {
+        const qty = getQty(item.id);
+        const next = addToCart(cart, item.id, item.stockCount, qty);
+        if (next === cart) {
+            toast.error('Cannot add more — stock limit reached.');
+            return;
+        }
+        setCart(next);
+        setQuantities(prev => ({ ...prev, [item.id]: 1 }));
+        toast.success(`Added ${item.name} to cart`);
     }
 
     function getSubQty(productId: number): number {
@@ -88,14 +101,16 @@ export default function ShopPage() {
         setPhoneSubModal({ product, quantity });
     }
 
-    async function handleCheckout(item: ShopItem, quantity: number, msisdn: string) {
+    async function handleCartCheckout(msisdn: string) {
+        if (cart.length === 0) return;
         setPurchasing(true);
         try {
             const res = await ShopService.checkout({
-                items: [{ shopItemId: item.id, quantity }],
+                items: cart.map(l => ({ shopItemId: l.shopItemId, quantity: l.quantity })),
                 phoneNumber: msisdn,
             });
             setSavedPhone(msisdn);
+            setCart([]);
             setRedirecting(true);
             window.location.href = res.redirectUrl;
         } catch (err) {
@@ -185,10 +200,11 @@ export default function ShopPage() {
                                                 </button>
                                             </div>
                                             <button
-                                                onClick={() => openItemModal(item)}
-                                                className="flex-1 px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
+                                                onClick={() => handleAddToCart(item)}
+                                                className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
                                             >
-                                                Buy
+                                                <ShoppingCartIcon className="h-4 w-4" />
+                                                Add to cart
                                             </button>
                                         </div>
                                     )}
@@ -299,23 +315,19 @@ export default function ShopPage() {
                 </div>
             )}
 
-            {phoneItemModal && (
-                <PaymentPhoneModal
-                    title="Pay with Vipps"
-                    summary={
-                        <>
-                            <span className="text-gray-300">{phoneItemModal.item.name}</span>
-                            {' × '}{phoneItemModal.quantity}
-                            {' — '}
-                            {formatNok(effectivePriceInOre(phoneItemModal.item.priceInOre, vatEnabled) * phoneItemModal.quantity)} {vatLabel(vatEnabled)}
-                        </>
-                    }
-                    initialPhone={profilePhone || savedPhone}
-                    submitting={purchasing}
-                    onSubmit={(msisdn) => handleCheckout(phoneItemModal.item, phoneItemModal.quantity, msisdn)}
-                    onCancel={() => setPhoneItemModal(null)}
-                />
-            )}
+            <CartFab count={cartItemCount(cart)} onClick={() => setCartOpen(true)} />
+
+            <CartDrawer
+                open={cartOpen}
+                cart={cart}
+                items={items}
+                vatEnabled={vatEnabled}
+                initialPhone={profilePhone || savedPhone}
+                submitting={purchasing}
+                onChange={setCart}
+                onClose={() => setCartOpen(false)}
+                onCheckout={handleCartCheckout}
+            />
 
             {phoneSubModal && (
                 <PaymentPhoneModal
