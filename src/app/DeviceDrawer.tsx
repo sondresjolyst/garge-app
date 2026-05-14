@@ -10,11 +10,12 @@ import LoadingDots from '@/components/LoadingDots';
 import PhotoUploader from '@/components/PhotoUploader';
 import SensorService, { SensorData, BatteryHealthData } from '@/services/sensorService';
 import SwitchService, { SwitchData } from '@/services/switchService';
-import { formatDateTime } from '@/lib/dateUtils';
+import { formatDateTime, formatRelative } from '@/lib/dateUtils';
 import SensorPhotoService from '@/services/sensorPhotoService';
 import type { Photo } from '@/services/photoServiceFactory';
 import { toast } from 'sonner';
 import ActivitiesSection from '@/components/ActivitiesSection';
+import CalibrationModal from '@/components/CalibrationModal';
 import type { UnifiedDevice } from './DeviceDashboard';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
@@ -110,6 +111,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
 
     // Photo (sensors only)
     const [photo, setPhoto] = useState<Photo | null | undefined>(undefined);
+    const [showCalibration, setShowCalibration] = useState(false);
 
     // Inline name editing (sensors + sockets)
     const [editingName, setEditingName] = useState(false);
@@ -416,39 +418,114 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                         )
                     )}
 
-                    {/* Battery health details */}
+                    {/* Battery health details — server-side analyzer output */}
                     {health && healthCfg && (
                         <div className="bg-gray-800/60 border border-gray-700/40 rounded-2xl p-4 space-y-3">
-                            <h3 className="text-sm font-semibold text-gray-300">Battery Health</h3>
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-semibold text-gray-300">Battery Health</h3>
+                                <button
+                                    onClick={() => setShowCalibration(true)}
+                                    className="text-xs text-sky-400 hover:text-sky-300 transition-colors"
+                                >
+                                    Calibrate
+                                </button>
+                            </div>
                             <div className="space-y-2.5">
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-gray-500">Status</span>
                                     <span className={`font-medium ${healthCfg.color}`}>{healthCfg.label}</span>
                                 </div>
-                                {health.status !== 'learning' && health.dropPct > 0 && (
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-500">Daily drop</span>
-                                        <span className="text-gray-200 font-medium">{health.dropPct.toFixed(1)}%</span>
-                                    </div>
-                                )}
+
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-500">Last charged</span>
+                                    <span className="text-gray-500">Charger</span>
+                                    {health.onChargerNow ? (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-xs font-medium">
+                                            ⚡ On charger
+                                        </span>
+                                    ) : (
+                                        <span className="text-gray-400 text-xs">Resting</span>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-500">Last full charge</span>
                                     <span className="text-gray-200 font-medium text-right">
-                                        {health.lastChargedAt
-                                            ? formatDateTime(health.lastChargedAt)
-                                            : 'No charge recorded yet'}
+                                        {health.onChargerNow
+                                            ? 'Charging now'
+                                            : health.lastFullChargeAt
+                                                ? formatRelative(health.lastFullChargeAt)
+                                                : 'None detected'}
                                     </span>
                                 </div>
-                                {health.chargesRecorded > 0 && (
+
+                                {health.fullChargesLast30d > 0 && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-500" title="Number of times the battery has been detected as charged based on voltage rise patterns">
-                                            Charge cycles detected
+                                        <span className="text-gray-500">Full charges (30d)</span>
+                                        <span className="text-gray-200 font-medium tabular-nums">{health.fullChargesLast30d}</span>
+                                    </div>
+                                )}
+
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-500">Resting voltage</span>
+                                    <span className="text-gray-200 font-medium tabular-nums">
+                                        {health.restingMedian.toFixed(2)} V
+                                        {health.calibrationOffsetV !== null && (
+                                            <span className="text-gray-500 text-xs ml-1">
+                                                ≈ {(health.restingMedian + health.calibrationOffsetV).toFixed(2)} V actual
+                                            </span>
+                                        )}
+                                    </span>
+                                </div>
+
+                                {health.voltageMin24h !== null && (
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-500">Min (24h)</span>
+                                        <span className="text-gray-200 font-medium tabular-nums">{health.voltageMin24h.toFixed(2)} V</span>
+                                    </div>
+                                )}
+
+                                {health.status !== 'learning' && (
+                                    <>
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-gray-500">Drop from peak</span>
+                                            <span className="text-gray-200 font-medium tabular-nums">{health.dropPct.toFixed(1)}%</span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-gray-500" title="Slope of resting voltage over last 30 days, as % per week">
+                                                Weekly decline
+                                            </span>
+                                            <span className="text-gray-200 font-medium tabular-nums">
+                                                {health.dailyDropPctPerWeek < 0
+                                                    ? `${(-health.dailyDropPctPerWeek).toFixed(2)}% / wk`
+                                                    : 'stable'}
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
+
+                                {health.chargeAcceptanceRatio !== null && (
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-500" title="Peak charging voltage as a ratio of resting voltage. Healthy battery accepts charge to ≥1.10×.">
+                                            Charge response
                                         </span>
-                                        <span className="text-gray-200 font-medium">{health.chargesRecorded}</span>
+                                        <span className="text-gray-200 font-medium tabular-nums">{health.chargeAcceptanceRatio.toFixed(2)}×</span>
                                     </div>
                                 )}
                             </div>
                         </div>
+                    )}
+
+                    {showCalibration && health && device.sensorName && (
+                        <CalibrationModal
+                            sensorName={device.sensorName}
+                            currentSensorReading={health.currentVoltage}
+                            existingOffset={health.calibrationOffsetV}
+                            onClose={() => setShowCalibration(false)}
+                            onSaved={() => {
+                                setShowCalibration(false);
+                                toast.message('Calibration applied. Voltage display will update on next refresh.');
+                            }}
+                        />
                     )}
 
                     {/* Activities (sensors only — e.g. log motorcycle activities for a voltmeter) */}
