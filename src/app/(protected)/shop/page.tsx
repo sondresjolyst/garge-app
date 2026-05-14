@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { BuildingStorefrontIcon, CheckBadgeIcon, MinusIcon, PlusIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
+import MarkdownText from '@/components/MarkdownText';
 import TestModeBanner from '@/components/TestModeBanner';
 import PaymentPhoneModal from '@/components/PaymentPhoneModal';
 import RedirectingOverlay from '@/components/RedirectingOverlay';
@@ -191,7 +192,9 @@ export default function ShopPage() {
                                                 <span className="text-xs font-normal text-gray-500 ml-1">{vatLabel(vatEnabled)}</span>
                                             </p>
                                             {item.description && (
-                                                <p className="text-xs text-gray-500 mt-1">{item.description}</p>
+                                                <div className="mt-1">
+                                                    <MarkdownText>{item.description}</MarkdownText>
+                                                </div>
                                             )}
                                             {item.stockCount !== -1 && item.stockCount > 0 && item.stockCount <= 5 && (
                                                 <p className="text-xs text-amber-400 mt-1">Only {item.stockCount} left</p>
@@ -261,7 +264,11 @@ export default function ShopPage() {
                                                 / {p.interval === 'Monthly' ? 'month' : 'year'} · {vatLabel(vatEnabled)}
                                             </span>
                                         </p>
-                                        {p.description && <p className="text-xs text-gray-500 mt-1">{p.description}</p>}
+                                        {p.description && (
+                                            <div className="mt-1">
+                                                <MarkdownText>{p.description}</MarkdownText>
+                                            </div>
+                                        )}
                                         {addOnLocked && (
                                             <p className="text-xs text-amber-400 mt-2">Requires an active primary subscription</p>
                                         )}

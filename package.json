@@ -26,6 +26,9 @@
     "react-apexcharts": "^2.1.0",
     "react-datepicker": "^9.1.0",
     "react-dom": "^19.2.5",
+    "react-markdown": "^10.1.0",
+    "rehype-sanitize": "^6.0.0",
+    "remark-gfm": "^4.0.1",
     "sonner": "^2.0.7",
     "zod": "^4.4.3"
   },
