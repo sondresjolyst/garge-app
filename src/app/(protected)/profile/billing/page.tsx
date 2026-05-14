@@ -9,6 +9,7 @@ import TestModeBanner from '@/components/TestModeBanner';
 import TestPill from '@/components/TestPill';
 import RedirectingOverlay from '@/components/RedirectingOverlay';
 import ConfirmModal from '@/components/ConfirmModal';
+import QuantityChangeModal from '@/components/QuantityChangeModal';
 import { toast } from 'sonner';
 import AdminService, { AppSettings } from '@/services/adminService';
 import SubscriptionService, { Subscription } from '@/services/subscriptionService';
@@ -36,6 +37,8 @@ export default function BillingPage() {
     const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
     const [loading, setLoading] = useState(true);
     const [cancelTarget, setCancelTarget] = useState<Subscription | null>(null);
+    const [qtyTarget, setQtyTarget] = useState<Subscription | null>(null);
+    const [updatingQty, setUpdatingQty] = useState(false);
     const [resuming, setResuming] = useState<number | null>(null);
     const [downloading, setDownloading] = useState<number | null>(null);
     const [redirecting, setRedirecting] = useState(false);
@@ -71,6 +74,21 @@ export default function BillingPage() {
             setSubscriptions(await SubscriptionService.getMySubscriptions());
         } catch (err) {
             toast.error(formatApiError(err, 'Failed to cancel subscription'));
+        }
+    }
+
+    async function handleQuantityUpdate(newQty: number) {
+        if (!qtyTarget) return;
+        setUpdatingQty(true);
+        try {
+            const res = await SubscriptionService.updateSubscriptionQuantity(qtyTarget.id, newQty);
+            toast.success(res.message ?? 'Quantity updated. Confirm in Vipps app.');
+            setQtyTarget(null);
+            setSubscriptions(await SubscriptionService.getMySubscriptions());
+        } catch (err) {
+            toast.error(formatApiError(err, 'Failed to update quantity'));
+        } finally {
+            setUpdatingQty(false);
         }
     }
 
@@ -121,13 +139,18 @@ export default function BillingPage() {
                                         <div>
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 <p className="text-sm font-semibold text-gray-100">{sub.productName}</p>
+                                                {sub.quantity > 1 && (
+                                                    <span className="px-1.5 py-0.5 bg-gray-700/50 border border-gray-600/40 text-gray-300 text-xs font-medium rounded tabular-nums">
+                                                        × {sub.quantity}
+                                                    </span>
+                                                )}
                                                 <span className={`px-1.5 py-0.5 border rounded text-xs font-medium ${sub.productType === 'Primary' ? 'bg-sky-900/30 border-sky-700/40 text-sky-400' : 'bg-purple-900/30 border-purple-700/40 text-purple-400'}`}>
                                                     {sub.productType === 'Primary' ? 'Primary' : 'Add-on'}
                                                 </span>
                                                 <TestPill visible={sub.isTest} />
                                             </div>
                                             <p className="text-xs text-gray-500 mt-0.5">
-                                                {formatNok(effectivePriceInOre(sub.priceInOre, vatEnabled))} / {sub.interval === 'Monthly' ? 'month' : 'year'} · {vatLabel(vatEnabled)}
+                                                {formatNok(effectivePriceInOre(sub.priceInOre, vatEnabled) * sub.quantity)} / {sub.interval === 'Monthly' ? 'month' : 'year'} · {vatLabel(vatEnabled)}
                                             </p>
                                         </div>
                                         <span className={`px-2 py-0.5 border rounded text-xs font-medium ${statusColor(sub.status)}`}>
@@ -164,12 +187,22 @@ export default function BillingPage() {
                                     )}
 
                                     {sub.status === 'Active' && (
-                                        <button
-                                            onClick={() => setCancelTarget(sub)}
-                                            className="mt-1 px-3 py-1.5 bg-gray-700/60 hover:bg-red-900/40 hover:border-red-700/50 border border-gray-600/40 text-gray-400 hover:text-red-400 text-xs rounded-lg transition-all"
-                                        >
-                                            Cancel
-                                        </button>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            {sub.productType === 'AddOn' && (
+                                                <button
+                                                    onClick={() => setQtyTarget(sub)}
+                                                    className="px-3 py-1.5 bg-gray-700/60 hover:bg-gray-700 border border-gray-600/40 text-gray-300 text-xs rounded-lg transition-all"
+                                                >
+                                                    Change quantity
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => setCancelTarget(sub)}
+                                                className="px-3 py-1.5 bg-gray-700/60 hover:bg-red-900/40 hover:border-red-700/50 border border-gray-600/40 text-gray-400 hover:text-red-400 text-xs rounded-lg transition-all"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
                                     )}
                                 </li>
                             );
@@ -248,6 +281,16 @@ export default function BillingPage() {
                     confirmLabel="Cancel subscription"
                     onConfirm={handleCancel}
                     onCancel={() => setCancelTarget(null)}
+                />
+            )}
+
+            {qtyTarget && (
+                <QuantityChangeModal
+                    subscription={qtyTarget}
+                    vatEnabled={vatEnabled}
+                    submitting={updatingQty}
+                    onConfirm={handleQuantityUpdate}
+                    onCancel={() => setQtyTarget(null)}
                 />
             )}
 

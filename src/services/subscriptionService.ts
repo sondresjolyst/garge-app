@@ -10,6 +10,7 @@ export interface Subscription {
     productName: string;
     productType: SubscriptionProductType;
     priceInOre: number;
+    quantity: number;
     interval: string;
     vippsAgreementId: string;
     status: SubscriptionStatus;
@@ -24,6 +25,7 @@ export interface InitiateSubscriptionPayload {
     productId: number;
     phoneNumber: string;
     consentToWaiveWithdrawal: boolean;
+    quantity?: number;
 }
 
 export interface InitiateSubscriptionResponse {
@@ -40,6 +42,7 @@ export interface AdminSubscription {
     productName: string;
     productType: SubscriptionProductType;
     priceInOre: number;
+    quantity: number;
     interval: string;
     status: SubscriptionStatus;
     isTest: boolean;
@@ -92,6 +95,14 @@ const SubscriptionService = {
 
     async cancelSubscription(id: number): Promise<void> {
         await axiosInstance.post(`/subscriptions/cancel/${id}`);
+    },
+
+    async updateSubscriptionQuantity(id: number, quantity: number): Promise<{ subscription: Subscription; message: string }> {
+        const res = await axiosInstance.patch<{ subscription: Subscription; message: string }>(
+            `/subscriptions/${id}/quantity`,
+            { quantity }
+        );
+        return res.data;
     },
 
     async getConfirmationUrl(id: number): Promise<string> {

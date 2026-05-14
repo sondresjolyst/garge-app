@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { CheckBadgeIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import TestModeBanner from '@/components/TestModeBanner';
@@ -26,7 +27,8 @@ export default function ShopPage() {
     const [loading, setLoading] = useState(true);
 
     const [phoneItemModal, setPhoneItemModal] = useState<{ item: ShopItem; quantity: number } | null>(null);
-    const [phoneSubModal, setPhoneSubModal] = useState<Product | null>(null);
+    const [phoneSubModal, setPhoneSubModal] = useState<{ product: Product; quantity: number } | null>(null);
+    const [subQuantities, setSubQuantities] = useState<Record<number, number>>({});
     const [savedPhone, setSavedPhone] = useLocalStorage('garge-phone', '');
     const [profilePhone, setProfilePhone] = useState('');
     const [purchasing, setPurchasing] = useState(false);
@@ -69,12 +71,21 @@ export default function ShopPage() {
         setPhoneItemModal({ item, quantity: getQty(item.id) });
     }
 
-    function openSubModal(product: Product) {
+    function getSubQty(productId: number): number {
+        return subQuantities[productId] ?? 1;
+    }
+
+    function setSubQty(productId: number, q: number) {
+        const clamped = Math.max(1, Math.min(q, 50));
+        setSubQuantities(prev => ({ ...prev, [productId]: clamped }));
+    }
+
+    function openSubModal(product: Product, quantity: number) {
         if (product.type === 'AddOn' && !hasActivePrimary) {
             toast.error('Subscribe to the primary plan first.');
             return;
         }
-        setPhoneSubModal(product);
+        setPhoneSubModal({ product, quantity });
     }
 
     async function handleCheckout(item: ShopItem, quantity: number, msisdn: string) {
@@ -93,13 +104,14 @@ export default function ShopPage() {
         }
     }
 
-    async function handleInitiate(product: Product, msisdn: string) {
+    async function handleInitiate(product: Product, quantity: number, msisdn: string) {
         setPurchasing(true);
         try {
             const res = await SubscriptionService.initiateSubscription({
                 productId: product.id,
                 phoneNumber: msisdn,
                 consentToWaiveWithdrawal: true,
+                quantity,
             });
             setSavedPhone(msisdn);
             setRedirecting(true);
@@ -193,18 +205,23 @@ export default function ShopPage() {
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {products.map(p => {
-                            const addOnLocked = p.type === 'AddOn' && !hasActivePrimary;
+                            const isPrimary = p.type === 'Primary';
+                            const primaryActive = isPrimary && hasActivePrimary;
+                            const addOnLocked = !isPrimary && !hasActivePrimary;
+                            const dimmed = primaryActive || addOnLocked;
+                            const subQty = isPrimary ? 1 : getSubQty(p.id);
+                            const lineTotal = effectivePriceInOre(p.priceInOre, vatEnabled) * subQty;
                             return (
                                 <div
                                     key={p.id}
                                     className={`bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 flex flex-col gap-3 ${
-                                        addOnLocked ? 'opacity-60 grayscale' : ''
+                                        dimmed ? 'opacity-60 grayscale' : ''
                                     }`}
                                 >
                                     <div className="flex-1">
                                         <p className="text-sm font-semibold text-gray-100">{p.name}</p>
                                         <p className="text-lg font-bold text-sky-400 mt-1">
-                                            {formatNok(effectivePriceInOre(p.priceInOre, vatEnabled))}
+                                            {formatNok(lineTotal)}
                                             <span className="text-xs font-normal text-gray-500 ml-1">
                                                 / {p.interval === 'Monthly' ? 'month' : 'year'} · {vatLabel(vatEnabled)}
                                             </span>
@@ -214,17 +231,61 @@ export default function ShopPage() {
                                             <p className="text-xs text-amber-400 mt-2">Requires an active primary subscription</p>
                                         )}
                                     </div>
-                                    <button
-                                        onClick={() => openSubModal(p)}
-                                        disabled={addOnLocked}
-                                        className={`w-full px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors ${
-                                            addOnLocked
-                                                ? 'bg-gray-700 cursor-not-allowed'
-                                                : 'bg-sky-600 hover:bg-sky-500'
-                                        }`}
-                                    >
-                                        Subscribe
-                                    </button>
+
+                                    {primaryActive ? (
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/15 text-sky-400 text-xs font-semibold">
+                                                <CheckBadgeIcon className="h-4 w-4" />
+                                                Active
+                                            </span>
+                                            <Link
+                                                href="/profile/billing"
+                                                className="text-xs text-sky-400 hover:text-sky-300 transition-colors"
+                                            >
+                                                Manage →
+                                            </Link>
+                                        </div>
+                                    ) : !isPrimary && !addOnLocked ? (
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1 bg-gray-800/60 border border-gray-700/40 rounded-lg p-0.5">
+                                                <button
+                                                    onClick={() => setSubQty(p.id, subQty - 1)}
+                                                    disabled={subQty <= 1}
+                                                    aria-label="Decrease quantity"
+                                                    className="p-1.5 rounded text-gray-400 hover:text-gray-200 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    <MinusIcon className="h-3.5 w-3.5" />
+                                                </button>
+                                                <span className="text-sm font-medium text-gray-100 w-6 text-center tabular-nums">{subQty}</span>
+                                                <button
+                                                    onClick={() => setSubQty(p.id, subQty + 1)}
+                                                    disabled={subQty >= 50}
+                                                    aria-label="Increase quantity"
+                                                    className="p-1.5 rounded text-gray-400 hover:text-gray-200 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    <PlusIcon className="h-3.5 w-3.5" />
+                                                </button>
+                                            </div>
+                                            <button
+                                                onClick={() => openSubModal(p, subQty)}
+                                                className="flex-1 px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
+                                            >
+                                                {subQty > 1 ? `Subscribe × ${subQty}` : 'Subscribe'}
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => openSubModal(p, 1)}
+                                            disabled={addOnLocked}
+                                            className={`w-full px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors ${
+                                                addOnLocked
+                                                    ? 'bg-gray-700 cursor-not-allowed'
+                                                    : 'bg-sky-600 hover:bg-sky-500'
+                                            }`}
+                                        >
+                                            Subscribe
+                                        </button>
+                                    )}
                                 </div>
                             );
                         })}
@@ -255,15 +316,16 @@ export default function ShopPage() {
                     title="Pay with Vipps"
                     summary={
                         <>
-                            <span className="text-gray-300">{phoneSubModal.name}</span>
+                            <span className="text-gray-300">{phoneSubModal.product.name}</span>
+                            {phoneSubModal.quantity > 1 && <> {' × '}{phoneSubModal.quantity}</>}
                             {' — '}
-                            {formatNok(effectivePriceInOre(phoneSubModal.priceInOre, vatEnabled))} / {phoneSubModal.interval === 'Monthly' ? 'month' : 'year'} · {vatLabel(vatEnabled)}
+                            {formatNok(effectivePriceInOre(phoneSubModal.product.priceInOre, vatEnabled) * phoneSubModal.quantity)} / {phoneSubModal.product.interval === 'Monthly' ? 'month' : 'year'} · {vatLabel(vatEnabled)}
                         </>
                     }
                     requireConsent
                     initialPhone={profilePhone || savedPhone}
                     submitting={purchasing}
-                    onSubmit={(msisdn) => handleInitiate(phoneSubModal, msisdn)}
+                    onSubmit={(msisdn) => handleInitiate(phoneSubModal.product, phoneSubModal.quantity, msisdn)}
                     onCancel={() => setPhoneSubModal(null)}
                 />
             )}
