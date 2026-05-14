@@ -12,6 +12,7 @@ import AdminService, { AppSettings } from '@/services/adminService';
 import ProductService, { Product } from '@/services/productService';
 import ShopService, { ShopItem } from '@/services/shopService';
 import SubscriptionService from '@/services/subscriptionService';
+import UserService from '@/services/userService';
 import { formatNok } from '@/lib/formatUtils';
 import { effectivePriceInOre, vatLabel } from '@/lib/pricing';
 import { useLocalStorage } from '@/lib/useLocalStorage';
@@ -27,6 +28,7 @@ export default function ShopPage() {
     const [phoneItemModal, setPhoneItemModal] = useState<{ item: ShopItem; quantity: number } | null>(null);
     const [phoneSubModal, setPhoneSubModal] = useState<Product | null>(null);
     const [savedPhone, setSavedPhone] = useLocalStorage('garge-phone', '');
+    const [profilePhone, setProfilePhone] = useState('');
     const [purchasing, setPurchasing] = useState(false);
     const [redirecting, setRedirecting] = useState(false);
     const [quantities, setQuantities] = useState<Record<number, number>>({});
@@ -47,6 +49,9 @@ export default function ShopPage() {
             })
             .catch(err => toast.error(formatApiError(err, 'Failed to load shop')))
             .finally(() => setLoading(false));
+        UserService.getUserProfile()
+            .then(u => setProfilePhone(u.phoneNumber ?? ''))
+            .catch(() => {});
     }, []);
 
     const vatEnabled = appSettings?.vatEnabled ?? false;
@@ -238,7 +243,7 @@ export default function ShopPage() {
                             {formatNok(effectivePriceInOre(phoneItemModal.item.priceInOre, vatEnabled) * phoneItemModal.quantity)} {vatLabel(vatEnabled)}
                         </>
                     }
-                    initialPhone={savedPhone}
+                    initialPhone={profilePhone || savedPhone}
                     submitting={purchasing}
                     onSubmit={(msisdn) => handleCheckout(phoneItemModal.item, phoneItemModal.quantity, msisdn)}
                     onCancel={() => setPhoneItemModal(null)}
@@ -256,7 +261,7 @@ export default function ShopPage() {
                         </>
                     }
                     requireConsent
-                    initialPhone={savedPhone}
+                    initialPhone={profilePhone || savedPhone}
                     submitting={purchasing}
                     onSubmit={(msisdn) => handleInitiate(phoneSubModal, msisdn)}
                     onCancel={() => setPhoneSubModal(null)}
