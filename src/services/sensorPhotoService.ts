@@ -1,27 +1,7 @@
-import axiosInstance from '@/services/axiosInstance';
+import { createPhotoService, type Photo } from '@/services/photoServiceFactory';
 
-export interface SensorPhoto {
-    data: string;
-    contentType: string;
-}
+export type SensorPhoto = Photo;
 
-const SensorPhotoService = {
-    async get(sensorId: number): Promise<SensorPhoto | null> {
-        try {
-            const res = await axiosInstance.get<SensorPhoto>(`/sensors/${sensorId}/photo`);
-            return res.data;
-        } catch {
-            return null;
-        }
-    },
-
-    async upload(sensorId: number, base64: string, contentType: string): Promise<void> {
-        await axiosInstance.post(`/sensors/${sensorId}/photo`, { data: base64, contentType });
-    },
-
-    async remove(sensorId: number): Promise<void> {
-        await axiosInstance.delete(`/sensors/${sensorId}/photo`);
-    },
-};
+const SensorPhotoService = createPhotoService(id => `/sensors/${id}/photo`);
 
 export default SensorPhotoService;

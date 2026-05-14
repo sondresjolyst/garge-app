@@ -16,6 +16,8 @@ import ProductService, { Product } from '@/services/productService';
 import ShopService, { ShopItem } from '@/services/shopService';
 import SubscriptionService from '@/services/subscriptionService';
 import UserService from '@/services/userService';
+import ShopItemPhotoService from '@/services/shopItemPhotoService';
+import type { Photo } from '@/services/photoServiceFactory';
 import { formatNok } from '@/lib/formatUtils';
 import { effectivePriceInOre, vatLabel } from '@/lib/pricing';
 import { useLocalStorage } from '@/lib/useLocalStorage';
@@ -36,6 +38,7 @@ export default function ShopPage() {
     const [purchasing, setPurchasing] = useState(false);
     const [redirecting, setRedirecting] = useState(false);
     const [quantities, setQuantities] = useState<Record<number, number>>({});
+    const [photos, setPhotos] = useState<Record<number, Photo>>({});
 
     const [cart, setCart] = useLocalStorage<CartLine[]>('garge-cart-items', []);
     const [cartOpen, setCartOpen] = useState(false);
@@ -53,6 +56,11 @@ export default function ShopPage() {
                 setProducts(prods);
                 setAppSettings(settings);
                 setHasActivePrimary(mySubs.some(s => s.status === 'Active' && s.productType === 'Primary'));
+                shopItems.filter(i => i.hasImage).forEach(i => {
+                    ShopItemPhotoService.get(i.id).then(p => {
+                        if (p) setPhotos(prev => ({ ...prev, [i.id]: p }));
+                    });
+                });
             })
             .catch(err => toast.error(formatApiError(err, 'Failed to load shop')))
             .finally(() => setLoading(false));
@@ -152,62 +160,75 @@ export default function ShopPage() {
                             const outOfStock = item.stockCount === 0;
                             const qty = getQty(item.id);
                             const max = item.stockCount === -1 ? 99 : item.stockCount;
+                            const photo = photos[item.id];
                             return (
                                 <div
                                     key={item.id}
-                                    className={`relative bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 flex flex-col gap-3 ${
+                                    className={`relative bg-gray-900/40 border border-gray-700/30 rounded-xl overflow-hidden flex flex-col ${
                                         outOfStock ? 'opacity-60 grayscale' : ''
                                     }`}
                                 >
+                                    {photo && (
+                                        <div className="aspect-video bg-gray-800/40 overflow-hidden">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img
+                                                src={`data:${photo.contentType};base64,${photo.data}`}
+                                                alt={item.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    )}
                                     {outOfStock && (
                                         <span className="absolute top-2 right-2 px-1.5 py-0.5 bg-red-500/20 border border-red-500/40 text-red-400 text-[10px] font-bold uppercase tracking-wider rounded">
                                             Out of stock
                                         </span>
                                     )}
-                                    <div className="flex-1">
-                                        <p className="text-sm font-semibold text-gray-100">{item.name}</p>
-                                        <p className="text-lg font-bold text-sky-400 mt-1">
-                                            {formatNok(effectivePriceInOre(item.priceInOre, vatEnabled) * qty)}
-                                            <span className="text-xs font-normal text-gray-500 ml-1">{vatLabel(vatEnabled)}</span>
-                                        </p>
-                                        {item.description && (
-                                            <p className="text-xs text-gray-500 mt-1">{item.description}</p>
-                                        )}
-                                        {item.stockCount !== -1 && item.stockCount > 0 && item.stockCount <= 5 && (
-                                            <p className="text-xs text-amber-400 mt-1">Only {item.stockCount} left</p>
-                                        )}
-                                    </div>
+                                    <div className="flex-1 flex flex-col gap-3 p-4">
+                                        <div className="flex-1">
+                                            <p className="text-sm font-semibold text-gray-100">{item.name}</p>
+                                            <p className="text-lg font-bold text-sky-400 mt-1">
+                                                {formatNok(effectivePriceInOre(item.priceInOre, vatEnabled) * qty)}
+                                                <span className="text-xs font-normal text-gray-500 ml-1">{vatLabel(vatEnabled)}</span>
+                                            </p>
+                                            {item.description && (
+                                                <p className="text-xs text-gray-500 mt-1">{item.description}</p>
+                                            )}
+                                            {item.stockCount !== -1 && item.stockCount > 0 && item.stockCount <= 5 && (
+                                                <p className="text-xs text-amber-400 mt-1">Only {item.stockCount} left</p>
+                                            )}
+                                        </div>
 
-                                    {!outOfStock && (
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex items-center gap-1 bg-gray-800/60 border border-gray-700/40 rounded-lg p-0.5">
+                                        {!outOfStock && (
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-1 bg-gray-800/60 border border-gray-700/40 rounded-lg p-0.5">
+                                                    <button
+                                                        onClick={() => setQty(item.id, qty - 1, max)}
+                                                        disabled={qty <= 1}
+                                                        aria-label="Decrease quantity"
+                                                        className="p-1.5 rounded text-gray-400 hover:text-gray-200 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                    >
+                                                        <MinusIcon className="h-3.5 w-3.5" />
+                                                    </button>
+                                                    <span className="text-sm font-medium text-gray-100 w-6 text-center tabular-nums">{qty}</span>
+                                                    <button
+                                                        onClick={() => setQty(item.id, qty + 1, max)}
+                                                        disabled={qty >= max}
+                                                        aria-label="Increase quantity"
+                                                        className="p-1.5 rounded text-gray-400 hover:text-gray-200 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                    >
+                                                        <PlusIcon className="h-3.5 w-3.5" />
+                                                    </button>
+                                                </div>
                                                 <button
-                                                    onClick={() => setQty(item.id, qty - 1, max)}
-                                                    disabled={qty <= 1}
-                                                    aria-label="Decrease quantity"
-                                                    className="p-1.5 rounded text-gray-400 hover:text-gray-200 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                    onClick={() => handleAddToCart(item)}
+                                                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
                                                 >
-                                                    <MinusIcon className="h-3.5 w-3.5" />
-                                                </button>
-                                                <span className="text-sm font-medium text-gray-100 w-6 text-center tabular-nums">{qty}</span>
-                                                <button
-                                                    onClick={() => setQty(item.id, qty + 1, max)}
-                                                    disabled={qty >= max}
-                                                    aria-label="Increase quantity"
-                                                    className="p-1.5 rounded text-gray-400 hover:text-gray-200 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                                >
-                                                    <PlusIcon className="h-3.5 w-3.5" />
+                                                    <ShoppingCartIcon className="h-4 w-4" />
+                                                    Add to cart
                                                 </button>
                                             </div>
-                                            <button
-                                                onClick={() => handleAddToCart(item)}
-                                                className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
-                                            >
-                                                <ShoppingCartIcon className="h-4 w-4" />
-                                                Add to cart
-                                            </button>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
                             );
                         })}
