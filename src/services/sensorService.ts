@@ -23,13 +23,6 @@ export interface BatteryHealthData {
     id: number;
     sensorId: number;
     status: string;
-    // Legacy fields. Will be dropped in phase 2.
-    baseline: number;
-    lastCharge: number;
-    dropPct: number;
-    chargesRecorded: number;
-    lastChargedAt: string | null;
-    // Analyzer-computed fields.
     currentVoltage: number;
     restingMedian: number;
     peakResting: number;
