@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.14.0](https://github.com/sondresjolyst/garge-app/compare/v1.13.1...v1.14.0) (2026-05-16)
+
+
+### Features
+
+* **battery:** consume server-side health analyzer fields + add calibration ([#274](https://github.com/sondresjolyst/garge-app/issues/274)) ([f4345ed](https://github.com/sondresjolyst/garge-app/commit/f4345ed9884ba4ee456259e79b0bfc9ef3c36b86))
+* **shop:** item images with shared photo uploader/service ([#269](https://github.com/sondresjolyst/garge-app/issues/269)) ([d1bb4e6](https://github.com/sondresjolyst/garge-app/commit/d1bb4e69d5c6b7649d11982c9222893670efce30))
+* **shop:** markdown descriptions with sanitized renderer + admin editor ([#271](https://github.com/sondresjolyst/garge-app/issues/271)) ([7b601d6](https://github.com/sondresjolyst/garge-app/commit/7b601d68e0b594c3692bf21d789e4ca672c881b8))
+* **shop:** multi-item cart with single Vipps checkout ([#268](https://github.com/sondresjolyst/garge-app/issues/268)) ([8d2eeb7](https://github.com/sondresjolyst/garge-app/commit/8d2eeb7369cd866578682038350520624406265e))
+
+
+### Bug Fixes
+
+* **shop:** hide empty Subscription plans section, add overall empty state ([#270](https://github.com/sondresjolyst/garge-app/issues/270)) ([f055465](https://github.com/sondresjolyst/garge-app/commit/f055465979de60d711881d797c8c5a59b31b6d0d))
+
 ## [1.13.1](https://github.com/sondresjolyst/garge-app/compare/v1.13.0...v1.13.1) (2026-05-10)
 
 
