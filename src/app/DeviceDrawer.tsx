@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { XMarkIcon, PencilIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PencilIcon, CheckIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { TYPE_CONFIG as typeConfig, DEFAULT_TYPE as defaultType, BATTERY_STATUS_CONFIG as statusConfig } from '@/lib/typeConfig';
 import { unitForType, typeLabel } from '@/lib/typeUtils';
 import { RANGE_OPTIONS, type RangeIndex } from '@/lib/constants';
@@ -23,6 +23,47 @@ const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { 
 interface DeviceDrawerProps {
     device: UnifiedDevice;
     onClose: () => void;
+}
+
+function InfoLabel({ children, tooltip }: { children: React.ReactNode; tooltip: string }) {
+    const [open, setOpen] = useState(false);
+    const ref = React.useRef<HTMLSpanElement>(null);
+
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e: MouseEvent | TouchEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        document.addEventListener('touchstart', handler);
+        return () => {
+            document.removeEventListener('mousedown', handler);
+            document.removeEventListener('touchstart', handler);
+        };
+    }, [open]);
+
+    return (
+        <span ref={ref} className="relative text-gray-500 inline-flex items-center gap-1">
+            {children}
+            <button
+                type="button"
+                onClick={() => setOpen(v => !v)}
+                aria-label={tooltip}
+                aria-expanded={open}
+                className="inline-flex items-center justify-center w-5 h-5 -m-0.5 text-gray-600 hover:text-gray-400 active:text-gray-300"
+            >
+                <InformationCircleIcon className="w-3.5 h-3.5 shrink-0" />
+            </button>
+            {open && (
+                <span
+                    role="tooltip"
+                    className="absolute left-0 top-full mt-1 z-20 w-56 px-3 py-2 rounded-lg bg-gray-900 border border-gray-700 text-gray-200 text-xs font-normal normal-case leading-snug shadow-lg"
+                >
+                    {tooltip}
+                </span>
+            )}
+        </span>
+    );
 }
 
 // ── Socket timeline helpers ───────────────────────────────────────────────────
@@ -418,6 +459,13 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                         )
                     )}
 
+                    {/* Last seen */}
+                    {device.latestTimestamp && (
+                        <p className="text-xs text-gray-600 text-center">
+                            Last seen {formatDateTime(device.latestTimestamp)}
+                        </p>
+                    )}
+
                     {/* Battery health details — server-side analyzer output */}
                     {health && healthCfg && (
                         <div className="bg-gray-800/60 border border-gray-700/40 rounded-2xl p-4 space-y-3">
@@ -432,12 +480,16 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                             </div>
                             <div className="space-y-2.5">
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-500">Status</span>
+                                    <InfoLabel tooltip="Overall battery health. Needs ≥14 days of data and at least one charge event to assess.">
+                                        Status
+                                    </InfoLabel>
                                     <span className={`font-medium ${healthCfg.color}`}>{healthCfg.label}</span>
                                 </div>
 
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-500">Charger</span>
+                                    <InfoLabel tooltip="Whether the battery is currently being charged.">
+                                        Charger
+                                    </InfoLabel>
                                     {health.onChargerNow ? (
                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-xs font-medium">
                                             ⚡ On charger
@@ -448,7 +500,9 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                                 </div>
 
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-500">Last full charge</span>
+                                    <InfoLabel tooltip="When the battery was last detected as fully charged.">
+                                        Last full charge
+                                    </InfoLabel>
                                     <span className="text-gray-200 font-medium text-right">
                                         {health.onChargerNow
                                             ? 'Charging now'
@@ -460,13 +514,17 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
 
                                 {health.fullChargesLast30d > 0 && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-500">Full charges (30d)</span>
+                                        <InfoLabel tooltip="Charge events detected in the last 30 days.">
+                                            Full charges (30d)
+                                        </InfoLabel>
                                         <span className="text-gray-200 font-medium tabular-nums">{health.fullChargesLast30d}</span>
                                     </div>
                                 )}
 
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-500">Resting voltage</span>
+                                    <InfoLabel tooltip="Battery's idle voltage, smoothed over 14 days.">
+                                        Resting voltage
+                                    </InfoLabel>
                                     <span className="text-gray-200 font-medium tabular-nums">
                                         {health.restingMedian.toFixed(2)} V
                                         {health.calibrationOffsetV !== null && (
@@ -479,7 +537,9 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
 
                                 {health.voltageMin24h !== null && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-500">Min (24h)</span>
+                                        <InfoLabel tooltip="Lowest reading in the last 24 hours.">
+                                            Min (24h)
+                                        </InfoLabel>
                                         <span className="text-gray-200 font-medium tabular-nums">{health.voltageMin24h.toFixed(2)} V</span>
                                     </div>
                                 )}
@@ -487,13 +547,15 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                                 {health.status !== 'learning' && (
                                     <>
                                         <div className="flex items-center justify-between text-sm">
-                                            <span className="text-gray-500">Drop from peak</span>
+                                            <InfoLabel tooltip="How much resting voltage has dropped from its 90-day peak. Includes natural self-discharge.">
+                                                Drop from peak
+                                            </InfoLabel>
                                             <span className="text-gray-200 font-medium tabular-nums">{health.dropPct.toFixed(1)}%</span>
                                         </div>
                                         <div className="flex items-center justify-between text-sm">
-                                            <span className="text-gray-500" title="Slope of resting voltage over last 30 days, as % per week">
+                                            <InfoLabel tooltip="Trend of resting voltage over the last 30 days.">
                                                 Weekly decline
-                                            </span>
+                                            </InfoLabel>
                                             <span className="text-gray-200 font-medium tabular-nums">
                                                 {health.dailyDropPctPerWeek < 0
                                                     ? `${(-health.dailyDropPctPerWeek).toFixed(2)}% / wk`
@@ -505,9 +567,9 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
 
                                 {health.chargeAcceptanceRatio !== null && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-500" title="Peak charging voltage as a ratio of resting voltage. Healthy battery accepts charge to ≥1.10×.">
+                                        <InfoLabel tooltip="How well the battery accepts charge. Healthy ≥1.10×.">
                                             Charge response
-                                        </span>
+                                        </InfoLabel>
                                         <span className="text-gray-200 font-medium tabular-nums">{health.chargeAcceptanceRatio.toFixed(2)}×</span>
                                     </div>
                                 )}
@@ -531,13 +593,6 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                     {/* Activities (sensors only — e.g. log motorcycle activities for a voltmeter) */}
                     {device.kind === 'sensor' && (
                         <ActivitiesSection sensorId={device.id} />
-                    )}
-
-                    {/* Last seen */}
-                    {device.latestTimestamp && (
-                        <p className="text-xs text-gray-600 text-center pb-2">
-                            Last seen {formatDateTime(device.latestTimestamp)}
-                        </p>
                     )}
 
                 </div>
