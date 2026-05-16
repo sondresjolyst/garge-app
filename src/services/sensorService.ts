@@ -23,12 +23,36 @@ export interface BatteryHealthData {
     id: number;
     sensorId: number;
     status: string;
+    // Legacy fields. Will be dropped in phase 2.
     baseline: number;
     lastCharge: number;
     dropPct: number;
     chargesRecorded: number;
-    timestamp: string;
     lastChargedAt: string | null;
+    // Analyzer-computed fields.
+    currentVoltage: number;
+    restingMedian: number;
+    peakResting: number;
+    onChargerNow: boolean;
+    lastFullChargeAt: string | null;
+    lastFullChargePeak: number | null;
+    voltageMin24h: number | null;
+    fullChargesLast30d: number;
+    dailyDropPctPerWeek: number;
+    chargeAcceptanceRatio: number | null;
+    calibrationOffsetV: number | null;
+    timestamp: string;
+}
+
+export interface BatteryChargeEvent {
+    id: number;
+    sensorId: number;
+    startedAt: string;
+    endedAt: string;
+    peakVoltage: number;
+    restingAtTime: number;
+    peakRatio: number;
+    durationMinutes: number;
 }
 
 export interface PagedResponse<T> {
@@ -193,6 +217,27 @@ const SensorService = {
                 throw new Error('An unknown error occurred');
             }
         }
+    },
+
+    async getBatteryChargeEvents(sensorName: string, since?: string): Promise<BatteryChargeEvent[]> {
+        const params = since ? { since } : undefined;
+        const response = await axiosInstance.get<BatteryChargeEvent[]>(
+            `/battery-health/name/${encodeURIComponent(sensorName)}/events`,
+            { params }
+        );
+        return response.data;
+    },
+
+    async calibrateBattery(sensorName: string, multimeterVoltage: number): Promise<{ calibrationOffsetV: number }> {
+        const response = await axiosInstance.post<{ calibrationOffsetV: number }>(
+            `/battery-health/name/${encodeURIComponent(sensorName)}/calibration`,
+            { multimeterVoltage }
+        );
+        return response.data;
+    },
+
+    async clearCalibration(sensorName: string): Promise<void> {
+        await axiosInstance.delete(`/battery-health/name/${encodeURIComponent(sensorName)}/calibration`);
     },
 };
 

@@ -10,6 +10,7 @@ import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from 'sonner';
 import ProductService, { Product, CreateProductPayload, UpdateProductPayload } from '@/services/productService';
+import MarkdownEditor from '@/components/MarkdownEditor';
 import { formatNok } from '@/lib/formatUtils';
 
 const emptyForm = { name: '', description: '', priceNok: '', interval: 0 as 0 | 1, type: 0 as 0 | 1 };
@@ -192,12 +193,11 @@ export default function AdminProductsPage() {
                                     placeholder="Name"
                                     className="w-full bg-gray-900/60 border border-gray-700/60 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60"
                                 />
-                                <input
-                                    type="text"
+                                <MarkdownEditor
                                     value={form.description}
-                                    onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                                    placeholder="Description (optional)"
-                                    className="w-full bg-gray-900/60 border border-gray-700/60 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60"
+                                    onChange={v => setForm(f => ({ ...f, description: v }))}
+                                    placeholder="Description (markdown supported)"
+                                    maxLength={2000}
                                 />
                                 <div className="flex gap-2">
                                     <div className="relative flex-1">

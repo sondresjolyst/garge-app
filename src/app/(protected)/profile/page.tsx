@@ -7,7 +7,8 @@ import UserService from '@/services/userService';
 import { UserDTO } from '@/dto/UserDTO';
 import SensorService from '@/services/sensorService';
 import SwitchService from '@/services/switchService';
-import { ChevronRightIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { normalizeNoPhone } from '@/lib/phone';
 import { isPushSupported, isPushSubscribed, subscribeToPush, unsubscribeFromPush, sendTestNotification } from '@/services/pushNotificationService';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
@@ -51,6 +52,7 @@ const Profile: React.FC = () => {
     const [editLastName, setEditLastName] = useState('');
     const [editPhone, setEditPhone] = useState('');
     const [profileSaving, setProfileSaving] = useState(false);
+    const [editingField, setEditingField] = useState<'name' | 'phone' | null>(null);
 
     useEffect(() => {
         if (!isAuthenticated) { router.push('/login'); return; }
@@ -59,9 +61,6 @@ const Profile: React.FC = () => {
             setPriceZone(u.priceZone ?? 'NO2');
             setPushEnabled(u.pushNotificationsEnabled ?? false);
             setOfflineThreshold(u.offlineAlertThresholdHours > 0 ? u.offlineAlertThresholdHours : 4);
-            setEditFirstName(u.firstName ?? '');
-            setEditLastName(u.lastName ?? '');
-            setEditPhone(u.phoneNumber ?? '');
         }).catch(console.error).finally(() => setProfileLoading(false));
         if (isPushSupported()) {
             setPushPermission(Notification.permission);
@@ -78,23 +77,66 @@ const Profile: React.FC = () => {
         return () => clearTimeout(timer);
     }, [countdown]);
 
-    const handleProfileSave = async () => {
+    const startEditName = () => {
+        if (!user) return;
+        setEditFirstName(user.firstName ?? '');
+        setEditLastName(user.lastName ?? '');
+        setEditingField('name');
+    };
+
+    const startEditPhone = () => {
+        if (!user) return;
+        setEditPhone(user.phoneNumber ?? '');
+        setEditingField('phone');
+    };
+
+    const cancelEdit = () => setEditingField(null);
+
+    const handleSaveName = async () => {
         if (!user?.id) return;
-        if (!editFirstName.trim() || !editLastName.trim()) {
+        const first = editFirstName.trim();
+        const last = editLastName.trim();
+        if (!first || !last) {
             toast.error('First name and last name are required.');
             return;
         }
         setProfileSaving(true);
         try {
             await UserService.updateProfile(user.id, {
-                firstName: editFirstName.trim(),
-                lastName: editLastName.trim(),
-                phoneNumber: editPhone.trim() || undefined,
+                firstName: first,
+                lastName: last,
+                phoneNumber: user.phoneNumber || undefined,
             });
-            setUser(prev => prev ? { ...prev, firstName: editFirstName.trim(), lastName: editLastName.trim(), phoneNumber: editPhone.trim() } : prev);
-            toast.success('Profile updated.');
+            setUser(prev => prev ? { ...prev, firstName: first, lastName: last } : prev);
+            setEditingField(null);
+            toast.success('Name updated.');
         } catch (err) {
-            toast.error(err instanceof Error ? err.message : 'Failed to update profile.');
+            toast.error(err instanceof Error ? err.message : 'Failed to update name.');
+        } finally {
+            setProfileSaving(false);
+        }
+    };
+
+    const handleSavePhone = async () => {
+        if (!user?.id) return;
+        const raw = editPhone.trim();
+        const normalized = raw ? normalizeNoPhone(raw) : '';
+        if (raw && normalized === null) {
+            toast.error('Enter a valid phone number.');
+            return;
+        }
+        setProfileSaving(true);
+        try {
+            await UserService.updateProfile(user.id, {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phoneNumber: normalized || undefined,
+            });
+            setUser(prev => prev ? { ...prev, phoneNumber: normalized || '' } : prev);
+            setEditingField(null);
+            toast.success('Phone number updated.');
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'Failed to update phone number.');
         } finally {
             setProfileSaving(false);
         }
@@ -269,13 +311,96 @@ const Profile: React.FC = () => {
                 <Section title="Account">
                     {isUserLoading ? <LoadingDots /> : (
                         <div className="space-y-3">
-                            <div className="flex items-center justify-between py-2 border-b border-gray-700/40">
-                                <span className="text-sm text-gray-400">Name</span>
-                                <span className="text-sm text-gray-100">{user.firstName} {user.lastName}</span>
+                            <div className="py-2 border-b border-gray-700/40">
+                                {editingField === 'name' ? (
+                                    <div className="space-y-2">
+                                        <span className="text-sm text-gray-400">Name</span>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <input
+                                                type="text"
+                                                value={editFirstName}
+                                                onChange={e => setEditFirstName(e.target.value)}
+                                                placeholder="First name"
+                                                className={inputClass}
+                                                autoFocus
+                                                disabled={profileSaving}
+                                            />
+                                            <input
+                                                type="text"
+                                                value={editLastName}
+                                                onChange={e => setEditLastName(e.target.value)}
+                                                placeholder="Last name"
+                                                className={inputClass}
+                                                disabled={profileSaving}
+                                            />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button onClick={handleSaveName} disabled={profileSaving} className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-all">
+                                                <CheckIcon className="h-3.5 w-3.5" />
+                                                {profileSaving ? 'Saving…' : 'Save'}
+                                            </button>
+                                            <button onClick={cancelEdit} disabled={profileSaving} className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs font-medium rounded-lg transition-all">
+                                                <XMarkIcon className="h-3.5 w-3.5" />
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-gray-400">Name</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-gray-100">{user.firstName} {user.lastName}</span>
+                                            <button onClick={startEditName} aria-label="Edit name" className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700/60 transition-all">
+                                                <PencilIcon className="h-3.5 w-3.5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div className="flex items-center justify-between py-2 border-b border-gray-700/40">
                                 <span className="text-sm text-gray-400">Email</span>
                                 <span className="text-sm text-gray-100">{user.email}</span>
+                            </div>
+                            <div className="py-2 border-b border-gray-700/40">
+                                {editingField === 'phone' ? (
+                                    <div className="space-y-2">
+                                        <span className="text-sm text-gray-400">Phone</span>
+                                        <input
+                                            type="tel"
+                                            inputMode="tel"
+                                            autoComplete="tel"
+                                            value={editPhone}
+                                            onChange={e => setEditPhone(e.target.value)}
+                                            placeholder="91 23 45 67"
+                                            className={inputClass}
+                                            autoFocus
+                                            disabled={profileSaving}
+                                        />
+                                        {editPhone.trim() && normalizeNoPhone(editPhone) === null && (
+                                            <p className="text-[11px] text-red-400">Enter a valid phone number.</p>
+                                        )}
+                                        <div className="flex gap-2">
+                                            <button onClick={handleSavePhone} disabled={profileSaving} className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-all">
+                                                <CheckIcon className="h-3.5 w-3.5" />
+                                                {profileSaving ? 'Saving…' : 'Save'}
+                                            </button>
+                                            <button onClick={cancelEdit} disabled={profileSaving} className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs font-medium rounded-lg transition-all">
+                                                <XMarkIcon className="h-3.5 w-3.5" />
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-gray-400">Phone</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-gray-100">{user.phoneNumber || '—'}</span>
+                                            <button onClick={startEditPhone} aria-label="Edit phone" className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700/60 transition-all">
+                                                <PencilIcon className="h-3.5 w-3.5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div className="flex items-center justify-between py-2">
                                 <span className="text-sm text-gray-400">Email confirmed</span>
@@ -316,32 +441,6 @@ const Profile: React.FC = () => {
                             )}
                         </div>
                     )}
-                </Section>
-
-                <Section title="Edit profile">
-                    <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1.5">First name</label>
-                                <input className={inputClass} type="text" value={editFirstName} onChange={e => setEditFirstName(e.target.value)} />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1.5">Last name</label>
-                                <input className={inputClass} type="text" value={editLastName} onChange={e => setEditLastName(e.target.value)} />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-400 mb-1.5">Phone number</label>
-                            <input className={inputClass} type="tel" placeholder="optional" value={editPhone} onChange={e => setEditPhone(e.target.value)} />
-                        </div>
-                        <button
-                            onClick={handleProfileSave}
-                            disabled={profileSaving}
-                            className="px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-all"
-                        >
-                            {profileSaving ? 'Saving…' : 'Save'}
-                        </button>
-                    </div>
                 </Section>
 
                 <Section title="Billing">

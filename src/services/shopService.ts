@@ -7,6 +7,7 @@ export interface ShopItem {
     priceInOre: number;
     stockCount: number;
     isActive: boolean;
+    hasImage?: boolean;
     createdAt: string;
 }
 

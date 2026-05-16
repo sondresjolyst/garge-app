@@ -2,18 +2,20 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { XMarkIcon, PencilIcon, CheckIcon, CameraIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PencilIcon, CheckIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { TYPE_CONFIG as typeConfig, DEFAULT_TYPE as defaultType, BATTERY_STATUS_CONFIG as statusConfig } from '@/lib/typeConfig';
 import { unitForType, typeLabel } from '@/lib/typeUtils';
 import { RANGE_OPTIONS, type RangeIndex } from '@/lib/constants';
 import LoadingDots from '@/components/LoadingDots';
+import PhotoUploader from '@/components/PhotoUploader';
 import SensorService, { SensorData, BatteryHealthData } from '@/services/sensorService';
 import SwitchService, { SwitchData } from '@/services/switchService';
-import { formatDateTime } from '@/lib/dateUtils';
+import { formatDateTime, formatRelative } from '@/lib/dateUtils';
 import SensorPhotoService from '@/services/sensorPhotoService';
-import { compressImage } from '@/lib/imageUtils';
+import type { Photo } from '@/services/photoServiceFactory';
 import { toast } from 'sonner';
 import ActivitiesSection from '@/components/ActivitiesSection';
+import CalibrationModal from '@/components/CalibrationModal';
 import type { UnifiedDevice } from './DeviceDashboard';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
@@ -21,6 +23,47 @@ const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { 
 interface DeviceDrawerProps {
     device: UnifiedDevice;
     onClose: () => void;
+}
+
+function InfoLabel({ children, tooltip }: { children: React.ReactNode; tooltip: string }) {
+    const [open, setOpen] = useState(false);
+    const ref = React.useRef<HTMLSpanElement>(null);
+
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e: MouseEvent | TouchEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        document.addEventListener('touchstart', handler);
+        return () => {
+            document.removeEventListener('mousedown', handler);
+            document.removeEventListener('touchstart', handler);
+        };
+    }, [open]);
+
+    return (
+        <span ref={ref} className="relative text-gray-500 inline-flex items-center gap-1">
+            {children}
+            <button
+                type="button"
+                onClick={() => setOpen(v => !v)}
+                aria-label={tooltip}
+                aria-expanded={open}
+                className="inline-flex items-center justify-center w-5 h-5 -m-0.5 text-gray-600 hover:text-gray-400 active:text-gray-300"
+            >
+                <InformationCircleIcon className="w-3.5 h-3.5 shrink-0" />
+            </button>
+            {open && (
+                <span
+                    role="tooltip"
+                    className="absolute left-0 top-full mt-1 z-20 w-56 px-3 py-2 rounded-lg bg-gray-900 border border-gray-700 text-gray-200 text-xs font-normal normal-case leading-snug shadow-lg"
+                >
+                    {tooltip}
+                </span>
+            )}
+        </span>
+    );
 }
 
 // ── Socket timeline helpers ───────────────────────────────────────────────────
@@ -108,10 +151,8 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
     const [loadingSwitch, setLoadingSwitch] = useState(false);
 
     // Photo (sensors only)
-    const [photo, setPhoto] = useState<{ data: string; contentType: string } | null | undefined>(undefined);
-    const [uploadingPhoto, setUploadingPhoto] = useState(false);
-    const [deletingPhoto, setDeletingPhoto] = useState(false);
-    const photoInputRef = React.useRef<HTMLInputElement>(null);
+    const [photo, setPhoto] = useState<Photo | null | undefined>(undefined);
+    const [showCalibration, setShowCalibration] = useState(false);
 
     // Inline name editing (sensors + sockets)
     const [editingName, setEditingName] = useState(false);
@@ -231,36 +272,6 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
         }
     };
 
-    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        e.target.value = '';
-        setUploadingPhoto(true);
-        try {
-            const { base64, contentType } = await compressImage(file);
-            await SensorPhotoService.upload(device.id, base64, contentType);
-            setPhoto({ data: base64, contentType });
-            toast.success('Photo saved');
-        } catch {
-            toast.error('Failed to upload photo');
-        } finally {
-            setUploadingPhoto(false);
-        }
-    };
-
-    const handlePhotoDelete = async () => {
-        setDeletingPhoto(true);
-        try {
-            await SensorPhotoService.remove(device.id);
-            setPhoto(null);
-            toast.success('Photo deleted');
-        } catch {
-            toast.error('Failed to delete photo');
-        } finally {
-            setDeletingPhoto(false);
-        }
-    };
-
     return (
         <>
             {/* Backdrop */}
@@ -332,53 +343,14 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                 <div className="px-5 py-5 pb-28 space-y-6">
 
                     {/* Photo — sensor only */}
-                    {device.kind === 'sensor' && (
-                        <div className="relative">
-                            <input
-                                ref={photoInputRef}
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={handlePhotoUpload}
-                            />
-                            {photo ? (
-                                <div className="relative rounded-2xl overflow-hidden bg-gray-800/60 border border-gray-700/40">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                        src={`data:${photo.contentType};base64,${photo.data}`}
-                                        alt="Sensor photo"
-                                        className="w-full object-cover max-h-52"
-                                    />
-                                    <div className="absolute top-2 right-2 flex gap-1.5">
-                                        <button
-                                            onClick={() => photoInputRef.current?.click()}
-                                            disabled={uploadingPhoto}
-                                            title="Replace photo"
-                                            className="p-1.5 rounded-lg bg-gray-900/80 text-gray-300 hover:text-white transition-colors"
-                                        >
-                                            <CameraIcon className="h-4 w-4" />
-                                        </button>
-                                        <button
-                                            onClick={handlePhotoDelete}
-                                            disabled={deletingPhoto}
-                                            title="Delete photo"
-                                            className="p-1.5 rounded-lg bg-gray-900/80 text-red-400 hover:text-red-300 transition-colors"
-                                        >
-                                            <TrashIcon className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : photo === null ? (
-                                <button
-                                    onClick={() => photoInputRef.current?.click()}
-                                    disabled={uploadingPhoto}
-                                    className="w-full flex flex-col items-center gap-2 py-6 rounded-2xl border border-dashed border-gray-700/60 text-gray-500 hover:text-gray-300 hover:border-gray-600 transition-colors"
-                                >
-                                    <CameraIcon className="h-6 w-6" />
-                                    <span className="text-sm">{uploadingPhoto ? 'Uploading…' : 'Add photo'}</span>
-                                </button>
-                            ) : null /* loading — render nothing */}
-                        </div>
+                    {device.kind === 'sensor' && photo !== undefined && (
+                        <PhotoUploader
+                            photo={photo}
+                            service={SensorPhotoService}
+                            parentId={device.id}
+                            alt="Sensor photo"
+                            onChange={setPhoto}
+                        />
                     )}
 
                     {/* Current value — sensor */}
@@ -487,51 +459,140 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                         )
                     )}
 
-                    {/* Battery health details */}
+                    {/* Last seen */}
+                    {device.latestTimestamp && (
+                        <p className="text-xs text-gray-600 text-center">
+                            Last seen {formatDateTime(device.latestTimestamp)}
+                        </p>
+                    )}
+
+                    {/* Battery health details — server-side analyzer output */}
                     {health && healthCfg && (
                         <div className="bg-gray-800/60 border border-gray-700/40 rounded-2xl p-4 space-y-3">
-                            <h3 className="text-sm font-semibold text-gray-300">Battery Health</h3>
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-semibold text-gray-300">Battery Health</h3>
+                                <button
+                                    onClick={() => setShowCalibration(true)}
+                                    className="text-xs text-sky-400 hover:text-sky-300 transition-colors"
+                                >
+                                    Calibrate
+                                </button>
+                            </div>
                             <div className="space-y-2.5">
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-500">Status</span>
+                                    <InfoLabel tooltip="Overall battery health. Needs ≥14 days of data and at least one charge event to assess.">
+                                        Status
+                                    </InfoLabel>
                                     <span className={`font-medium ${healthCfg.color}`}>{healthCfg.label}</span>
                                 </div>
-                                {health.status !== 'learning' && health.dropPct > 0 && (
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-500">Daily drop</span>
-                                        <span className="text-gray-200 font-medium">{health.dropPct.toFixed(1)}%</span>
-                                    </div>
-                                )}
+
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-500">Last charged</span>
+                                    <InfoLabel tooltip="Whether the battery is currently being charged.">
+                                        Charger
+                                    </InfoLabel>
+                                    {health.onChargerNow ? (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-xs font-medium">
+                                            ⚡ On charger
+                                        </span>
+                                    ) : (
+                                        <span className="text-gray-400 text-xs">Resting</span>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center justify-between text-sm">
+                                    <InfoLabel tooltip="When the battery was last detected as fully charged.">
+                                        Last full charge
+                                    </InfoLabel>
                                     <span className="text-gray-200 font-medium text-right">
-                                        {health.lastChargedAt
-                                            ? formatDateTime(health.lastChargedAt)
-                                            : 'No charge recorded yet'}
+                                        {health.onChargerNow
+                                            ? 'Charging now'
+                                            : health.lastFullChargeAt
+                                                ? formatRelative(health.lastFullChargeAt)
+                                                : 'None detected'}
                                     </span>
                                 </div>
-                                {health.chargesRecorded > 0 && (
+
+                                {health.fullChargesLast30d > 0 && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-500" title="Number of times the battery has been detected as charged based on voltage rise patterns">
-                                            Charge cycles detected
-                                        </span>
-                                        <span className="text-gray-200 font-medium">{health.chargesRecorded}</span>
+                                        <InfoLabel tooltip="Charge events detected in the last 30 days.">
+                                            Full charges (30d)
+                                        </InfoLabel>
+                                        <span className="text-gray-200 font-medium tabular-nums">{health.fullChargesLast30d}</span>
+                                    </div>
+                                )}
+
+                                <div className="flex items-center justify-between text-sm">
+                                    <InfoLabel tooltip="Battery's idle voltage, smoothed over 14 days.">
+                                        Resting voltage
+                                    </InfoLabel>
+                                    <span className="text-gray-200 font-medium tabular-nums">
+                                        {health.restingMedian.toFixed(2)} V
+                                        {health.calibrationOffsetV !== null && (
+                                            <span className="text-gray-500 text-xs ml-1">
+                                                ≈ {(health.restingMedian + health.calibrationOffsetV).toFixed(2)} V actual
+                                            </span>
+                                        )}
+                                    </span>
+                                </div>
+
+                                {health.voltageMin24h !== null && (
+                                    <div className="flex items-center justify-between text-sm">
+                                        <InfoLabel tooltip="Lowest reading in the last 24 hours.">
+                                            Min (24h)
+                                        </InfoLabel>
+                                        <span className="text-gray-200 font-medium tabular-nums">{health.voltageMin24h.toFixed(2)} V</span>
+                                    </div>
+                                )}
+
+                                {health.status !== 'learning' && (
+                                    <>
+                                        <div className="flex items-center justify-between text-sm">
+                                            <InfoLabel tooltip="How much resting voltage has dropped from its 90-day peak. Includes natural self-discharge.">
+                                                Drop from peak
+                                            </InfoLabel>
+                                            <span className="text-gray-200 font-medium tabular-nums">{health.dropPct.toFixed(1)}%</span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-sm">
+                                            <InfoLabel tooltip="Trend of resting voltage over the last 30 days.">
+                                                Weekly decline
+                                            </InfoLabel>
+                                            <span className="text-gray-200 font-medium tabular-nums">
+                                                {health.dailyDropPctPerWeek < 0
+                                                    ? `${(-health.dailyDropPctPerWeek).toFixed(2)}% / wk`
+                                                    : 'stable'}
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
+
+                                {health.chargeAcceptanceRatio !== null && (
+                                    <div className="flex items-center justify-between text-sm">
+                                        <InfoLabel tooltip="How well the battery accepts charge. Healthy ≥1.10×.">
+                                            Charge response
+                                        </InfoLabel>
+                                        <span className="text-gray-200 font-medium tabular-nums">{health.chargeAcceptanceRatio.toFixed(2)}×</span>
                                     </div>
                                 )}
                             </div>
                         </div>
                     )}
 
+                    {showCalibration && health && device.sensorName && (
+                        <CalibrationModal
+                            sensorName={device.sensorName}
+                            currentSensorReading={health.currentVoltage}
+                            existingOffset={health.calibrationOffsetV}
+                            onClose={() => setShowCalibration(false)}
+                            onSaved={() => {
+                                setShowCalibration(false);
+                                toast.message('Calibration applied. Voltage display will update on next refresh.');
+                            }}
+                        />
+                    )}
+
                     {/* Activities (sensors only — e.g. log motorcycle activities for a voltmeter) */}
                     {device.kind === 'sensor' && (
                         <ActivitiesSection sensorId={device.id} />
-                    )}
-
-                    {/* Last seen */}
-                    {device.latestTimestamp && (
-                        <p className="text-xs text-gray-600 text-center pb-2">
-                            Last seen {formatDateTime(device.latestTimestamp)}
-                        </p>
                     )}
 
                 </div>
