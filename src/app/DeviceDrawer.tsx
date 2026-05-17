@@ -522,8 +522,8 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                                 )}
 
                                 <div className="flex items-center justify-between text-sm">
-                                    <InfoLabel tooltip="Battery's current rested voltage (3-day median, charging periods excluded).">
-                                        Resting voltage
+                                    <InfoLabel tooltip="Battery's current rested voltage, smoothed over the last 3 days.">
+                                        Resting voltage (3d)
                                     </InfoLabel>
                                     <span className="text-gray-200 font-medium tabular-nums">
                                         {health.restingMedian.toFixed(2)} V
@@ -547,14 +547,30 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                                 {health.status !== 'learning' && (
                                     <>
                                         <div className="flex items-center justify-between text-sm">
-                                            <InfoLabel tooltip="How much resting voltage has dropped from its 90-day peak. Includes natural self-discharge.">
-                                                Drop from peak
+                                            <InfoLabel tooltip="Long-term resting voltage baseline observed over the last 90 days.">
+                                                Resting voltage (90d)
                                             </InfoLabel>
                                             <span className="text-gray-200 font-medium tabular-nums">
-                                                {(health.peakResting > 0
-                                                    ? ((health.peakResting - health.restingMedian) / health.peakResting) * 100
-                                                    : 0
-                                                ).toFixed(1)}%
+                                                {health.peakResting.toFixed(2)} V
+                                                {health.calibrationOffsetV !== null && (
+                                                    <span className="text-gray-500 text-xs ml-1">
+                                                        ≈ {(health.peakResting + health.calibrationOffsetV).toFixed(2)} V actual
+                                                    </span>
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-sm">
+                                            <InfoLabel tooltip="How the current 3-day resting voltage compares to the 90-day baseline.">
+                                                Difference
+                                            </InfoLabel>
+                                            <span className="text-gray-200 font-medium tabular-nums text-right">
+                                                {(() => {
+                                                    const delta = health.peakResting > 0
+                                                        ? ((health.restingMedian - health.peakResting) / health.peakResting) * 100
+                                                        : 0;
+                                                    if (Math.abs(delta) < 0.05) return '0.0%';
+                                                    return `${Math.abs(delta).toFixed(1)}% ${delta > 0 ? 'above' : 'below'}`;
+                                                })()}
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between text-sm">
