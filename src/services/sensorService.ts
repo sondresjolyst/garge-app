@@ -232,6 +232,13 @@ const SensorService = {
     async clearCalibration(sensorName: string): Promise<void> {
         await axiosInstance.delete(`/battery-health/name/${encodeURIComponent(sensorName)}/calibration`);
     },
+
+    async reanalyzeBatteryHealth(): Promise<{ processed: number; failed: number; total: number }> {
+        const response = await axiosInstance.post<{ processed: number; failed: number; total: number }>(
+            '/battery-health/admin/reanalyze'
+        );
+        return response.data;
+    },
 };
 
 export default SensorService;
