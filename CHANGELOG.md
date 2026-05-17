@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.1](https://github.com/sondresjolyst/garge-app/compare/v1.14.0...v1.14.1) (2026-05-17)
+
+
+### Bug Fixes
+
+* **battery-ui:** clarify resting voltage tooltip ([#279](https://github.com/sondresjolyst/garge-app/issues/279)) ([e6609a4](https://github.com/sondresjolyst/garge-app/commit/e6609a4612f12973ee7fe224044bda90e4ce693a))
+
 ## [1.14.0](https://github.com/sondresjolyst/garge-app/compare/v1.13.1...v1.14.0) (2026-05-16)
 
 
