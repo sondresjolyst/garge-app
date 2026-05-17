@@ -558,13 +558,15 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between text-sm">
-                                            <InfoLabel tooltip="Trend of resting voltage over the last 30 days.">
+                                            <InfoLabel tooltip="Trend across post-charge resting voltage over recent charge cycles. Needs at least 3 charge cycles to compute.">
                                                 Weekly decline
                                             </InfoLabel>
-                                            <span className="text-gray-200 font-medium tabular-nums">
-                                                {health.dailyDropPctPerWeek < 0
-                                                    ? `${(-health.dailyDropPctPerWeek).toFixed(2)}% / wk`
-                                                    : 'stable'}
+                                            <span className="text-gray-200 font-medium tabular-nums text-right">
+                                                {health.dailyDropPctPerWeek === null
+                                                    ? <span className="text-gray-500 text-xs">Needs more charge cycles</span>
+                                                    : health.dailyDropPctPerWeek < 0
+                                                        ? `${(-health.dailyDropPctPerWeek).toFixed(2)}% / wk`
+                                                        : 'stable'}
                                             </span>
                                         </div>
                                     </>
