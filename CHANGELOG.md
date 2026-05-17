@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.15.0](https://github.com/sondresjolyst/garge-app/compare/v1.14.2...v1.15.0) (2026-05-17)
+
+
+### Features
+
+* **admin:** bulk reanalyze battery health from admin page ([#285](https://github.com/sondresjolyst/garge-app/issues/285)) ([c3c3892](https://github.com/sondresjolyst/garge-app/commit/c3c38920c71fa02ea2ce292b308d11a6cc5ffb79))
+
+
+### Bug Fixes
+
+* **battery-ui:** rename resting voltage rows to 3d / 90d, show difference ([#286](https://github.com/sondresjolyst/garge-app/issues/286)) ([1bb5d80](https://github.com/sondresjolyst/garge-app/commit/1bb5d80cf9adb1d5cca6abb6ea4e2dc116f92ebb))
+
 ## [1.14.2](https://github.com/sondresjolyst/garge-app/compare/v1.14.1...v1.14.2) (2026-05-17)
 
 
