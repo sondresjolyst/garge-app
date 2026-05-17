@@ -550,7 +550,12 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                                             <InfoLabel tooltip="How much resting voltage has dropped from its 90-day peak. Includes natural self-discharge.">
                                                 Drop from peak
                                             </InfoLabel>
-                                            <span className="text-gray-200 font-medium tabular-nums">{health.dropPct.toFixed(1)}%</span>
+                                            <span className="text-gray-200 font-medium tabular-nums">
+                                                {(health.peakResting > 0
+                                                    ? ((health.peakResting - health.restingMedian) / health.peakResting) * 100
+                                                    : 0
+                                                ).toFixed(1)}%
+                                            </span>
                                         </div>
                                         <div className="flex items-center justify-between text-sm">
                                             <InfoLabel tooltip="Trend of resting voltage over the last 30 days.">
