@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.14.2](https://github.com/sondresjolyst/garge-app/compare/v1.14.1...v1.14.2) (2026-05-17)
+
+
+### Bug Fixes
+
+* **battery-ui:** handle null weekly decline (cycle-anchored slope) ([#282](https://github.com/sondresjolyst/garge-app/issues/282)) ([1227290](https://github.com/sondresjolyst/garge-app/commit/1227290b2eabd5de831ece5e87f5cc68f3e9ec1a))
+* **battery-ui:** handle null weekly decline (cycle-anchored slope) (#… ([aee2149](https://github.com/sondresjolyst/garge-app/commit/aee2149f5e3bc79b28a53080db0e3ed3538e8927))
+
 ## [1.14.1](https://github.com/sondresjolyst/garge-app/compare/v1.14.0...v1.14.1) (2026-05-17)
 
 
