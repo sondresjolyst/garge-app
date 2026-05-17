@@ -31,7 +31,7 @@ export interface BatteryHealthData {
     lastFullChargePeak: number | null;
     voltageMin24h: number | null;
     fullChargesLast30d: number;
-    dailyDropPctPerWeek: number;
+    dailyDropPctPerWeek: number | null;
     chargeAcceptanceRatio: number | null;
     calibrationOffsetV: number | null;
     timestamp: string;
