@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
 import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats, AppSettings } from '@/services/adminService';
+import SensorService from '@/services/sensorService';
 import { formatNok } from '@/lib/formatUtils';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
@@ -56,6 +57,7 @@ export default function AdminPage() {
 
     const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
     const [appSettingsLoading, setAppSettingsLoading] = useState(false);
+    const [reanalyzingBattery, setReanalyzingBattery] = useState(false);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -135,6 +137,19 @@ export default function AdminPage() {
             toast.error('Failed to update setting');
         } finally {
             setAppSettingsLoading(false);
+        }
+    };
+
+    const handleReanalyzeBattery = async () => {
+        setReanalyzingBattery(true);
+        try {
+            const result = await SensorService.reanalyzeBatteryHealth();
+            const failureSuffix = result.failed > 0 ? ` (${result.failed} failed)` : '';
+            toast.success(`Reanalyzed ${result.processed}/${result.total} sensors${failureSuffix}`);
+        } catch {
+            toast.error('Reanalyze failed');
+        } finally {
+            setReanalyzingBattery(false);
         }
     };
 
@@ -429,6 +444,23 @@ export default function AdminPage() {
                                     </button>
                                 )}
                             </div>
+                        </div>
+                    </Section>
+
+                    {/* Battery health */}
+                    <Section title="Battery health">
+                        <div className="flex items-center justify-between bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                            <div>
+                                <p className="text-sm font-medium text-gray-200">Reanalyze all voltage sensors</p>
+                                <p className="text-xs text-gray-500 mt-0.5">Rebuilds each sensor&apos;s battery-health row from its full voltage history. Use after deploying a new analyzer version.</p>
+                            </div>
+                            <button
+                                onClick={handleReanalyzeBattery}
+                                disabled={reanalyzingBattery}
+                                className="shrink-0 px-3 py-1.5 text-sm font-medium text-gray-100 bg-sky-600 hover:bg-sky-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {reanalyzingBattery ? 'Reanalyzing…' : 'Reanalyze'}
+                            </button>
                         </div>
                     </Section>
 
