@@ -522,7 +522,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                                 )}
 
                                 <div className="flex items-center justify-between text-sm">
-                                    <InfoLabel tooltip="Battery's idle voltage, smoothed over 14 days.">
+                                    <InfoLabel tooltip="Battery's current rested voltage (3-day median, charging periods excluded).">
                                         Resting voltage
                                     </InfoLabel>
                                     <span className="text-gray-200 font-medium tabular-nums">
