@@ -22,7 +22,7 @@
     "jsonwebtoken": "^9.0.2",
     "next": "^16.2.6",
     "next-auth": "^4.24.12",
-    "react": "^19.0.0",
+    "react": "^19.2.6",
     "react-apexcharts": "^2.1.0",
     "react-datepicker": "^9.1.0",
     "react-dom": "^19.2.5",
