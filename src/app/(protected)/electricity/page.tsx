@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ElectricityService, { type ElectricityData } from '@/services/electricityService';
 import UserService from '@/services/userService';
+import { pickCurrentSlot } from '@/lib/electricitySlot';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
@@ -100,8 +101,7 @@ const ElectricityPage = () => {
 
     const currentPrice = (() => {
         if (activeTab !== 'today' || data.length === 0) return null;
-        const now = Date.now();
-        const slot = data.find(d => d.x <= now && now < d.xEnd);
+        const slot = pickCurrentSlot(data, Date.now());
         return slot ? slot.y : null;
     })();
 
