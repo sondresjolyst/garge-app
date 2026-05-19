@@ -165,7 +165,7 @@ export default function ShopPage() {
                             return (
                                 <div
                                     key={item.id}
-                                    className={`relative bg-gray-900/40 border border-gray-700/30 rounded-xl overflow-hidden flex flex-col ${
+                                    className={`relative bg-gray-900/40 border border-gray-700/30 rounded-xl overflow-hidden flex flex-col min-w-0 ${
                                         outOfStock ? 'opacity-60 grayscale' : ''
                                     }`}
                                 >
@@ -252,7 +252,7 @@ export default function ShopPage() {
                             return (
                                 <div
                                     key={p.id}
-                                    className={`bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 flex flex-col gap-3 ${
+                                    className={`bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 flex flex-col gap-3 min-w-0 ${
                                         dimmed ? 'opacity-60 grayscale' : ''
                                     }`}
                                 >

@@ -104,17 +104,17 @@ export default function AdminOrdersPage() {
                                 return (
                                     <li key={order.id} className="bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 space-y-3">
                                         <div className="flex items-start justify-between gap-3">
-                                            <div>
+                                            <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-2">
                                                     <p className="text-sm font-medium text-gray-100">Order #{order.id}</p>
                                                     <TestPill visible={order.isTest} />
                                                 </div>
-                                                <p className="text-xs text-gray-500 mt-0.5">
+                                                <p className="text-xs text-gray-500 mt-0.5 break-words">
                                                     {order.userName} · {order.userEmail}
                                                 </p>
                                                 <p className="text-xs text-gray-600 mt-0.5">{formatDate(order.createdAt)}</p>
                                             </div>
-                                            <div className="flex flex-col items-end gap-1.5">
+                                            <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                                                 <span className={`px-2 py-0.5 border rounded text-xs font-medium ${statusColor(order.status)}`}>
                                                     {order.status}
                                                 </span>

@@ -22,15 +22,15 @@ export default function MarkdownText({ children, className = '' }: MarkdownTextP
                             {...props}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sky-400 hover:text-sky-300 underline"
+                            className="text-sky-400 hover:text-sky-300 underline break-all"
                         />
                     ),
                     ul: ({ ...props }) => <ul {...props} className="list-disc list-inside space-y-0.5 text-xs text-gray-500" />,
                     ol: ({ ...props }) => <ol {...props} className="list-decimal list-inside space-y-0.5 text-xs text-gray-500" />,
-                    li: ({ ...props }) => <li {...props} className="text-xs text-gray-500" />,
+                    li: ({ ...props }) => <li {...props} className="text-xs text-gray-500 break-words" />,
                     strong: ({ ...props }) => <strong {...props} className="font-semibold text-gray-300" />,
                     em: ({ ...props }) => <em {...props} className="italic text-gray-400" />,
-                    p: ({ ...props }) => <p {...props} className="text-xs text-gray-500" />,
+                    p: ({ ...props }) => <p {...props} className="text-xs text-gray-500 break-words" />,
                     code: ({ ...props }) => <code {...props} className="px-1 py-0.5 rounded bg-gray-800/60 text-gray-300 text-[11px] font-mono" />,
                     h1: ({ ...props }) => <h1 {...props} className="text-sm font-semibold text-gray-200 mt-1" />,
                     h2: ({ ...props }) => <h2 {...props} className="text-sm font-semibold text-gray-200 mt-1" />,
