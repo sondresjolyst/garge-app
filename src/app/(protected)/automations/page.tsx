@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import AutomationService from '@/services/automationService';
 import SwitchService, { Switch } from '@/services/switchService';
 import SensorService, { Sensor } from '@/services/sensorService';
@@ -10,6 +10,7 @@ import { CreateAutomationRuleDto } from '@/dto/Automation/CreateAutomationRuleDt
 import { UpdateAutomationRuleDto } from '@/dto/Automation/UpdateAutomationRuleDto';
 import { unitForType } from '@/lib/typeUtils';
 import { formatDateTime } from '@/lib/dateUtils';
+import { sortAutomationRules } from '@/lib/automationSort';
 import { AxiosError } from 'axios';
 import ConfirmModal from '@/components/ConfirmModal';
 import {
@@ -227,6 +228,11 @@ const AutomationsPage: React.FC = () => {
     const [defaultPriceArea, setDefaultPriceArea] = useState<string>('NO2');
     const [deleteTargetId, setDeleteTargetId]     = useState<number | null>(null);
     const [latestValueMap, setLatestValueMap] = useState<Record<number, number>>({});
+
+    const sortedRules = useMemo(
+        () => sortAutomationRules(rules, switches, sensors),
+        [rules, switches, sensors],
+    );
 
     useEffect(() => {
         Promise.all([fetchRules(), fetchSwitches(), fetchSensors(), fetchUserPriceZone()])
@@ -753,14 +759,7 @@ const AutomationsPage: React.FC = () => {
                 emptyState
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 device-card-grid">
-                    {[...rules]
-                        .sort((a, b) => {
-                            if (a.isEnabled !== b.isEnabled) return a.isEnabled ? -1 : 1;
-                            const nameA = (switches.find(sw => sw.id === a.targetId)?.customName ?? switches.find(sw => sw.id === a.targetId)?.name ?? '').toLowerCase();
-                            const nameB = (switches.find(sw => sw.id === b.targetId)?.customName ?? switches.find(sw => sw.id === b.targetId)?.name ?? '').toLowerCase();
-                            return nameA.localeCompare(nameB);
-                        })
-                        .map(rule => renderRuleCard(rule))}
+                    {sortedRules.map(rule => renderRuleCard(rule))}
                 </div>
             )}
 
