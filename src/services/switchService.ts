@@ -55,7 +55,7 @@ const SwitchService = {
             return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to fetch switches');
+                throw new Error(error.response?.data.message || 'Failed to fetch sockets');
             } else {
                 throw new Error('An unknown error occurred');
             }
@@ -70,7 +70,7 @@ const SwitchService = {
             return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to fetch switch data');
+                throw new Error(error.response?.data.message || 'Failed to fetch socket data');
             } else {
                 throw new Error('An unknown error occurred');
             }
@@ -84,7 +84,7 @@ const SwitchService = {
             return response.data.value;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to fetch switch state');
+                throw new Error(error.response?.data.message || 'Failed to fetch socket state');
             } else {
                 throw new Error('An unknown error occurred');
             }
@@ -120,8 +120,8 @@ const SwitchService = {
             return dataMap;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
-                console.error('API Error:', error.response?.data.message || 'Failed to fetch multiple switches data');
-                throw new Error(error.response?.data.message || 'Failed to fetch multiple switches data');
+                console.error('API Error:', error.response?.data.message || 'Failed to fetch multiple sockets data');
+                throw new Error(error.response?.data.message || 'Failed to fetch multiple sockets data');
             } else {
                 console.error('Unknown Error:', error);
                 throw new Error('An unknown error occurred');
@@ -135,7 +135,7 @@ const SwitchService = {
             return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to update switch name');
+                throw new Error(error.response?.data.message || 'Failed to update socket name');
             } else {
                 throw new Error('An unknown error occurred');
             }
@@ -147,7 +147,7 @@ const SwitchService = {
             const response = await axiosInstance.post<{ switchId: number; registrationCode: string }>('/switches/claim', { registrationCode });
             return response.data;
         } catch (error: unknown) {
-            throw new Error(formatApiError(error, 'Failed to claim switch'));
+            throw new Error(formatApiError(error, 'Failed to claim socket'));
         }
     },
 
@@ -155,7 +155,7 @@ const SwitchService = {
         try {
             await axiosInstance.delete(`/switches/${switchId}/claim`);
         } catch (error: unknown) {
-            throw new Error(formatApiError(error, 'Failed to unclaim switch'));
+            throw new Error(formatApiError(error, 'Failed to unclaim socket'));
         }
     }
 };
