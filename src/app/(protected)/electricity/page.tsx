@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ElectricityService, { type ElectricityData } from '@/services/electricityService';
 import UserService from '@/services/userService';
+import { pickCurrentSlot } from '@/lib/electricitySlot';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
@@ -39,27 +40,30 @@ const getDate = (type: string) => {
     return date;
 };
 
-const fetchTabData = async (frequency: string, dateType: string, zone: string): Promise<{ x: number; y: number }[]> => {
+interface ChartEntry { x: number; xEnd: number; y: number; }
+
+const toUtcDate = (s: string) => new Date(s.endsWith('Z') ? s : s + 'Z');
+
+const fetchTabData = async (frequency: string, dateType: string, zone: string): Promise<ChartEntry[]> => {
     const tomorrow = getDate('tomorrow');
     const startDate = getDate(dateType);
     const raw = await ElectricityService.getElectricityData(frequency, zone, tomorrow.toISOString());
     return raw
         .filter((d: ElectricityData) => {
-            const ts = d.time.endsWith('Z') ? d.time : d.time + 'Z';
-            const t = new Date(ts);
-            // MONTHLY entries always start on the 1st — any other UTC day is a bad row
+            const t = toUtcDate(d.start);
             if (frequency === 'MONTHLY' && t.getUTCDate() !== 1) return false;
             return t >= startDate && t < tomorrow;
         })
-        .map((d: ElectricityData) => {
-            const ts = d.time.endsWith('Z') ? d.time : d.time + 'Z';
-            return { x: new Date(ts).getTime(), y: d.price };
-        });
+        .map((d: ElectricityData) => ({
+            x: toUtcDate(d.start).getTime(),
+            xEnd: toUtcDate(d.end).getTime(),
+            y: d.price,
+        }));
 };
 
 const ElectricityPage = () => {
     const [activeTab, setActiveTab] = useState<TabKey>('today');
-    const [cache, setCache] = useState<Partial<Record<TabKey, { x: number; y: number }[]>>>({});
+    const [cache, setCache] = useState<Partial<Record<TabKey, ChartEntry[]>>>({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [priceZone, setPriceZone] = useState<string | null>(null);
@@ -97,10 +101,8 @@ const ElectricityPage = () => {
 
     const currentPrice = (() => {
         if (activeTab !== 'today' || data.length === 0) return null;
-        const now = Date.now();
-        return data.reduce((prev, curr) =>
-            Math.abs(curr.x - now) < Math.abs(prev.x - now) ? curr : prev
-        ).y;
+        const slot = pickCurrentSlot(data, Date.now());
+        return slot ? slot.y : null;
     })();
 
     const stats = (() => {
@@ -211,7 +213,7 @@ const ElectricityPage = () => {
                                 </span>
                             </div>
                         ) : data.length > 0 ? (
-                            <TimeSeriesChart title="" data={data} chartType={TABS.find(t => t.key === activeTab)!.chartType} />
+                            <TimeSeriesChart title="" data={data.map(d => ({ x: d.x, y: d.y }))} chartType={TABS.find(t => t.key === activeTab)!.chartType} />
                         ) : (
                             <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
                                 No data available

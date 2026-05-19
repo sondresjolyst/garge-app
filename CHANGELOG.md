@@ -1,5 +1,47 @@
 # Changelog
 
+## [1.15.0](https://github.com/sondresjolyst/garge-app/compare/v1.14.2...v1.15.0) (2026-05-17)
+
+
+### Features
+
+* **admin:** bulk reanalyze battery health from admin page ([#285](https://github.com/sondresjolyst/garge-app/issues/285)) ([c3c3892](https://github.com/sondresjolyst/garge-app/commit/c3c38920c71fa02ea2ce292b308d11a6cc5ffb79))
+
+
+### Bug Fixes
+
+* **battery-ui:** rename resting voltage rows to 3d / 90d, show difference ([#286](https://github.com/sondresjolyst/garge-app/issues/286)) ([1bb5d80](https://github.com/sondresjolyst/garge-app/commit/1bb5d80cf9adb1d5cca6abb6ea4e2dc116f92ebb))
+
+## [1.14.2](https://github.com/sondresjolyst/garge-app/compare/v1.14.1...v1.14.2) (2026-05-17)
+
+
+### Bug Fixes
+
+* **battery-ui:** handle null weekly decline (cycle-anchored slope) ([#282](https://github.com/sondresjolyst/garge-app/issues/282)) ([1227290](https://github.com/sondresjolyst/garge-app/commit/1227290b2eabd5de831ece5e87f5cc68f3e9ec1a))
+* **battery-ui:** handle null weekly decline (cycle-anchored slope) (#… ([aee2149](https://github.com/sondresjolyst/garge-app/commit/aee2149f5e3bc79b28a53080db0e3ed3538e8927))
+
+## [1.14.1](https://github.com/sondresjolyst/garge-app/compare/v1.14.0...v1.14.1) (2026-05-17)
+
+
+### Bug Fixes
+
+* **battery-ui:** clarify resting voltage tooltip ([#279](https://github.com/sondresjolyst/garge-app/issues/279)) ([e6609a4](https://github.com/sondresjolyst/garge-app/commit/e6609a4612f12973ee7fe224044bda90e4ce693a))
+
+## [1.14.0](https://github.com/sondresjolyst/garge-app/compare/v1.13.1...v1.14.0) (2026-05-16)
+
+
+### Features
+
+* **battery:** consume server-side health analyzer fields + add calibration ([#274](https://github.com/sondresjolyst/garge-app/issues/274)) ([f4345ed](https://github.com/sondresjolyst/garge-app/commit/f4345ed9884ba4ee456259e79b0bfc9ef3c36b86))
+* **shop:** item images with shared photo uploader/service ([#269](https://github.com/sondresjolyst/garge-app/issues/269)) ([d1bb4e6](https://github.com/sondresjolyst/garge-app/commit/d1bb4e69d5c6b7649d11982c9222893670efce30))
+* **shop:** markdown descriptions with sanitized renderer + admin editor ([#271](https://github.com/sondresjolyst/garge-app/issues/271)) ([7b601d6](https://github.com/sondresjolyst/garge-app/commit/7b601d68e0b594c3692bf21d789e4ca672c881b8))
+* **shop:** multi-item cart with single Vipps checkout ([#268](https://github.com/sondresjolyst/garge-app/issues/268)) ([8d2eeb7](https://github.com/sondresjolyst/garge-app/commit/8d2eeb7369cd866578682038350520624406265e))
+
+
+### Bug Fixes
+
+* **shop:** hide empty Subscription plans section, add overall empty state ([#270](https://github.com/sondresjolyst/garge-app/issues/270)) ([f055465](https://github.com/sondresjolyst/garge-app/commit/f055465979de60d711881d797c8c5a59b31b6d0d))
+
 ## [1.13.1](https://github.com/sondresjolyst/garge-app/compare/v1.13.0...v1.13.1) (2026-05-10)
 
 
