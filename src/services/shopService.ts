@@ -1,4 +1,5 @@
 import axiosInstance from '@/services/axiosInstance';
+import { formatApiError } from '@/lib/errorMessages';
 
 export interface ShopItem {
     id: number;
@@ -65,65 +66,113 @@ export interface CheckoutResponse {
 
 const ShopService = {
     async getShopItems(): Promise<ShopItem[]> {
-        const res = await axiosInstance.get<ShopItem[]>('/shop/items');
-        return res.data;
+        try {
+            const res = await axiosInstance.get<ShopItem[]>('/shop/items');
+            return res.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to fetch shop items'));
+        }
     },
 
     async getShopItem(id: number): Promise<ShopItem> {
-        const res = await axiosInstance.get<ShopItem>(`/shop/items/${id}`);
-        return res.data;
+        try {
+            const res = await axiosInstance.get<ShopItem>(`/shop/items/${id}`);
+            return res.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to fetch shop item'));
+        }
     },
 
     async createShopItem(payload: CreateShopItemPayload): Promise<ShopItem> {
-        const res = await axiosInstance.post<ShopItem>('/shop/items', payload);
-        return res.data;
+        try {
+            const res = await axiosInstance.post<ShopItem>('/shop/items', payload);
+            return res.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to create shop item'));
+        }
     },
 
     async updateShopItem(id: number, payload: UpdateShopItemPayload): Promise<void> {
-        await axiosInstance.put(`/shop/items/${id}`, payload);
+        try {
+            await axiosInstance.put(`/shop/items/${id}`, payload);
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to update shop item'));
+        }
     },
 
     async deleteShopItem(id: number): Promise<void> {
-        await axiosInstance.delete(`/shop/items/${id}`);
+        try {
+            await axiosInstance.delete(`/shop/items/${id}`);
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to delete shop item'));
+        }
     },
 
     async checkout(payload: CheckoutPayload): Promise<CheckoutResponse> {
-        const res = await axiosInstance.post<CheckoutResponse>('/shop/checkout', payload);
-        return res.data;
+        try {
+            const res = await axiosInstance.post<CheckoutResponse>('/shop/checkout', payload);
+            return res.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to initiate checkout'));
+        }
     },
 
     async getMyOrders(): Promise<Order[]> {
-        const res = await axiosInstance.get<Order[]>('/shop/orders/my');
-        return res.data;
+        try {
+            const res = await axiosInstance.get<Order[]>('/shop/orders/my');
+            return res.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to fetch orders'));
+        }
     },
 
     async getAllOrders(): Promise<AdminOrder[]> {
-        const res = await axiosInstance.get<AdminOrder[]>('/shop/orders');
-        return res.data;
+        try {
+            const res = await axiosInstance.get<AdminOrder[]>('/shop/orders');
+            return res.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to fetch orders'));
+        }
     },
 
     async captureOrder(id: number): Promise<void> {
-        await axiosInstance.post(`/shop/orders/${id}/capture`);
+        try {
+            await axiosInstance.post(`/shop/orders/${id}/capture`);
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to capture order'));
+        }
     },
 
     async cancelOrder(id: number): Promise<void> {
-        await axiosInstance.post(`/shop/orders/${id}/cancel`);
+        try {
+            await axiosInstance.post(`/shop/orders/${id}/cancel`);
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to cancel order'));
+        }
     },
 
     async refundOrder(id: number): Promise<void> {
-        await axiosInstance.post(`/shop/orders/${id}/refund`);
+        try {
+            await axiosInstance.post(`/shop/orders/${id}/refund`);
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to refund order'));
+        }
     },
 
     async downloadInvoice(orderId: number): Promise<void> {
-        const res = await axiosInstance.get(`/shop/orders/${orderId}/invoice`, { responseType: 'blob' });
-        const url = URL.createObjectURL(res.data as Blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `invoice-order-${orderId}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
+        try {
+            const res = await axiosInstance.get(`/shop/orders/${orderId}/invoice`, { responseType: 'blob' });
+            const url = URL.createObjectURL(res.data as Blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `invoice-order-${orderId}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to download invoice'));
+        }
     },
 };
 

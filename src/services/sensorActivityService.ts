@@ -1,5 +1,5 @@
 import axiosInstance from '@/services/axiosInstance';
-import { AxiosError } from 'axios';
+import { formatApiError } from '@/lib/errorMessages';
 
 export interface SensorActivity {
     id: number;
@@ -24,13 +24,6 @@ export interface CreateSensorActivityPayload {
 
 export type UpdateSensorActivityPayload = CreateSensorActivityPayload;
 
-const handleError = (error: unknown, fallback: string): never => {
-    if (error instanceof AxiosError) {
-        throw new Error(error.response?.data?.message || fallback);
-    }
-    throw new Error('An unknown error occurred');
-};
-
 const SensorActivityService = {
     async list(sensorId: number): Promise<SensorActivity[]> {
         try {
@@ -42,7 +35,7 @@ const SensorActivityService = {
             if (Array.isArray(data)) return data;
             return data?.$values ?? [];
         } catch (error: unknown) {
-            return handleError(error, 'Failed to fetch activities');
+            throw new Error(formatApiError(error, 'Failed to fetch activities'));
         }
     },
 
@@ -54,7 +47,7 @@ const SensorActivityService = {
             );
             return response.data;
         } catch (error: unknown) {
-            return handleError(error, 'Failed to create activity');
+            throw new Error(formatApiError(error, 'Failed to create activity'));
         }
     },
 
@@ -66,7 +59,7 @@ const SensorActivityService = {
             );
             return response.data;
         } catch (error: unknown) {
-            return handleError(error, 'Failed to update activity');
+            throw new Error(formatApiError(error, 'Failed to update activity'));
         }
     },
 
@@ -74,7 +67,7 @@ const SensorActivityService = {
         try {
             await axiosInstance.delete(`/sensors/${sensorId}/activities/${activityId}`);
         } catch (error: unknown) {
-            handleError(error, 'Failed to delete activity');
+            throw new Error(formatApiError(error, 'Failed to delete activity'));
         }
     },
 };
