@@ -11,6 +11,7 @@ import { inputClass } from '@/components/TextInput';
 import Alert from '@/components/Alert';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { useCanClaimDevice } from '@/hooks/useCanClaimDevice';
 
 export interface DeviceItem {
     id: number;
@@ -51,6 +52,7 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
     const [editLoading, setEditLoading] = useState(false);
     const [editError, setEditError] = useState<string | null>(null);
     const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+    const { canClaim, loading: eligibilityLoading, refresh: refreshEligibility } = useCanClaimDevice();
 
     const { title, itemLabel, emoji, fetchAll, claim, unclaim, updateName, getDisplayName, getDefaultName } = config;
     const label = itemLabel;
@@ -79,7 +81,7 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
             setClaimError(false);
             setClaimCode('');
             toast.success(`${Label} added`);
-            await refresh();
+            await Promise.all([refresh(), refreshEligibility()]);
         } catch (error: unknown) {
             const msg = error instanceof Error ? error.message : `Failed to add ${label}.`;
             setClaimMessage(msg);
@@ -153,29 +155,38 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
                 </div>
 
                 <Section title={`Add a ${label}`}>
-                    <p className="text-sm text-gray-400 mb-3">Enter the device code to add a {label} to your account.</p>
-                    <div className="flex gap-2">
-                        <input
-                            type="text"
-                            value={claimCode}
-                            onChange={e => setClaimCode(e.target.value.toUpperCase())}
-                            onKeyDown={e => e.key === 'Enter' && handleClaim()}
-                            placeholder="e.g. A1B2C3D4E5"
-                            className={inputClass}
-                            disabled={claimLoading}
-                        />
-                        <button
-                            onClick={handleClaim}
-                            className="px-4 py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all whitespace-nowrap"
-                            disabled={claimLoading}
-                        >
-                            {claimLoading ? 'Adding…' : `Add ${label}`}
-                        </button>
-                    </div>
-                    {claimMessage && (
-                        claimError
-                            ? <Alert variant="error" className="mt-3">{claimMessage}</Alert>
-                            : <Alert variant="success" className="mt-3">{claimMessage}</Alert>
+                    {!eligibilityLoading && !canClaim ? (
+                        <Alert variant="warning">
+                            You need an active subscription to add more devices. Your existing ones keep working.{' '}
+                            <Link href="/shop" className="underline font-medium">See plans →</Link>
+                        </Alert>
+                    ) : (
+                        <>
+                            <p className="text-sm text-gray-400 mb-3">Enter the device code to add a {label} to your account.</p>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={claimCode}
+                                    onChange={e => setClaimCode(e.target.value.toUpperCase())}
+                                    onKeyDown={e => e.key === 'Enter' && handleClaim()}
+                                    placeholder="e.g. A1B2C3D4E5"
+                                    className={inputClass}
+                                    disabled={claimLoading || eligibilityLoading}
+                                />
+                                <button
+                                    onClick={handleClaim}
+                                    className="px-4 py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all whitespace-nowrap"
+                                    disabled={claimLoading || eligibilityLoading}
+                                >
+                                    {claimLoading ? 'Adding…' : `Add ${label}`}
+                                </button>
+                            </div>
+                            {claimMessage && (
+                                claimError
+                                    ? <Alert variant="error" className="mt-3">{claimMessage}</Alert>
+                                    : <Alert variant="success" className="mt-3">{claimMessage}</Alert>
+                            )}
+                        </>
                     )}
                 </Section>
 
