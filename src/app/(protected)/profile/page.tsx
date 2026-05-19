@@ -59,12 +59,13 @@ const Profile: React.FC = () => {
         UserService.getUserProfile().then(u => {
             setUser(u);
             setPriceZone(u.priceZone ?? 'NO2');
-            setPushEnabled(u.pushNotificationsEnabled ?? false);
             setOfflineThreshold(u.offlineAlertThresholdHours > 0 ? u.offlineAlertThresholdHours : 4);
         }).catch(console.error).finally(() => setProfileLoading(false));
         if (isPushSupported()) {
             setPushPermission(Notification.permission);
-            isPushSubscribed().then((subscribed: boolean) => setPushEnabled(prev => prev && subscribed)).catch(() => {});
+            isPushSubscribed()
+                .then(setPushEnabled)
+                .catch(() => setPushEnabled(false));
         }
         SensorService.getAllSensors().then(s => setSensorCount(s.length)).catch(() => setSensorCount(0));
         SwitchService.getAllSwitches().then(s => setSocketCount(s.length)).catch(() => setSocketCount(0));
@@ -172,15 +173,18 @@ const Profile: React.FC = () => {
         try {
             if (!pushEnabled) {
                 await subscribeToPush();
-                await UserService.updatePreferences(user.id, { priceZone, pushNotificationsEnabled: true, offlineAlertThresholdHours: offlineThreshold });
+                await UserService.updatePreferences(user.id, {
+                    priceZone,
+                    pushNotificationsEnabled: true,
+                    offlineAlertThresholdHours: offlineThreshold,
+                });
                 setPushEnabled(true);
                 setPushPermission(Notification.permission);
-                toast.success('Offline alerts enabled');
+                toast.success('Offline alerts enabled on this device');
             } else {
                 await unsubscribeFromPush();
-                await UserService.updatePreferences(user.id, { priceZone });
                 setPushEnabled(false);
-                toast.success('Offline alerts disabled');
+                toast.success('Offline alerts disabled on this device');
             }
         } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : 'Failed to update notification settings';
@@ -579,13 +583,13 @@ const Profile: React.FC = () => {
                         <div className="space-y-4">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-sm text-gray-100 font-medium">Offline alerts</p>
-                                    <p className="text-xs text-gray-500 mt-0.5">Notify when a sensor has not reported for a while. Requires the app to be installed.</p>
+                                    <p className="text-sm text-gray-100 font-medium">Offline alerts on this device</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">Receive a push notification here when a sensor stops reporting. Toggle is per-device — enable on each browser or installed app where you want alerts.</p>
                                 </div>
                                 <button
                                     onClick={handleTogglePush}
                                     disabled={pushLoading || profileLoading}
-                                    aria-label={pushEnabled ? 'Disable offline alerts' : 'Enable offline alerts'}
+                                    aria-label={pushEnabled ? 'Disable offline alerts on this device' : 'Enable offline alerts on this device'}
                                     className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${pushEnabled ? 'bg-sky-600' : 'bg-gray-700'}`}
                                 >
                                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${pushEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
