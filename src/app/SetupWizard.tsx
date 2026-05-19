@@ -603,6 +603,8 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
     return (
         <div
             ref={overlayRef}
+            role="dialog"
+            aria-modal="true"
             className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/60 backdrop-blur-sm"
             onClick={e => { if (e.target === overlayRef.current) onClose(); }}
         >

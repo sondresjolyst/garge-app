@@ -9,7 +9,7 @@ import {
     UserCircleIcon,
     ShoppingBagIcon,
 } from '@heroicons/react/24/outline';
-import { useFloatingNavVisibility } from '@/lib/floatingNavVisibility';
+import { useHasOpenModal } from '@/lib/useHasOpenModal';
 
 const navItems = [
     { href: '/',            label: 'Devices',     Icon: HomeIcon },
@@ -21,9 +21,9 @@ const navItems = [
 
 export default function FloatingNav() {
     const pathname = usePathname();
-    const { hidden } = useFloatingNavVisibility();
+    const hasOpenModal = useHasOpenModal();
 
-    if (hidden) return null;
+    if (hasOpenModal) return null;
 
     return (
         <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-max nav-slide-up">

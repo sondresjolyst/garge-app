@@ -9,7 +9,6 @@ import { effectivePriceInOre, vatLabel } from '@/lib/pricing';
 import { formatNok } from '@/lib/formatUtils';
 import { normalizeNoPhone } from '@/lib/phone';
 import { useEscapeKey } from '@/lib/useEscapeKey';
-import { useFloatingNavVisibility } from '@/lib/floatingNavVisibility';
 
 export interface CartDrawerProps {
     open: boolean;
@@ -41,16 +40,10 @@ export default function CartDrawer({
 }: CartDrawerProps) {
     const [phone, setPhone] = useState(initialPhone);
     const phoneRef = useRef<HTMLInputElement>(null);
-    const { setHidden } = useFloatingNavVisibility();
 
     useEffect(() => {
         if (open) setPhone(initialPhone);
     }, [open, initialPhone]);
-
-    useEffect(() => {
-        setHidden(open);
-        return () => setHidden(false);
-    }, [open, setHidden]);
 
     useEscapeKey(open && !submitting, onClose);
 
