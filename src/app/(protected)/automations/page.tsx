@@ -270,7 +270,7 @@ const AutomationsPage: React.FC = () => {
         .catch(handleError);
     const fetchSwitches = async () => {
         try { setSwitches(await SwitchService.getAllSwitches()); }
-        catch (e) { handleError(e, 'Failed to fetch switches'); }
+        catch (e) { handleError(e, 'Failed to fetch sockets'); }
     };
     const fetchSensors  = async () => {
         try { setSensors(await SensorService.getAllSensors()); }
@@ -592,7 +592,7 @@ const AutomationsPage: React.FC = () => {
                 {[
                     { step: '1', title: 'Choose a socket', desc: 'Pick which socket to control' },
                     { step: '2', title: 'Set a trigger',   desc: 'Select a sensor and the condition that fires the rule' },
-                    { step: '3', title: 'Define the action', desc: 'Turn the switch on or off when conditions are met' },
+                    { step: '3', title: 'Define the action', desc: 'Turn the socket on or off when conditions are met' },
                 ].map(item => (
                     <div key={item.step} className="flex items-start gap-3 p-3 bg-gray-800/40 rounded-xl border border-gray-700/30">
                         <span className="flex-shrink-0 w-6 h-6 rounded-full bg-sky-600/20 border border-sky-500/30 text-sky-400 text-xs font-bold flex items-center justify-center mt-0.5">

@@ -1,5 +1,6 @@
 import axiosInstance from '@/services/axiosInstance';
 import { AxiosError } from 'axios';
+import { formatApiError } from '@/lib/errorMessages';
 
 export interface Sensor {
     id: number;
@@ -165,11 +166,7 @@ const SensorService = {
             const response = await axiosInstance.post<{ message: string }>('/sensors/claim', { registrationCode });
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to claim sensor');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to claim sensor'));
         }
     },
 
@@ -191,11 +188,7 @@ const SensorService = {
             const response = await axiosInstance.delete<{ message: string }>(`/sensors/${id}/claim`);
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to remove sensor');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to remove sensor'));
         }
     },
 
