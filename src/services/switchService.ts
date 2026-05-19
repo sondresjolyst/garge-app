@@ -1,5 +1,6 @@
 import axiosInstance from '@/services/axiosInstance';
 import { AxiosError } from 'axios';
+import { formatApiError } from '@/lib/errorMessages';
 
 export interface Switch {
     id: number;
@@ -146,11 +147,7 @@ const SwitchService = {
             const response = await axiosInstance.post<{ switchId: number; registrationCode: string }>('/switches/claim', { registrationCode });
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to claim switch');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to claim switch'));
         }
     },
 
@@ -158,11 +155,7 @@ const SwitchService = {
         try {
             await axiosInstance.delete(`/switches/${switchId}/claim`);
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to unclaim switch');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to unclaim switch'));
         }
     }
 };
