@@ -281,7 +281,12 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
             />
 
             {/* Drawer */}
-            <div className={`fixed right-0 top-0 h-full w-full max-w-md bg-gray-950/98 backdrop-blur-xl border-l border-gray-700/50 z-50 overflow-y-auto shadow-2xl transition-transform duration-300 ease-out ${visible ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div
+                role="dialog"
+                aria-modal={visible ? 'true' : undefined}
+                aria-hidden={!visible}
+                className={`fixed right-0 top-0 h-full w-full max-w-md bg-gray-950/98 backdrop-blur-xl border-l border-gray-700/50 z-50 overflow-y-auto shadow-2xl transition-transform duration-300 ease-out ${visible ? 'translate-x-0' : 'translate-x-full'}`}
+            >
 
                 {/* Sticky header */}
                 <div className="sticky top-0 bg-gray-950/95 backdrop-blur-xl border-b border-gray-800/60 px-5 py-4 flex items-center gap-3 z-10">
