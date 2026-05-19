@@ -3,6 +3,7 @@ import { UserDTO } from '@/dto/UserDTO';
 import { AxiosError } from 'axios';
 import { getSession } from 'next-auth/react';
 import { z } from 'zod';
+import { parseValidationErrors } from '@/lib/apiErrors';
 
 interface RegisterData extends LoginData {
     firstName: string;
@@ -34,7 +35,8 @@ const registerSchema = z.object({
     email: z.string().email({ message: 'Please enter a valid email.' }).trim(),
     password: z
         .string()
-        .min(8, { message: 'Be at least 8 characters long' })
+        .min(8, { message: 'Be at least 8 characters long.' })
+        .max(128, { message: 'Be at most 128 characters long.' })
         .regex(/[a-zA-Z]/, { message: 'Contain at least one letter.' })
         .regex(/[0-9]/, { message: 'Contain at least one number.' })
         .regex(/[A-Z]/, { message: 'Contain at least one uppercase letter.' })
@@ -106,7 +108,9 @@ const UserService = {
             return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to register');
+                const fieldErrors = parseValidationErrors(error.response?.data);
+                if (fieldErrors) throw new Error(JSON.stringify(fieldErrors));
+                throw new Error(error.response?.data?.message || 'Failed to register');
             } else {
                 throw new Error('An unknown error occurred');
             }
