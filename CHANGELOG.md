@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0](https://github.com/sondresjolyst/garge-app/compare/v1.15.0...v1.16.0) (2026-05-19)
+
+
+### Features
+
+* trust API gross price and fix current-hour slot picker ([#295](https://github.com/sondresjolyst/garge-app/issues/295)) ([a378d8a](https://github.com/sondresjolyst/garge-app/commit/a378d8a8219e1934c9d51e2a7aacc54567aad078))
+
 ## [1.15.0](https://github.com/sondresjolyst/garge-app/compare/v1.14.2...v1.15.0) (2026-05-17)
 
 
