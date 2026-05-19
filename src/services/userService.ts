@@ -3,6 +3,7 @@ import { UserDTO } from '@/dto/UserDTO';
 import { AxiosError } from 'axios';
 import { getSession } from 'next-auth/react';
 import { z } from 'zod';
+import { formatApiError } from '@/lib/errorMessages';
 import { parseValidationErrors } from '@/lib/apiErrors';
 
 interface RegisterData extends LoginData {
@@ -66,11 +67,7 @@ const UserService = {
             });
             return { ...response.data, id: sub };
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to fetch user profile');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to fetch user profile'));
         }
     },
 
@@ -79,12 +76,7 @@ const UserService = {
             const response = await axiosInstance.post<{ token: string, refreshToken: string }>('/auth/login', data);
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                const errorMessage = error.response?.data.message || 'Failed to login';
-                throw new Error(errorMessage);
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to login'));
         }
     },
 
@@ -110,10 +102,8 @@ const UserService = {
             if (error instanceof AxiosError) {
                 const fieldErrors = parseValidationErrors(error.response?.data);
                 if (fieldErrors) throw new Error(JSON.stringify(fieldErrors));
-                throw new Error(error.response?.data?.message || 'Failed to register');
-            } else {
-                throw new Error('An unknown error occurred');
             }
+            throw new Error(formatApiError(error, 'Failed to register'));
         }
     },
 
@@ -122,11 +112,7 @@ const UserService = {
             const response = await axiosInstance.post<{ message: string }>('/auth/resend-email-verification', { email });
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to resend email confirmation');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to resend email confirmation'));
         }
     },
 
@@ -135,11 +121,7 @@ const UserService = {
             const response = await axiosInstance.post<{ message: string }>('/auth/verify-email', { email, code });
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to confirm email');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to confirm email'));
         }
     },
 
@@ -148,11 +130,7 @@ const UserService = {
             const response = await axiosInstance.post<{ message: string }>('/auth/request-password-reset', data);
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to request password reset code');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to request password reset code'));
         }
     },
 
@@ -161,11 +139,7 @@ const UserService = {
             const response = await axiosInstance.post<{ message: string }>('/auth/reset-password', data);
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to reset password');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to reset password'));
         }
     },
 
@@ -174,11 +148,7 @@ const UserService = {
             const response = await axiosInstance.post<{ token: string, refreshToken: string }>('/auth/refresh-token', data);
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to refresh token');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to refresh token'));
         }
     },
 
@@ -191,11 +161,7 @@ const UserService = {
             const response = await axiosInstance.put<UserDTO>(`/users/${userId}/preferences`, data);
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to update preferences');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to update preferences'));
         }
     },
 
@@ -203,11 +169,7 @@ const UserService = {
         try {
             await axiosInstance.delete(`/users/${userId}/account`);
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to delete account');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to delete account'));
         }
     },
 
@@ -219,11 +181,7 @@ const UserService = {
         try {
             await axiosInstance.put(`/users/${userId}/profile`, data);
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to update profile');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to update profile'));
         }
     },
 
@@ -232,11 +190,7 @@ const UserService = {
             const response = await axiosInstance.get(`/users/${userId}/export`);
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to export data');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to export data'));
         }
     },
 };
