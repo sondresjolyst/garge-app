@@ -1,7 +1,6 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
-    target-branch: development
     directory: /
     schedule:
       interval: weekly
@@ -12,7 +11,6 @@ updates:
       prefix: deps
 
   - package-ecosystem: npm
-    target-branch: development
     directory: /
     schedule:
       interval: weekly
