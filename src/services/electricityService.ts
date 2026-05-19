@@ -1,5 +1,5 @@
 import axiosInstance from '@/services/axiosInstance';
-import axios from 'axios';
+import { formatApiError } from '@/lib/errorMessages';
 
 export interface ElectricityData {
     price: number;
@@ -44,11 +44,7 @@ const ElectricityService = {
                 currency,
             }));
         } catch (error) {
-            if (axios.isAxiosError(error)) {
-                throw new Error(error.response?.data.message || 'Failed to fetch electricity data');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to fetch electricity data'));
         }
     }
 };

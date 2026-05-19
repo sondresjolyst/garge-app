@@ -1,5 +1,6 @@
 import axiosInstance from '@/services/axiosInstance';
 import { AxiosError } from 'axios';
+import { formatApiError } from '@/lib/errorMessages';
 
 export interface Sensor {
     id: number;
@@ -91,11 +92,7 @@ const SensorService = {
             const response = await axiosInstance.get<Sensor[]>('/sensors');
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to fetch sensors');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to fetch sensors'));
         }
     },
 
@@ -114,11 +111,7 @@ const SensorService = {
             const response = await axiosInstance.get<PagedResponse<SensorData>>(`/sensors/${sensorId}/data`, { params });
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to fetch sensor data');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to fetch sensor data'));
         }
     },
 
@@ -148,15 +141,11 @@ const SensorService = {
             const response = await axiosInstance.get<PagedResponse<SensorData>>(`/sensors/data?${urlParams.toString()}`);
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                // 404 means no data exists for the given parameters — return empty page
-                if (error.response?.status === 404) {
-                    return { totalCount: 0, pageNumber, pageSize, data: [] };
-                }
-                throw new Error(error.response?.data.message || 'Failed to fetch multiple sensors data');
-            } else {
-                throw new Error('An unknown error occurred');
+            // 404 means no data exists for the given parameters — return empty page
+            if (error instanceof AxiosError && error.response?.status === 404) {
+                return { totalCount: 0, pageNumber, pageSize, data: [] };
             }
+            throw new Error(formatApiError(error, 'Failed to fetch multiple sensors data'));
         }
     },
 
@@ -165,11 +154,7 @@ const SensorService = {
             const response = await axiosInstance.post<{ message: string }>('/sensors/claim', { registrationCode });
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to claim sensor');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to claim sensor'));
         }
     },
 
@@ -178,11 +163,7 @@ const SensorService = {
             const response = await axiosInstance.patch<Sensor>(`/sensors/${id}/custom-name`, { customName });
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to update custom name');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to update custom name'));
         }
     },
 
@@ -191,11 +172,7 @@ const SensorService = {
             const response = await axiosInstance.delete<{ message: string }>(`/sensors/${id}/claim`);
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to remove sensor');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to remove sensor'));
         }
     },
 
@@ -204,11 +181,7 @@ const SensorService = {
             const response = await axiosInstance.get<BatteryHealthData>(`/battery-health/name/${encodeURIComponent(sensorName)}/latest`);
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(error.response?.data.message || 'Failed to fetch battery health');
-            } else {
-                throw new Error('An unknown error occurred');
-            }
+            throw new Error(formatApiError(error, 'Failed to fetch battery health'));
         }
     },
 
