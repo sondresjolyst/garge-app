@@ -253,12 +253,12 @@ export default function AdminPage() {
                     </Section>
 
                     {/* Live / Test toggle for the commerce stats */}
-                    <div className="flex items-center justify-between bg-gray-900/40 border border-gray-700/30 rounded-xl px-4 py-3">
-                        <div>
+                    <div className="flex items-center justify-between gap-4 bg-gray-900/40 border border-gray-700/30 rounded-xl px-4 py-3">
+                        <div className="min-w-0 flex-1">
                             <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Commerce data</p>
                             <p className="text-sm text-gray-300 mt-0.5">{statsTest ? 'Showing Vipps test orders + subscriptions' : 'Showing live orders + subscriptions'}</p>
                         </div>
-                        <div className="flex bg-gray-800/60 border border-gray-700/40 rounded-lg p-0.5">
+                        <div className="flex bg-gray-800/60 border border-gray-700/40 rounded-lg p-0.5 flex-shrink-0">
                             {([
                                 { label: 'Live', value: false },
                                 { label: 'Test', value: true },
@@ -390,8 +390,8 @@ export default function AdminPage() {
                     {/* Site Settings */}
                     <Section title="Site Settings">
                         <div className="space-y-3">
-                            <div className="flex items-center justify-between bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
-                                <div>
+                            <div className="flex items-center justify-between gap-4 bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                <div className="min-w-0 flex-1">
                                     <p className="text-sm font-medium text-gray-200">Cookie consent banner</p>
                                     <p className="text-xs text-gray-500 mt-0.5">Show banner asking users to accept cookies</p>
                                 </div>
@@ -408,8 +408,8 @@ export default function AdminPage() {
                                     </button>
                                 )}
                             </div>
-                            <div className="flex items-center justify-between bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
-                                <div>
+                            <div className="flex items-center justify-between gap-4 bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                                <div className="min-w-0 flex-1">
                                     <p className="text-sm font-medium text-gray-200">VAT (mva 25%)</p>
                                     <p className="text-xs text-gray-500 mt-0.5">Add 25% VAT to prices. Disable if below the 50,000 NOK threshold.</p>
                                 </div>
@@ -426,8 +426,8 @@ export default function AdminPage() {
                                     </button>
                                 )}
                             </div>
-                            <div className="flex items-center justify-between bg-gray-900/50 border border-amber-700/30 rounded-xl p-4">
-                                <div>
+                            <div className="flex items-center justify-between gap-4 bg-gray-900/50 border border-amber-700/30 rounded-xl p-4">
+                                <div className="min-w-0 flex-1">
                                     <p className="text-sm font-medium text-gray-200">Vipps test mode</p>
                                     <p className="text-xs text-gray-500 mt-0.5">Use Vipps test environment. Test subscriptions only gate access while this is on.</p>
                                 </div>
@@ -449,8 +449,8 @@ export default function AdminPage() {
 
                     {/* Battery health */}
                     <Section title="Battery health">
-                        <div className="flex items-center justify-between bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
-                            <div>
+                        <div className="flex items-center justify-between gap-4 bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                            <div className="min-w-0 flex-1">
                                 <p className="text-sm font-medium text-gray-200">Reanalyze all voltage sensors</p>
                                 <p className="text-xs text-gray-500 mt-0.5">Rebuilds each sensor&apos;s battery-health row from its full voltage history. Use after deploying a new analyzer version.</p>
                             </div>
@@ -476,9 +476,9 @@ export default function AdminPage() {
                                 <Link
                                     key={href}
                                     href={href}
-                                    className="flex items-center justify-between bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 hover:border-gray-600/60 hover:bg-gray-900/60 transition-all group"
+                                    className="flex items-center justify-between gap-4 bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 hover:border-gray-600/60 hover:bg-gray-900/60 transition-all group"
                                 >
-                                    <div>
+                                    <div className="min-w-0 flex-1">
                                         <p className="text-sm font-medium text-gray-200 group-hover:text-gray-100">{label}</p>
                                         <p className="text-xs text-gray-500 mt-0.5">{description}</p>
                                     </div>
