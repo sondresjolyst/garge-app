@@ -8,22 +8,27 @@ export interface CanClaimDeviceResult {
     canClaim: boolean;
     loading: boolean;
     ownedSensorCount: number;
-    activeSubscriptionCount: number;
+    capacity: number;
+    primaryActive: boolean;
     refresh: () => Promise<void>;
 }
 
 /**
- * Mirrors the backend ActiveSubscriptionRequirement check so the UI can hide or
- * disable the claim button before submit. The first sensor is always claimable
- * because the requirement short-circuits when the user owns zero sensors; after
- * that the user needs at least as many active subscriptions as owned sensors.
+ * Mirrors the backend ActiveSubscriptionRequirement so the UI can hide the claim button
+ * before submit. Capacity model:
  *
- * Subscription quantity is intentionally not summed — the backend currently
- * counts subscription rows, not quantities. If that changes, update both sides.
+ *   - An active Primary subscription grants a base allowance of 1 owned sensor.
+ *   - Each active AddOn subscription contributes its quantity to the allowance.
+ *   - Without an active Primary the allowance is 0 — AddOns alone are not enough.
+ *
+ * A claim is allowed when ownedSensorCount < capacity. Shared sensors are tracked with
+ * IsOwner=false on the backend and are not counted here either (the sensors endpoint
+ * does not currently expose ownership and sharing is not implemented yet).
  */
 export function useCanClaimDevice(): CanClaimDeviceResult {
     const [ownedSensorCount, setOwnedSensorCount] = useState(0);
-    const [activeSubscriptionCount, setActiveSubscriptionCount] = useState(0);
+    const [primaryActive, setPrimaryActive] = useState(false);
+    const [addOnCapacity, setAddOnCapacity] = useState(0);
     const [loading, setLoading] = useState(true);
 
     const refresh = useCallback(async () => {
@@ -33,8 +38,14 @@ export function useCanClaimDevice(): CanClaimDeviceResult {
                 SensorService.getAllSensors().catch(() => []),
                 SubscriptionService.getMySubscriptions().catch(() => []),
             ]);
+            const activeSubs = subscriptions.filter(s => s.status === 'Active');
             setOwnedSensorCount(sensors.length);
-            setActiveSubscriptionCount(subscriptions.filter(s => s.status === 'Active').length);
+            setPrimaryActive(activeSubs.some(s => s.productType === 'Primary'));
+            setAddOnCapacity(
+                activeSubs
+                    .filter(s => s.productType === 'AddOn')
+                    .reduce((sum, s) => sum + (s.quantity ?? 0), 0),
+            );
         } finally {
             setLoading(false);
         }
@@ -44,7 +55,8 @@ export function useCanClaimDevice(): CanClaimDeviceResult {
         refresh();
     }, [refresh]);
 
-    const canClaim = ownedSensorCount === 0 || activeSubscriptionCount >= ownedSensorCount;
+    const capacity = primaryActive ? 1 + addOnCapacity : 0;
+    const canClaim = ownedSensorCount < capacity;
 
-    return { canClaim, loading, ownedSensorCount, activeSubscriptionCount, refresh };
+    return { canClaim, loading, ownedSensorCount, capacity, primaryActive, refresh };
 }
