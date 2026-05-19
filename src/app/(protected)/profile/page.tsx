@@ -59,12 +59,13 @@ const Profile: React.FC = () => {
         UserService.getUserProfile().then(u => {
             setUser(u);
             setPriceZone(u.priceZone ?? 'NO2');
-            setPushEnabled(u.pushNotificationsEnabled ?? false);
             setOfflineThreshold(u.offlineAlertThresholdHours > 0 ? u.offlineAlertThresholdHours : 4);
         }).catch(console.error).finally(() => setProfileLoading(false));
         if (isPushSupported()) {
             setPushPermission(Notification.permission);
-            isPushSubscribed().then((subscribed: boolean) => setPushEnabled(prev => prev && subscribed)).catch(() => {});
+            isPushSubscribed()
+                .then(setPushEnabled)
+                .catch(() => setPushEnabled(false));
         }
         SensorService.getAllSensors().then(s => setSensorCount(s.length)).catch(() => setSensorCount(0));
         SwitchService.getAllSwitches().then(s => setSocketCount(s.length)).catch(() => setSocketCount(0));
@@ -172,15 +173,18 @@ const Profile: React.FC = () => {
         try {
             if (!pushEnabled) {
                 await subscribeToPush();
-                await UserService.updatePreferences(user.id, { priceZone, pushNotificationsEnabled: true, offlineAlertThresholdHours: offlineThreshold });
+                await UserService.updatePreferences(user.id, {
+                    priceZone,
+                    pushNotificationsEnabled: true,
+                    offlineAlertThresholdHours: offlineThreshold,
+                });
                 setPushEnabled(true);
                 setPushPermission(Notification.permission);
-                toast.success('Offline alerts enabled');
+                toast.success('Offline alerts enabled on this device');
             } else {
                 await unsubscribeFromPush();
-                await UserService.updatePreferences(user.id, { priceZone });
                 setPushEnabled(false);
-                toast.success('Offline alerts disabled');
+                toast.success('Offline alerts disabled on this device');
             }
         } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : 'Failed to update notification settings';
@@ -539,12 +543,12 @@ const Profile: React.FC = () => {
 
                 <div id="settings">
                 <Section title="Settings">
-                    <div className="flex items-center justify-between">
-                        <div>
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="min-w-0 flex-1">
                             <p className="text-sm text-gray-100 font-medium">Electricity price zone</p>
                             <p className="text-xs text-gray-500 mt-0.5">Used on the Electricity page. Norway price zones NO1–NO5.</p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-shrink-0">
                             {profileLoading ? (
                                 <div className="w-8 h-8 flex items-center justify-center">
                                     <svg className="animate-spin h-4 w-4 text-sky-500" viewBox="0 0 24 24" fill="none">
@@ -578,26 +582,26 @@ const Profile: React.FC = () => {
                     ) : (
                         <div className="space-y-4">
                             <div className="flex items-center justify-between gap-4">
-                                <div className="min-w-0">
-                                    <p className="text-sm text-gray-100 font-medium">Offline alerts</p>
-                                    <p className="text-xs text-gray-500 mt-0.5">Notify when a sensor has not reported for a while. Requires the app to be installed.</p>
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-sm text-gray-100 font-medium">Offline alerts on this device</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">Receive a push notification here when a sensor stops reporting. Toggle is per-device — enable on each browser or installed app where you want alerts.</p>
                                 </div>
                                 <button
                                     onClick={handleTogglePush}
                                     disabled={pushLoading || profileLoading}
-                                    aria-label={pushEnabled ? 'Disable offline alerts' : 'Enable offline alerts'}
+                                    aria-label={pushEnabled ? 'Disable offline alerts on this device' : 'Enable offline alerts on this device'}
                                     className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${pushEnabled ? 'bg-sky-600' : 'bg-gray-700'}`}
                                 >
                                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${pushEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
                                 </button>
                             </div>
                             {pushEnabled && (
-                                <div className="flex items-center justify-between">
-                                    <div>
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="min-w-0 flex-1">
                                         <p className="text-sm text-gray-100 font-medium">Alert after</p>
                                         <p className="text-xs text-gray-500 mt-0.5">Hours of no data before notifying (1–168).</p>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 flex-shrink-0">
                                         <input
                                             type="number"
                                             min={1}
@@ -611,15 +615,15 @@ const Profile: React.FC = () => {
                                 </div>
                             )}
                             {pushEnabled && (
-                                <div className="flex items-center justify-between">
-                                    <div>
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="min-w-0 flex-1">
                                         <p className="text-sm text-gray-100 font-medium">Test notification</p>
                                         <p className="text-xs text-gray-500 mt-0.5">Send a test to confirm notifications are working.</p>
                                     </div>
                                     <button
                                         onClick={handleSendTestNotification}
                                         disabled={testNotifLoading}
-                                        className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all whitespace-nowrap"
+                                        className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all whitespace-nowrap flex-shrink-0"
                                     >
                                         {testNotifLoading ? 'Sending…' : 'Send test'}
                                     </button>
@@ -634,28 +638,28 @@ const Profile: React.FC = () => {
 
                 <Section title="Your data">
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div>
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="min-w-0 flex-1">
                                 <p className="text-sm text-gray-100 font-medium">Download your data</p>
                                 <p className="text-xs text-gray-500 mt-0.5">Export your account and device data as JSON (GDPR Article 20).</p>
                             </div>
                             <button
                                 onClick={handleExportData}
                                 disabled={!user?.id || exportLoading}
-                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all whitespace-nowrap"
+                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all whitespace-nowrap flex-shrink-0"
                             >
                                 {exportLoading ? 'Exporting…' : 'Download'}
                             </button>
                         </div>
-                        <div className="border-t border-gray-700/40 pt-4 flex items-center justify-between">
-                            <div>
+                        <div className="border-t border-gray-700/40 pt-4 flex items-center justify-between gap-4">
+                            <div className="min-w-0 flex-1">
                                 <p className="text-sm text-red-400 font-medium">Delete account</p>
                                 <p className="text-xs text-gray-500 mt-0.5">Permanently deletes your account and personal data.</p>
                             </div>
                             <button
                                 onClick={() => setShowDeleteAccount(true)}
                                 disabled={!user?.id || deleteAccountLoading}
-                                className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-600/40 disabled:opacity-50 disabled:cursor-not-allowed text-red-400 text-sm font-medium rounded-xl transition-all whitespace-nowrap"
+                                className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 border border-red-600/40 disabled:opacity-50 disabled:cursor-not-allowed text-red-400 text-sm font-medium rounded-xl transition-all whitespace-nowrap flex-shrink-0"
                             >
                                 Delete account
                             </button>

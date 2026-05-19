@@ -14,7 +14,7 @@ export default function CartFab({ count, onClick }: CartFabProps) {
             type="button"
             onClick={onClick}
             aria-label={`Open cart (${count} item${count === 1 ? '' : 's'})`}
-            className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-sky-600 hover:bg-sky-500 text-white shadow-lg shadow-sky-900/40 transition-colors"
+            className="fixed bottom-24 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-sky-600 hover:bg-sky-500 text-white shadow-lg shadow-sky-900/40 transition-colors"
         >
             <ShoppingCartIcon className="h-6 w-6" />
             <span

@@ -82,18 +82,18 @@ export default function AdminSubscriptionsPage() {
                                 return (
                                     <li key={sub.id} className="bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 space-y-3">
                                         <div className="flex items-start justify-between gap-3">
-                                            <div>
+                                            <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-2">
                                                     <p className="text-sm font-medium text-gray-100">Subscription #{sub.id}</p>
                                                     <TestPill visible={sub.isTest} />
                                                 </div>
-                                                <p className="text-xs text-gray-500 mt-0.5">
+                                                <p className="text-xs text-gray-500 mt-0.5 break-words">
                                                     {sub.userName} · {sub.userEmail}
                                                 </p>
                                                 <p className="text-xs text-gray-600 mt-0.5">{sub.productName} · {sub.productType} · {sub.interval}</p>
                                                 <p className="text-xs text-gray-600 mt-0.5">Created {formatDate(sub.createdAt)}</p>
                                             </div>
-                                            <div className="flex flex-col items-end gap-1.5">
+                                            <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                                                 <span className={`px-2 py-0.5 border rounded text-xs font-medium ${statusColor(sub.status)}`}>
                                                     {sub.status}
                                                 </span>
