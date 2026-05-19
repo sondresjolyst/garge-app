@@ -7,6 +7,7 @@ import Footer from './footer';
 import SessionProviderWrapper from './SessionProviderWrapper';
 import CookieBanner from '@/components/CookieBanner';
 import InstallPrompt from '@/components/InstallPrompt';
+import { FloatingNavVisibilityProvider } from '@/lib/floatingNavVisibility';
 import type { Metadata } from "next";
 import Script from 'next/script';
 import { Toaster } from 'sonner';
@@ -35,17 +36,19 @@ export default function Layout({
             </head>
             <body className={`bg-gray-900 text-gray-200 font-sans ${outfit.variable} ${syne.variable} ${jetMono.variable}`}>
                 <SessionProviderWrapper>
-                    <div className="min-h-screen flex flex-col">
-                        <Navbar />
-                        <main className="flex-1 pb-28">
-                            <Content>{children}</Content>
-                        </main>
-                        <Footer />
-                        <FloatingNav />
-                    </div>
-                    <CookieBanner />
-                    <InstallPrompt />
-                    <Toaster position="bottom-center" theme="dark" richColors />
+                    <FloatingNavVisibilityProvider>
+                        <div className="min-h-screen flex flex-col">
+                            <Navbar />
+                            <main className="flex-1 pb-28">
+                                <Content>{children}</Content>
+                            </main>
+                            <Footer />
+                            <FloatingNav />
+                        </div>
+                        <CookieBanner />
+                        <InstallPrompt />
+                        <Toaster position="bottom-center" theme="dark" richColors />
+                    </FloatingNavVisibilityProvider>
                 </SessionProviderWrapper>
             </body>
         </html>
