@@ -765,7 +765,12 @@ const AutomationsPage: React.FC = () => {
             )}
 
             {/* ── Slide-in drawer ────────────────────────────────────────────── */}
-            <div className={`fixed inset-0 z-50 transition-all duration-300 ${formOpen ? 'visible' : 'invisible pointer-events-none'}`}>
+            <div
+                role="dialog"
+                aria-modal={formOpen ? 'true' : undefined}
+                aria-hidden={!formOpen}
+                className={`fixed inset-0 z-50 transition-all duration-300 ${formOpen ? 'visible' : 'invisible pointer-events-none'}`}
+            >
                 {/* Backdrop */}
                 <div
                     className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${formOpen ? 'opacity-100' : 'opacity-0'}`}
