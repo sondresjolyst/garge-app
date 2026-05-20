@@ -24,6 +24,7 @@ export default function PrivacyPage() {
                         <li>To provide the Garge dashboard and historical data views.</li>
                         <li>To send account-related emails (email confirmation, password reset).</li>
                         <li>To improve the service and diagnose technical issues.</li>
+                        <li>To improve our algorithms (such as battery-health analysis) using anonymized data that can no longer be linked to you.</li>
                     </ul>
                 </section>
 
@@ -32,7 +33,7 @@ export default function PrivacyPage() {
                     <p>We process your personal data under the following legal bases (GDPR Article 6):</p>
                     <ul className="list-disc list-inside space-y-1">
                         <li><span className="text-gray-300">Contract (Art. 6(1)(b))</span> — account data, sensor data, and transactional emails are necessary to deliver the service you signed up for.</li>
-                        <li><span className="text-gray-300">Legitimate interests (Art. 6(1)(f))</span> — server logs are retained for security monitoring and debugging. Our interest in operating a secure service does not override your rights.</li>
+                        <li><span className="text-gray-300">Legitimate interests (Art. 6(1)(f))</span> — server logs are retained for security monitoring and debugging; readings of suspended devices are kept for up to 6 months so a returning subscriber regains their history; and fully anonymized readings (no link to you or your device) are kept to improve the service and its algorithms. Our interest does not override your rights — you can delete the underlying data at any time before it is anonymized.</li>
                     </ul>
                 </section>
 
@@ -56,7 +57,9 @@ export default function PrivacyPage() {
                     <h2 className="text-base font-semibold text-gray-100">Data retention</h2>
                     <ul className="list-disc list-inside space-y-1">
                         <li><span className="text-gray-300">Account &amp; preferences</span> — until you delete your account, after which your name, email, phone and password are scrubbed.</li>
-                        <li><span className="text-gray-300">Sensor &amp; switch data</span> — retained for the lifetime of your subscription. After account deletion, the link to you is severed and the readings remain only as anonymized historical data.</li>
+                        <li>
+                            <span className="text-gray-300">Sensor &amp; switch data</span> — kept while the device is active on your plan. If you cancel or downgrade and a device exceeds your plan, we suspend your access to it but keep recording its readings for up to 6 months so we can restore your full history immediately if you re-subscribe. <span className="text-gray-300">After 6 months of continuous suspension the device is automatically removed from your account and its readings are permanently deleted or irreversibly anonymized</span> (stripped of any link to you or the device) and kept only as aggregate data to improve the service. You can remove a suspended device sooner, and you can still export or delete its data while it is suspended. After account deletion the same applies: readings are anonymized or deleted, never kept linked to you.
+                        </li>
                         <li><span className="text-gray-300">Invoices &amp; orders</span> — retained for 5 years after the last invoice as required by the Norwegian Bookkeeping Act (bokføringsloven §13).</li>
                         <li><span className="text-gray-300">Server logs</span> — 90 days. <span className="text-gray-300">Metrics</span> — 60 days.</li>
                         <li><span className="text-gray-300">Database backups</span> — 3 daily, 4 weekly, 3 monthly, 1 yearly snapshots, encrypted at rest. After account deletion, residual data may persist in backups for up to 12 months until the yearly snapshot rotates; backups are not used for any processing.</li>
