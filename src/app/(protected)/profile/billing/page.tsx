@@ -276,6 +276,9 @@ export default function BillingPage() {
                                     Cancelling Primary also cancels any active add-on subscriptions.
                                 </p>
                             )}
+                            <p className="mt-2 text-xs text-amber-400">
+                                After {deriveCancelEndDate(cancelTarget)}, sensors above your plan are turned off. We keep their data for 6 months so re-subscribing restores your full history; after that it&apos;s deleted or anonymized. You can export or remove any sensor anytime.
+                            </p>
                         </>
                     }
                     confirmLabel="Cancel subscription"

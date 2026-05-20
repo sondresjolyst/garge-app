@@ -82,8 +82,8 @@ export default function QuantityChangeModal({
                         Increasing quantity raises the agreement ceiling. Confirm the change in your Vipps app before the next charge.
                     </p>
                 ) : qty < subscription.quantity ? (
-                    <p className="text-[11px] text-gray-500">
-                        Decreasing quantity takes effect on the next charge. No Vipps action required.
+                    <p className="text-[11px] text-amber-400">
+                        Decreasing quantity takes effect on the next charge. No Vipps action required. Sensors above your new plan are then turned off — their data is kept for 6 months so re-subscribing restores it, after which it&apos;s deleted or anonymized. You can export or remove any sensor anytime.
                     </p>
                 ) : null}
 
