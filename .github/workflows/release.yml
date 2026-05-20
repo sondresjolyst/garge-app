@@ -52,6 +52,8 @@ jobs:
     name: Update Chart
     needs: [release-please, deploy-prod]
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    permissions:
+      contents: read
     uses: sondresjolyst/garge/.github/workflows/update-chart.yml@main
     secrets:
       GARGE_PAT: ${{ secrets.GARGE_PAT }}
