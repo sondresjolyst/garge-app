@@ -1,15 +1,25 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import LoadingDots from '@/components/LoadingDots';
 import ReturnStatusPage from '@/components/ReturnStatusPage';
 import SubscriptionService, { Subscription } from '@/services/subscriptionService';
 import { usePollUntilFinal } from '@/lib/usePollUntilFinal';
 
 export default function BillingReturnPage() {
+    const searchParams = useSearchParams();
+    const subscriptionId = searchParams.get('subscriptionId');
+    const parsedId = subscriptionId ? parseInt(subscriptionId, 10) : NaN;
+
     const { data: subscription, loading, refresh } = usePollUntilFinal<Subscription | null>(
         async () => {
             const subs = await SubscriptionService.getMySubscriptions();
-            return subs.at(-1) ?? null;
+            if (!isNaN(parsedId)) {
+                return subs.find(s => s.id === parsedId) ?? null;
+            }
+            // No id in the return URL: fall back to the newest subscription
+            // (list is JWT-scoped, so only the current user's subs are visible).
+            return subs.length ? subs.reduce((a, b) => (b.id > a.id ? b : a)) : null;
         },
         (s) => s != null && s.status !== 'Pending',
     );
