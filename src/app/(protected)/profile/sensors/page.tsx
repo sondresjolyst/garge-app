@@ -13,6 +13,8 @@ const config: DevicePageConfig<Sensor> = {
     updateName: (id, name) => SensorService.updateCustomName(id, name),
     getDisplayName: (s) => s.customName ?? s.defaultName ?? '',
     getDefaultName: (s) => s.defaultName ?? undefined,
+    suspend: (id) => SensorService.suspendSensor(id),
+    activate: (id) => SensorService.activateSensor(id),
 };
 
 export default function SensorsPage() {
