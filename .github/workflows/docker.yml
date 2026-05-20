@@ -56,6 +56,7 @@ jobs:
     if: inputs.tag != ''
     permissions:
       contents: read
+      packages: read
     uses: equinor/ops-actions/.github/workflows/docker.yml@c1be86e02c64b0d2db5c2dba532b5580cdce168d # v9.38.0
     secrets:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
