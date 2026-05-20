@@ -10,6 +10,7 @@ import SwitchService from '@/services/switchService';
 import { ChevronRightIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { normalizeNoPhone } from '@/lib/phone';
 import { isPushSupported, isPushSubscribed, subscribeToPush, unsubscribeFromPush, sendTestNotification } from '@/services/pushNotificationService';
+import { useCanClaimDevice } from '@/hooks/useCanClaimDevice';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
 import Section from '@/components/Section';
@@ -53,6 +54,7 @@ const Profile: React.FC = () => {
     const [editPhone, setEditPhone] = useState('');
     const [profileSaving, setProfileSaving] = useState(false);
     const [editingField, setEditingField] = useState<'name' | 'phone' | null>(null);
+    const { canClaim, loading: eligibilityLoading, refresh: refreshEligibility } = useCanClaimDevice();
 
     useEffect(() => {
         if (!isAuthenticated) { router.push('/login'); return; }
@@ -248,6 +250,7 @@ const Profile: React.FC = () => {
                 setSocketCount(c => (c ?? 0) + 1);
                 toast.success('Socket added');
             }
+            refreshEligibility();
             setClaimError(false);
             setClaimCode('');
         } catch (error: unknown) {
@@ -482,28 +485,37 @@ const Profile: React.FC = () => {
                                     🔌 Socket
                                 </button>
                             </div>
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={claimCode}
-                                    onChange={e => setClaimCode(e.target.value.toUpperCase())}
-                                    onKeyDown={e => e.key === 'Enter' && handleClaimDevice()}
-                                    placeholder="e.g. A1B2C3D4E5"
-                                    className={inputClass}
-                                    disabled={claimLoading}
-                                />
-                                <button
-                                    onClick={handleClaimDevice}
-                                    className="px-4 py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all whitespace-nowrap"
-                                    disabled={claimLoading}
-                                >
-                                    {claimLoading ? 'Adding…' : 'Add device'}
-                                </button>
-                            </div>
-                            {claimMessage && (
-                                claimError
-                                    ? <Alert variant="error" className="mt-3">{claimMessage}</Alert>
-                                    : <Alert variant="success" className="mt-3">{claimMessage}</Alert>
+                            {!eligibilityLoading && !canClaim ? (
+                                <Alert variant="warning">
+                                    You need an active subscription to add more devices. Your existing ones keep working.{' '}
+                                    <Link href="/shop" className="underline font-medium">See plans →</Link>
+                                </Alert>
+                            ) : (
+                                <>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={claimCode}
+                                            onChange={e => setClaimCode(e.target.value.toUpperCase())}
+                                            onKeyDown={e => e.key === 'Enter' && handleClaimDevice()}
+                                            placeholder="e.g. A1B2C3D4E5"
+                                            className={inputClass}
+                                            disabled={claimLoading || eligibilityLoading}
+                                        />
+                                        <button
+                                            onClick={handleClaimDevice}
+                                            className="px-4 py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all whitespace-nowrap"
+                                            disabled={claimLoading || eligibilityLoading}
+                                        >
+                                            {claimLoading ? 'Adding…' : 'Add device'}
+                                        </button>
+                                    </div>
+                                    {claimMessage && (
+                                        claimError
+                                            ? <Alert variant="error" className="mt-3">{claimMessage}</Alert>
+                                            : <Alert variant="success" className="mt-3">{claimMessage}</Alert>
+                                    )}
+                                </>
                             )}
                         </div>
                         <div className="border-t border-gray-700/40 pt-3 space-y-2">

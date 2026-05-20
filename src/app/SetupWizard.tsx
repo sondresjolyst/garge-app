@@ -7,6 +7,8 @@ import SwitchService, { Switch } from '@/services/switchService';
 import GroupService, { Group } from '@/services/groupService';
 import { GROUP_ICONS as ICONS, groupEmoji } from '@/lib/groupIcons';
 import { typeEmoji } from '@/lib/typeUtils';
+import { useCanClaimDevice } from '@/hooks/useCanClaimDevice';
+import Link from 'next/link';
 
 // ── Types & constants ──────────────────────────────────────────────────────────
 
@@ -95,6 +97,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
     const [selectedSwitchIds, setSelectedSwitchIds] = useState<Set<number>>(new Set());
 
     const overlayRef = useRef<HTMLDivElement>(null);
+    const { canClaim, loading: eligibilityLoading, refresh: refreshEligibility } = useCanClaimDevice();
 
     const TOTAL_STEPS = 4; // 0: claim, 1: name, 2: group, 3: done
 
@@ -167,6 +170,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                 setCustomName(found?.customName ?? found?.name ?? '');
                 if (found) setSelectedSwitchIds(new Set([found.id]));
             }
+            await refreshEligibility();
             setStep(1);
         } catch (e: unknown) {
             setClaimError(e instanceof Error ? e.message : `Failed to claim ${claimType}.`);
@@ -281,6 +285,13 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                             </button>
                         </div>
 
+                        {!eligibilityLoading && !canClaim && (
+                            <div className="px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-300 text-sm">
+                                You need an active subscription to add more devices. Your existing ones keep working.{' '}
+                                <Link href="/shop" className="underline font-medium" onClick={onClose}>See plans →</Link>
+                            </div>
+                        )}
+
                         <div className="space-y-3">
                             <input
                                 type="text"
@@ -290,11 +301,12 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                                 onKeyDown={e => e.key === 'Enter' && handleClaim()}
                                 placeholder="e.g. A1B2C3D4E5"
                                 maxLength={10}
-                                className="w-full px-4 py-3 bg-gray-800/60 border border-gray-700/40 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-600/50 font-mono tracking-widest text-sm transition-all uppercase"
+                                disabled={!canClaim || eligibilityLoading}
+                                className="w-full px-4 py-3 bg-gray-800/60 border border-gray-700/40 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-600/50 font-mono tracking-widest text-sm transition-all uppercase disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                             {claimError && <p className="text-red-400 text-xs">{claimError}</p>}
                         </div>
-                        <Btn onClick={handleClaim} loading={claiming} disabled={!regCode.trim()}>
+                        <Btn onClick={handleClaim} loading={claiming} disabled={!regCode.trim() || !canClaim || eligibilityLoading}>
                             Claim {claimType === 'sensor' ? 'sensor' : 'socket'}
                             <ChevronRightIcon className="h-4 w-4" />
                         </Btn>
