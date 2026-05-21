@@ -125,7 +125,7 @@ No joint controllers. No DPO designated (not required — no special-category pr
 | Field | Value |
 |---|---|
 | Purpose | Long-term analytics and model development (e.g. battery-health algorithms) on de-identified device telemetry |
-| Lawful basis | Out of GDPR scope — rendered **anonymous** (Recital 26) before retention; derived from data originally held under §3.3. Treated as anonymous **contingent on** the LIA §3 pre-launch conditions (motivated-intruder test; post-*SRB* EDPB guidance re-check) |
+| Lawful basis | Out of GDPR scope — rendered **anonymous** (Recital 26) before retention; derived from data originally held under §3.3. Supported by the LIA motivated-intruder test (Appendix A, residual risk low) + conformity check (Appendix B); one tracked dependency — re-validate on the EDPB anonymisation guidelines (~summer 2026) |
 | Categories of data | De-identified time series (temperature, humidity, voltage, switch on/off → numeric) with timestamps, under a fresh surrogate key with **no stored reverse map** to sensor/switch/user; series kept independent (never cross-linked) |
 | Source | Migrated from §3.3 on unclaim/sale, account deletion, GDPR erasure, or the opt-out purge |
 | Recipients | Self-hosted PostgreSQL only |
