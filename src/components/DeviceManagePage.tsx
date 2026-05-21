@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { PencilIcon, CheckIcon, XMarkIcon, TrashIcon, ClipboardDocumentIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, CheckIcon, XMarkIcon, TrashIcon, ClipboardDocumentIcon, ArrowLeftIcon, PowerIcon } from '@heroicons/react/24/outline';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
 import Section from '@/components/Section';
@@ -18,6 +18,8 @@ export interface DeviceItem {
     customName?: string | null;
     type?: string;
     registrationCode?: string | null;
+    /** When true, the device is turned off / over-quota suspended: its data reads are blocked. */
+    suspended?: boolean;
 }
 
 export interface DevicePageConfig<T extends DeviceItem> {
@@ -30,6 +32,10 @@ export interface DevicePageConfig<T extends DeviceItem> {
     updateName: (id: number, name: string) => Promise<unknown>;
     getDisplayName: (item: T) => string;
     getDefaultName: (item: T) => string | undefined;
+    /** Optional: turn a device off (frees a quota slot). Enables the on/off toggle when paired with `activate`. */
+    suspend?: (id: number) => Promise<unknown>;
+    /** Optional: turn a device back on. Rejected by the API (and surfaced as a toast) if it would exceed the plan. */
+    activate?: (id: number) => Promise<unknown>;
 }
 
 interface Props<T extends DeviceItem> {
@@ -54,9 +60,10 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
     const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
     const { canClaim, loading: eligibilityLoading, refresh: refreshEligibility } = useCanClaimDevice();
 
-    const { title, itemLabel, emoji, fetchAll, claim, unclaim, updateName, getDisplayName, getDefaultName } = config;
+    const { title, itemLabel, emoji, fetchAll, claim, unclaim, updateName, getDisplayName, getDefaultName, suspend, activate } = config;
     const label = itemLabel;
     const Label = label.charAt(0).toUpperCase() + label.slice(1);
+    const [togglingId, setTogglingId] = useState<number | null>(null);
 
     const refresh = async () => {
         const all = await fetchAll();
@@ -125,6 +132,22 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
             setEditError(error instanceof Error ? error.message : `Failed to update ${label} name.`);
         } finally {
             setEditLoading(false);
+        }
+    };
+
+    const handleToggleActive = async (item: T) => {
+        const turnOn = item.suspended === true;
+        const action = turnOn ? activate : suspend;
+        if (!action) return;
+        setTogglingId(item.id);
+        try {
+            await action(item.id);
+            await Promise.all([refresh(), refreshEligibility()]);
+            toast.success(turnOn ? `${Label} turned on` : `${Label} turned off`);
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : `Failed to ${turnOn ? 'turn on' : 'turn off'} ${label}.`);
+        } finally {
+            setTogglingId(null);
         }
     };
 
@@ -229,7 +252,14 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
                                         ) : (
                                             <>
                                                 <div className="flex items-start justify-between gap-2 mb-2">
-                                                    <span className="text-sm font-semibold text-gray-100 leading-tight">{displayName}</span>
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <span className="text-sm font-semibold text-gray-100 leading-tight truncate">{displayName}</span>
+                                                        {item.suspended && (
+                                                            <span className="flex-shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                                                                Off
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     <button onClick={() => startEditing(item)} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700/60 transition-all flex-shrink-0" title="Rename">
                                                         <PencilIcon className="h-3.5 w-3.5" />
                                                     </button>
@@ -249,15 +279,31 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
                                                         </div>
                                                     )}
                                                     {item.customName && defaultName && <p className="text-xs text-gray-500">Default: {defaultName}</p>}
+                                                    {item.suspended && (
+                                                        <p className="text-xs text-amber-400/80 pt-1">Data hidden while off. Turn it back on (within your plan) or re-subscribe to view its history.</p>
+                                                    )}
                                                 </div>
-                                                <button
-                                                    onClick={() => setConfirmDeleteId(item.id)}
-                                                    className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-red-400 transition-colors"
-                                                    title="Remove from account"
-                                                >
-                                                    <TrashIcon className="h-3.5 w-3.5" />
-                                                    Remove from account
-                                                </button>
+                                                <div className="flex items-center gap-4">
+                                                    {suspend && activate && (
+                                                        <button
+                                                            onClick={() => handleToggleActive(item)}
+                                                            disabled={togglingId === item.id}
+                                                            className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-sky-400 disabled:opacity-50 transition-colors"
+                                                            title={item.suspended ? 'Turn on' : 'Turn off'}
+                                                        >
+                                                            <PowerIcon className="h-3.5 w-3.5" />
+                                                            {togglingId === item.id ? '…' : item.suspended ? 'Turn on' : 'Turn off'}
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => setConfirmDeleteId(item.id)}
+                                                        className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-red-400 transition-colors"
+                                                        title="Remove from account"
+                                                    >
+                                                        <TrashIcon className="h-3.5 w-3.5" />
+                                                        Remove from account
+                                                    </button>
+                                                </div>
                                             </>
                                         )}
                                     </div>

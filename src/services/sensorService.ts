@@ -11,6 +11,8 @@ export interface Sensor {
     defaultName: string;
     registrationCode: string;
     parentName: string;
+    /** True when the owner has turned this sensor off / it was auto-suspended for being over quota. Its data reads are blocked. */
+    suspended?: boolean;
 }
 
 export interface SensorData {
@@ -173,6 +175,24 @@ const SensorService = {
             return response.data;
         } catch (error: unknown) {
             throw new Error(formatApiError(error, 'Failed to remove sensor'));
+        }
+    },
+
+    async suspendSensor(id: number): Promise<{ message: string; suspended: boolean }> {
+        try {
+            const response = await axiosInstance.post<{ message: string; suspended: boolean }>(`/sensors/${id}/suspend`);
+            return response.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to turn off sensor'));
+        }
+    },
+
+    async activateSensor(id: number): Promise<{ message: string; suspended: boolean }> {
+        try {
+            const response = await axiosInstance.post<{ message: string; suspended: boolean }>(`/sensors/${id}/activate`);
+            return response.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to turn on sensor'));
         }
     },
 
