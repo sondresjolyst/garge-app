@@ -20,6 +20,11 @@ interface LoginData {
     password: string;
 }
 
+export interface DataRetention {
+    optOut: boolean;
+    optedOutAt: string | null;
+}
+
 const registerSchema = z.object({
     firstName: z
         .string()
@@ -191,6 +196,24 @@ const UserService = {
             return response.data;
         } catch (error: unknown) {
             throw new Error(formatApiError(error, 'Failed to export data'));
+        }
+    },
+
+    async getDataRetention(userId: string): Promise<DataRetention> {
+        try {
+            const response = await axiosInstance.get<DataRetention>(`/users/${userId}/data-retention`);
+            return response.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to load retention preference'));
+        }
+    },
+
+    async updateDataRetention(userId: string, optOut: boolean): Promise<DataRetention> {
+        try {
+            const response = await axiosInstance.put<DataRetention>(`/users/${userId}/data-retention`, { optOut });
+            return response.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to update retention preference'));
         }
     },
 };
