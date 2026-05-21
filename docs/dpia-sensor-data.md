@@ -1,9 +1,10 @@
 # Data Protection Impact Assessment — Sensor Data
 
-**Last updated:** 2026-05-08
-**DPIA version:** v1
+**Last updated:** 2026-05-21
+**DPIA version:** v2
 **Reviewed by:** Sondre Sjølyst (controller)
 **Applies to:** Continuous collection and storage of vehicle/garage sensor readings (battery voltage, temperature, humidity, switch states) tied to customer accounts.
+**v2 change (2026-05-21):** triggered by the over-quota suspension + data-retention work — adds a new lawful basis for retention beyond contract (Art. 6(1)(f) legitimate interest with an Art. 21 opt-out), keeps a returning owner's history for the lifetime of the claim, and adds an **anonymized telemetry store** kept indefinitely for ML. Detailed legitimate-interest + re-identification analysis: see `garge-api/docs/legitimate-interest-assessment.md` (LIA). Processing inventory: `docs/article30.md`.
 
 ## 1. Necessity of the DPIA
 
@@ -17,9 +18,10 @@ Garge processes sensor readings continuously, ties them to identifiable customer
 | Data types | Sensor readings (numeric values, ON/OFF state), timestamps, sensor metadata (custom names) |
 | Data subjects | Garge customers (natural persons) |
 | Volume | One reading per sensor every few seconds; tens to thousands of rows per day per customer |
-| Duration | For the lifetime of the subscription; severed from customer identity at account soft-delete |
+| Duration | For the lifetime of the **ownership claim** (while the customer owns the device, incl. while suspended over-quota); severed from customer identity on unclaim/sale, account soft-delete, or the opt-out purge |
 | Recipients | Self-hosted only |
 | Cross-border | None |
+| Anonymized ML store | On unclaim/sale, erasure, account deletion, or opt-out purge, the customer's exclusive readings are moved to a de-identified store (surrogate key, no reverse map) kept indefinitely for analytics/model development. Treated as anonymous (out of GDPR scope) per the LIA §3 — contingent on its pre-launch conditions |
 
 ## 3. Necessity + proportionality
 
@@ -29,8 +31,8 @@ Garge processes sensor readings continuously, ties them to identifiable customer
 | Purpose limitation | Used only for the customer-facing display, automation rules, and battery-health analytics they explicitly enabled |
 | Data minimization | No more granular than what the device publishes; no GPS, no images, no biometrics |
 | Accuracy | Values stored as-published; firmware-level outliers are not corrected |
-| Retention | While subscription is active; anonymized at deletion |
-| Lawful basis for retention beyond contract | None claimed; readings retained because they remain useful for the customer |
+| Retention | Lifetime of the ownership claim (incl. while suspended); anonymized on unclaim/sale/deletion, or 6 months after the opt-out + subscription lapse |
+| Lawful basis for retention beyond contract | **Art. 6(1)(f) legitimate interest** — preserving the owner's own history (incl. year-over-year across seasonal gaps), with an **Art. 21 opt-out**. Full LIA: `garge-api/docs/legitimate-interest-assessment.md` |
 
 ## 4. Risks to data subjects
 
@@ -70,6 +72,12 @@ Garge processes sensor readings continuously, ties them to identifiable customer
 **Likelihood:** Medium.
 **Severity:** Low.
 
+### R7 — Re-identification of the keep-forever anonymized ML store
+
+**Risk:** Telemetry moved to the indefinitely-retained anonymized store keeps **per-device series with absolute timestamps**. If the de-identification is reversible by any means reasonably likely (e.g. residual mapping in logs/backups, or external knowledge), the "anonymous, out-of-scope" basis fails and personal data is being kept forever.
+**Likelihood:** Low.
+**Severity:** High (indefinite retention).
+
 ## 5. Mitigations
 
 | Risk | Mitigation in place |
@@ -78,7 +86,8 @@ Garge processes sensor readings continuously, ties them to identifiable customer
 | R2 | Billing address only displayed to the customer themselves and on their own invoice; not exposed to other Garge users |
 | R3 | Soft-delete severs the customer link; sensor + reading rows remain but contain no name/email/phone |
 | R4 | Write endpoints (`CreateSensorData*`, `UpdateSensor`, `DeleteSensor*`) require `Admin` or `SensorAdmin` role; same for switch endpoints with `SwitchAdmin`. Verified in `Controllers/SensorController.cs` |
-| R5 | Backups encrypted at rest; rotation deletes residual data within 12 months of any soft-delete; access RBAC-restricted |
+| R5 | Backups encrypted at rest; rotation (3 daily / 4 weekly / 6 monthly, no yearly) deletes residual data within ~6 months of any soft-delete; access RBAC-restricted |
+| R7 | Surrogate key with no stored reverse map; independent series (never cross-linked); regenerable battery data dropped; logs (90d) + backups (≤6mo) within the mapping horizon. **Pre-launch conditions (LIA §6):** documented motivated-intruder test, and re-validation against the forthcoming post-*SRB* EDPB anonymisation guidance; if either fails, fall back to aggregate-at-cap. Full analysis: `garge-api/docs/legitimate-interest-assessment.md` §3 |
 | R6 | Privacy notice (`/privacy`) explicitly discloses continuous monitoring and what is recorded |
 
 ## 6. Residual risk
@@ -101,7 +110,10 @@ Processing **proceeds** under the controls above. DPIA reviewed annually or on a
 
 | Role | Name | Date |
 |---|---|---|
-| Controller | Sondre Sjølyst | 2026-05-08 |
+| Controller (v1) | Sondre Sjølyst | 2026-05-08 |
+| Controller (v2 — retention/ML + opt-out) | Sondre Sjølyst | 2026-05-21 |
+
+Processing **proceeds** for v2 subject to the LIA §6 pre-launch conditions for the anonymized ML store (motivated-intruder test; post-*SRB* EDPB guidance re-check).
 
 ## 9. Document maintenance
 

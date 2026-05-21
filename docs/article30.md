@@ -1,8 +1,10 @@
 # Records of Processing Activities (GDPR Article 30)
 
-**Last updated:** 2026-05-08
-**Document version:** v1
+**Last updated:** 2026-05-21
+**Document version:** v2
 **Maintained in lockstep with code in this repository.**
+
+> **v2 (2026-05-21):** sensor/switch retention moved from contract-only to claim-lifetime under legitimate interest with an Art. 21 opt-out; added the **anonymized telemetry (ML)** activity (§3.8); updated backup retention (§3.7); recorded the retention opt-out under data-subject rights (§5). See DPIA `docs/dpia-sensor-data.md` and LIA `garge-api/docs/legitimate-interest-assessment.md`.
 
 ## 1. Controller
 
@@ -56,12 +58,12 @@ No joint controllers. No DPO designated (not required — no special-category pr
 
 | Field | Value |
 |---|---|
-| Purpose | Operate the service: display readings, run automation rules, send alerts |
-| Lawful basis | Art. 6(1)(b) Contract |
+| Purpose | Operate the service: display readings, run automation rules, send alerts; preserve the owner's history (incl. while a device is suspended over-quota) so a returning subscriber keeps it |
+| Lawful basis | Art. 6(1)(b) Contract for active service; **Art. 6(1)(f) legitimate interest** for retaining an owned-but-suspended device's history, with an **Art. 21 opt-out** (full LIA: `garge-api/docs/legitimate-interest-assessment.md`) |
 | Categories of data | Sensor readings, switch state changes, timestamps, user-defined custom names |
 | Source | Customer's own MQTT-connected devices |
 | Recipients | Self-hosted PostgreSQL + EMQX broker |
-| Retention | Lifetime of subscription. After account soft-delete, the link to the customer (UserSensors / UserSwitches) is severed, leaving readings effectively anonymized |
+| Retention | Lifetime of the **ownership claim** (while the customer owns the device). Reads are bounded to the owner's ownership window (a later owner of a resold device never sees prior history). On unclaim/sale, account soft-delete, or — for an opted-out user — 6 months after the subscription lapses, the exclusive readings are moved to the anonymized store (§3.8) or deleted |
 | Security | EMQX per-device PBKDF2-SHA512 credentials, per-topic ACLs, RBAC at API layer |
 | Cross-border transfer | None |
 
@@ -113,9 +115,22 @@ No joint controllers. No DPO designated (not required — no special-category pr
 | Categories of data | Snapshot of all production data |
 | Source | Automated snapshot of PostgreSQL volume |
 | Recipients | Self-hosted snapshot store |
-| Retention | 3 daily, 4 weekly, 3 monthly, 1 yearly |
-| Note on erasure | After a customer soft-deletes, residual scrubbed data may persist in backups for up to 12 months until the yearly rotation completes. Backups are encrypted at rest, are not used for any processing, and are restored only on disaster |
+| Retention | 3 daily, 4 weekly, 6 monthly (no yearly) |
+| Note on erasure | After a customer soft-deletes, residual scrubbed data may persist in backups for up to ~6 months until rotation completes — within the anonymization mapping horizon. Backups are encrypted at rest, are not used for any processing, and are restored only on disaster |
 | Security | Encrypted at rest |
+| Cross-border transfer | None |
+
+### 3.8 Anonymized telemetry (ML / analytics)
+
+| Field | Value |
+|---|---|
+| Purpose | Long-term analytics and model development (e.g. battery-health algorithms) on de-identified device telemetry |
+| Lawful basis | Out of GDPR scope — rendered **anonymous** (Recital 26) before retention; derived from data originally held under §3.3. Treated as anonymous **contingent on** the LIA §3 pre-launch conditions (motivated-intruder test; post-*SRB* EDPB guidance re-check) |
+| Categories of data | De-identified time series (temperature, humidity, voltage, switch on/off → numeric) with timestamps, under a fresh surrogate key with **no stored reverse map** to sensor/switch/user; series kept independent (never cross-linked) |
+| Source | Migrated from §3.3 on unclaim/sale, account deletion, GDPR erasure, or the opt-out purge |
+| Recipients | Self-hosted PostgreSQL only |
+| Retention | Indefinite (anonymous) |
+| Security | No reverse-mapping table; regenerable battery-health data not stored; same cluster RBAC |
 | Cross-border transfer | None |
 
 ## 4. Sub-processors
@@ -133,7 +148,7 @@ The Garge platform is **self-hosted** by Sjølyst Innovations on infrastructure 
 - **Access (Art. 15) + Portability (Art. 20):** `GET /api/users/{id}/export` returns JSON with all customer data (account, sensors, switches, readings, activities, photos).
 - **Rectification (Art. 16):** `PUT /api/users/{id}/profile` (name + phone) and `PUT /api/users/{id}/preferences` (settings). Email change requires re-verification (planned follow-up).
 - **Erasure (Art. 17):** `DELETE /api/users/{id}/account` — soft-deletes the user (PII scrubbed, account locked), retains Orders and Invoices for the 5-year Norwegian Bookkeeping Act obligation, deletes RefreshTokens / PushSubscriptions / WebhookSubscriptions / custom names / activities.
-- **Restriction / Object (Art. 18, 21):** No automated decision-making. No direct-marketing processing. Users can soft-delete to stop processing.
+- **Restriction / Object (Art. 18, 21):** No automated decision-making. No direct-marketing processing. Users can **object to legitimate-interest retention** of a suspended device's history via the data-retention opt-out (`PUT /api/users/{id}/data-retention`; profile toggle) — once set and the subscription has lapsed, the suspended device's data is purged after 6 months. Users can also soft-delete to stop processing.
 - **Withdraw consent (Art. 7(3)):** Push permissions: revoke in browser settings. Subscription waiver of right of withdrawal: cannot be retroactively withdrawn (the Norwegian Right of Withdrawal Act (angrerettloven §22 letter n), by design).
 
 ## 6. Breach response
