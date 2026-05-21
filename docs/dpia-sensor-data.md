@@ -21,7 +21,7 @@ Garge processes sensor readings continuously, ties them to identifiable customer
 | Duration | For the lifetime of the **ownership claim** (while the customer owns the device, incl. while suspended over-quota); severed from customer identity on unclaim/sale, account soft-delete, or the opt-out purge |
 | Recipients | Self-hosted only |
 | Cross-border | None |
-| Anonymized ML store | On unclaim/sale, erasure, account deletion, or opt-out purge, the customer's exclusive readings are moved to a de-identified store (surrogate key, no reverse map) kept indefinitely for analytics/model development. Treated as anonymous (out of GDPR scope) per the LIA §3 — contingent on its pre-launch conditions |
+| Anonymized ML store | On unclaim/sale, erasure, account deletion, or opt-out purge, the customer's exclusive readings are moved to a de-identified store (surrogate key, no reverse map) kept indefinitely for analytics/model development. Treated as anonymous (out of GDPR scope) per the LIA §3 + Appendix A (motivated-intruder test, residual risk low) |
 
 ## 3. Necessity + proportionality
 
@@ -87,7 +87,7 @@ Garge processes sensor readings continuously, ties them to identifiable customer
 | R3 | Soft-delete severs the customer link; sensor + reading rows remain but contain no name/email/phone |
 | R4 | Write endpoints (`CreateSensorData*`, `UpdateSensor`, `DeleteSensor*`) require `Admin` or `SensorAdmin` role; same for switch endpoints with `SwitchAdmin`. Verified in `Controllers/SensorController.cs` |
 | R5 | Backups encrypted at rest; rotation (3 daily / 4 weekly / 6 monthly, no yearly) deletes residual data within ~6 months of any soft-delete; access RBAC-restricted |
-| R7 | Surrogate key with no stored reverse map; independent series (never cross-linked); regenerable battery data dropped; logs (90d) + backups (≤6mo) within the mapping horizon. **Motivated-intruder test completed** (LIA Appendix A): anonymous to external parties on release; controller-side residual only via exact timestamp+value backup correlation, expiring with the ≤6mo backup rotation — residual risk **low**. One tracked dependency: re-validate when the EDPB anonymisation guidelines publish (~summer 2026); fallback = aggregate-at-cap. Full analysis: `garge-api/docs/legitimate-interest-assessment.md` §3 + Appendices A/B |
+| R7 | Surrogate key with no stored reverse map; independent series (never cross-linked); regenerable battery data dropped; logs (90d) + backups (≤6mo) within the mapping horizon. **Motivated-intruder test completed** (LIA Appendix A): anonymous to external parties on release; controller-side residual only via exact timestamp+value backup correlation, expiring with the ≤6mo backup rotation — residual risk **low**. Re-reviewed if regulatory guidance changes; documented fallback = aggregate-at-cap. Full analysis: `garge-api/docs/legitimate-interest-assessment.md` §3 + Appendices A/B |
 | R6 | Privacy notice (`/privacy`) explicitly discloses continuous monitoring and what is recorded |
 
 ## 6. Residual risk
@@ -113,7 +113,7 @@ Processing **proceeds** under the controls above. DPIA reviewed annually or on a
 | Controller (v1) | Sondre Sjølyst | 2026-05-08 |
 | Controller (v2 — retention/ML + opt-out) | Sondre Sjølyst | 2026-05-21 |
 
-Processing **proceeds** for v2 subject to the LIA §6 pre-launch conditions for the anonymized ML store (motivated-intruder test; post-*SRB* EDPB guidance re-check).
+Processing **proceeds** for v2; the anonymized ML store's "anonymous" basis is supported by the LIA motivated-intruder test (Appendix A) + conformity check (Appendix B), re-reviewed if regulatory guidance changes.
 
 ## 9. Document maintenance
 
