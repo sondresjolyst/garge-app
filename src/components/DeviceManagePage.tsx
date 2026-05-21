@@ -34,7 +34,7 @@ export interface DevicePageConfig<T extends DeviceItem> {
     getDefaultName: (item: T) => string | undefined;
     /** Optional: turn a device off (frees a quota slot). Enables the on/off toggle when paired with `activate`. */
     suspend?: (id: number) => Promise<unknown>;
-    /** Optional: turn a device back on. Rejected by the API (and surfaced as a toast) if it would exceed the plan. */
+    /** Optional: turn a device back on. Rejected by the API (and surfaced as a toast) if it would exceed the caller's capacity. */
     activate?: (id: number) => Promise<unknown>;
 }
 
@@ -280,7 +280,7 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
                                                     )}
                                                     {item.customName && defaultName && <p className="text-xs text-gray-500">Default: {defaultName}</p>}
                                                     {item.suspended && (
-                                                        <p className="text-xs text-amber-400/80 pt-1">Data hidden while off. Turn it back on (within your plan) or re-subscribe to view its history.</p>
+                                                        <p className="text-xs text-amber-400/80 pt-1">Off — its readings are hidden. Turn it back on to view them. If you&apos;re out of capacity, turn another sensor off or add more.</p>
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-4">
