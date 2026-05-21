@@ -277,7 +277,7 @@ export default function BillingPage() {
                                 </p>
                             )}
                             <p className="mt-2 text-xs text-amber-400">
-                                After {deriveCancelEndDate(cancelTarget)}, sensors above your plan are turned off.
+                                After {deriveCancelEndDate(cancelTarget)}, sensors beyond your capacity are turned off.
                             </p>
                             <p className="mt-2 text-xs text-gray-400">
                                 Your history is kept for as long as you own the device, so if you come back — even after a seasonal break — you can pick up where you left off and compare year over year. You can turn this off in <Link href="/profile" className="text-sky-400 hover:text-sky-300">your profile</Link>, and you can export or remove any sensor anytime.
