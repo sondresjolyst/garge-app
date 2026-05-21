@@ -43,6 +43,8 @@ const Profile: React.FC = () => {
     const [showDeleteAccount, setShowDeleteAccount] = useState(false);
     const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
     const [exportLoading, setExportLoading] = useState(false);
+    const [retentionKeep, setRetentionKeep] = useState(true);
+    const [retentionLoading, setRetentionLoading] = useState(false);
     const [pushEnabled, setPushEnabled] = useState(false);
     const [pushLoading, setPushLoading] = useState(false);
     const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
@@ -62,6 +64,7 @@ const Profile: React.FC = () => {
             setUser(u);
             setPriceZone(u.priceZone ?? 'NO2');
             setOfflineThreshold(u.offlineAlertThresholdHours > 0 ? u.offlineAlertThresholdHours : 4);
+            if (u.id) UserService.getDataRetention(u.id).then(r => setRetentionKeep(!r.optOut)).catch(() => { });
         }).catch(console.error).finally(() => setProfileLoading(false));
         if (isPushSupported()) {
             setPushPermission(Notification.permission);
@@ -273,6 +276,23 @@ const Profile: React.FC = () => {
             toast.error('Failed to delete account. Please try again.');
             setDeleteAccountLoading(false);
             setShowDeleteAccount(false);
+        }
+    };
+
+    const handleToggleRetention = async () => {
+        if (!user?.id || retentionLoading) return;
+        const nextKeep = !retentionKeep;
+        setRetentionLoading(true);
+        try {
+            await UserService.updateDataRetention(user.id, !nextKeep); // store opt-out = !keep
+            setRetentionKeep(nextKeep);
+            toast.success(nextKeep
+                ? 'We\'ll keep your sensor history'
+                : 'History will be deleted 6 months after your subscription ends');
+        } catch (e: unknown) {
+            toast.error(e instanceof Error ? e.message : 'Failed to update retention preference');
+        } finally {
+            setRetentionLoading(false);
         }
     };
 
@@ -661,6 +681,20 @@ const Profile: React.FC = () => {
                                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all whitespace-nowrap flex-shrink-0"
                             >
                                 {exportLoading ? 'Exporting…' : 'Download'}
+                            </button>
+                        </div>
+                        <div className="border-t border-gray-700/40 pt-4 flex items-center justify-between gap-4">
+                            <div className="min-w-0 flex-1">
+                                <p className="text-sm text-gray-100 font-medium">Keep my history after my subscription ends</p>
+                                <p className="text-xs text-gray-500 mt-0.5">On (default): we keep your sensor history for as long as you own the device, so you can resume and compare year over year when you return. Off: once your subscription lapses, suspended devices are removed and their data deleted or anonymized after 6 months.</p>
+                            </div>
+                            <button
+                                onClick={handleToggleRetention}
+                                disabled={retentionLoading || profileLoading || !user?.id}
+                                aria-label={retentionKeep ? 'Stop keeping history after subscription ends' : 'Keep history after subscription ends'}
+                                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${retentionKeep ? 'bg-sky-600' : 'bg-gray-700'}`}
+                            >
+                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${retentionKeep ? 'translate-x-6' : 'translate-x-1'}`} />
                             </button>
                         </div>
                         <div className="border-t border-gray-700/40 pt-4 flex items-center justify-between gap-4">
