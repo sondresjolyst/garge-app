@@ -39,7 +39,9 @@ export function useCanClaimDevice(): CanClaimDeviceResult {
                 SubscriptionService.getMySubscriptions().catch(() => []),
             ]);
             const activeSubs = subscriptions.filter(s => s.status === 'Active');
-            setOwnedSensorCount(sensors.length);
+            // Suspended (turned-off / over-capacity) sensors do not consume capacity — count only active ones,
+            // matching the backend's GetActiveOwnedSensorCountAsync.
+            setOwnedSensorCount(sensors.filter(s => !s.suspended).length);
             setPrimaryActive(activeSubs.some(s => s.productType === 'Primary'));
             setAddOnCapacity(
                 activeSubs
