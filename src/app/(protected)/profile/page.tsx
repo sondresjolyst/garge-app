@@ -14,6 +14,7 @@ import { useCanClaimDevice } from '@/hooks/useCanClaimDevice';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
 import Section from '@/components/Section';
+import CapacityMeter from '@/components/CapacityMeter';
 import ToggleSwitch from '@/components/ToggleSwitch';
 import { inputClass } from '@/components/TextInput';
 import Alert from '@/components/Alert';
@@ -57,7 +58,7 @@ const Profile: React.FC = () => {
     const [editPhone, setEditPhone] = useState('');
     const [profileSaving, setProfileSaving] = useState(false);
     const [editingField, setEditingField] = useState<'name' | 'phone' | null>(null);
-    const { canClaim, loading: eligibilityLoading, refresh: refreshEligibility } = useCanClaimDevice();
+    const { canClaim, loading: eligibilityLoading, refresh: refreshEligibility, capacity, ownedSensorCount, primaryActive } = useCanClaimDevice();
 
     useEffect(() => {
         if (!isAuthenticated) { router.push('/login'); return; }
@@ -489,6 +490,7 @@ const Profile: React.FC = () => {
 
                 <Section title="Devices">
                     <div className="space-y-4">
+                        <CapacityMeter used={ownedSensorCount} capacity={capacity} primaryActive={primaryActive} loading={eligibilityLoading} />
                         <div>
                             <div className="flex gap-2 p-1 bg-gray-800/60 rounded-xl mb-3">
                                 <button
