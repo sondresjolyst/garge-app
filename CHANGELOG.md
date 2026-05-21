@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.17.0](https://github.com/sondresjolyst/garge-app/compare/v1.16.0...v1.17.0) (2026-05-20)
+
+
+### Features
+
+* deterministic sort for automation rules ([#299](https://github.com/sondresjolyst/garge-app/issues/299)) ([e44fd70](https://github.com/sondresjolyst/garge-app/commit/e44fd7002dfaa206e677953b1ecdca30f980e12f))
+* gate claim UI by subscription status before submit ([#317](https://github.com/sondresjolyst/garge-app/issues/317)) ([28b5d75](https://github.com/sondresjolyst/garge-app/commit/28b5d75fc1a3b60455cefe63909de5a596e4b328))
+
+
+### Bug Fixes
+
+* lift cart FAB and hide nav when cart drawer open ([#298](https://github.com/sondresjolyst/garge-app/issues/298)) ([929b176](https://github.com/sondresjolyst/garge-app/commit/929b1762ef9bdfc89b74f40da6a719e2f8054dd9))
+* make offline alert toggle reflect this device only ([#300](https://github.com/sondresjolyst/garge-app/issues/300)) ([fb4a6fc](https://github.com/sondresjolyst/garge-app/commit/fb4a6fc5fba03a881be3fa843f2e7829d1cf4595))
+* prevent description text from collapsing on profile page rows ([#301](https://github.com/sondresjolyst/garge-app/issues/301)) ([294aa77](https://github.com/sondresjolyst/garge-app/commit/294aa773de4e45c78e999ea431d1e470225ff55d))
+* resolve subscription on billing return by id ([#321](https://github.com/sondresjolyst/garge-app/issues/321)) ([0968346](https://github.com/sondresjolyst/garge-app/commit/096834658b58c856c4c3a51486b526aa36f71840))
+* surface backend message when claim is forbidden ([#314](https://github.com/sondresjolyst/garge-app/issues/314)) ([eaf2a6e](https://github.com/sondresjolyst/garge-app/commit/eaf2a6ee455ac71958f8e4434f1903827a8bcf37))
+* surface backend validation errors on register ([#313](https://github.com/sondresjolyst/garge-app/issues/313)) ([dbdf14b](https://github.com/sondresjolyst/garge-app/commit/dbdf14b11000379db091b25ebf69bf438d286917))
+
 ## [1.16.0](https://github.com/sondresjolyst/garge-app/compare/v1.15.0...v1.16.0) (2026-05-19)
 
 
