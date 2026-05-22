@@ -22,6 +22,15 @@ export interface SensorData {
     value: number;
 }
 
+/** The caller's sensor capacity and claim eligibility (GET /sensors/capacity). */
+export interface SensorCapacity {
+    capacity: number;
+    used: number;
+    /** Role-based access without a subscription (e.g. ComplimentaryUser) — no capacity limit. */
+    bypass: boolean;
+    canClaim: boolean;
+}
+
 export interface BatteryHealthData {
     id: number;
     sensorId: number;
@@ -148,6 +157,15 @@ const SensorService = {
                 return { totalCount: 0, pageNumber, pageSize, data: [] };
             }
             throw new Error(formatApiError(error, 'Failed to fetch multiple sensors data'));
+        }
+    },
+
+    async getSensorCapacity(): Promise<SensorCapacity> {
+        try {
+            const response = await axiosInstance.get<SensorCapacity>('/sensors/capacity');
+            return response.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to fetch sensor capacity'));
         }
     },
 
