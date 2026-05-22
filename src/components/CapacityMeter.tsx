@@ -3,23 +3,33 @@ import Link from 'next/link';
 interface CapacityMeterProps {
     /** Active (non-suspended) owned sensors consuming capacity. */
     used: number;
-    /** Sensors covered by the active subscription (1 Primary + add-on quantities). */
+    /** Sensors covered by the active subscription (1 Primary + add-on quantities); 0 without one. */
     capacity: number;
-    primaryActive: boolean;
+    /** Role-based access without a subscription (e.g. ComplimentaryUser) — no capacity limit. */
+    bypass?: boolean;
     loading?: boolean;
 }
 
 /**
  * Shows how much sensor capacity is in use ("3 of 6 used") with a segmented bar.
- * Capacity is additive (Primary covers 1 + each add-on adds quantity) — there is no
- * fixed plan tier, so this always reflects the current subscription.
+ * Capacity is additive (Primary covers 1 + each add-on adds quantity). Users with a
+ * subscription-bypass role have complimentary, unlimited access.
  */
-export default function CapacityMeter({ used, capacity, primaryActive, loading = false }: CapacityMeterProps) {
+export default function CapacityMeter({ used, capacity, bypass = false, loading = false }: CapacityMeterProps) {
     if (loading) {
         return <div className="h-12 rounded-xl bg-gray-800/40 animate-pulse" />;
     }
 
-    if (!primaryActive || capacity === 0) {
+    if (bypass) {
+        return (
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-gray-900/50 border border-gray-700/40 px-3 py-2.5">
+                <span className="text-xs text-gray-400">Sensor capacity</span>
+                <span className="text-xs font-medium text-emerald-400">Complimentary access · {used} active</span>
+            </div>
+        );
+    }
+
+    if (capacity === 0) {
         return (
             <div className="flex items-center justify-between gap-3 rounded-xl bg-gray-900/50 border border-gray-700/40 px-3 py-2.5">
                 <p className="text-xs text-gray-400">No active subscription — no sensor capacity.</p>

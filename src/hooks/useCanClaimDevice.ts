@@ -1,53 +1,33 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import SensorService from '@/services/sensorService';
-import SubscriptionService from '@/services/subscriptionService';
+import SensorService, { SensorCapacity } from '@/services/sensorService';
 
 export interface CanClaimDeviceResult {
     canClaim: boolean;
     loading: boolean;
-    ownedSensorCount: number;
+    used: number;
     capacity: number;
-    primaryActive: boolean;
+    /** True when a role grants service access without a subscription (e.g. ComplimentaryUser). */
+    bypass: boolean;
     refresh: () => Promise<void>;
 }
 
 /**
- * Mirrors the backend ActiveSubscriptionRequirement so the UI can hide the claim button
- * before submit. Capacity model:
- *
- *   - An active Primary subscription grants a base allowance of 1 owned sensor.
- *   - Each active AddOn subscription contributes its quantity to the allowance.
- *   - Without an active Primary the allowance is 0 — AddOns alone are not enough.
- *
- * A claim is allowed when ownedSensorCount < capacity. Shared sensors are tracked with
- * IsOwner=false on the backend and are not counted here either (the sensors endpoint
- * does not currently expose ownership and sharing is not implemented yet).
+ * Reads the caller's sensor capacity + claim eligibility from the backend
+ * (GET /sensors/capacity) — the single source of truth. The client does not
+ * re-derive capacity or duplicate the subscription-bypass role list.
  */
 export function useCanClaimDevice(): CanClaimDeviceResult {
-    const [ownedSensorCount, setOwnedSensorCount] = useState(0);
-    const [primaryActive, setPrimaryActive] = useState(false);
-    const [addOnCapacity, setAddOnCapacity] = useState(0);
+    const [data, setData] = useState<SensorCapacity>({ capacity: 0, used: 0, bypass: false, canClaim: false });
     const [loading, setLoading] = useState(true);
 
     const refresh = useCallback(async () => {
         setLoading(true);
         try {
-            const [sensors, subscriptions] = await Promise.all([
-                SensorService.getAllSensors().catch(() => []),
-                SubscriptionService.getMySubscriptions().catch(() => []),
-            ]);
-            const activeSubs = subscriptions.filter(s => s.status === 'Active');
-            // Suspended (turned-off / over-capacity) sensors do not consume capacity — count only active ones,
-            // matching the backend's GetActiveOwnedSensorCountAsync.
-            setOwnedSensorCount(sensors.filter(s => !s.suspended).length);
-            setPrimaryActive(activeSubs.some(s => s.productType === 'Primary'));
-            setAddOnCapacity(
-                activeSubs
-                    .filter(s => s.productType === 'AddOn')
-                    .reduce((sum, s) => sum + (s.quantity ?? 0), 0),
-            );
+            setData(await SensorService.getSensorCapacity());
+        } catch {
+            setData({ capacity: 0, used: 0, bypass: false, canClaim: false });
         } finally {
             setLoading(false);
         }
@@ -57,8 +37,12 @@ export function useCanClaimDevice(): CanClaimDeviceResult {
         refresh();
     }, [refresh]);
 
-    const capacity = primaryActive ? 1 + addOnCapacity : 0;
-    const canClaim = ownedSensorCount < capacity;
-
-    return { canClaim, loading, ownedSensorCount, capacity, primaryActive, refresh };
+    return {
+        canClaim: data.canClaim,
+        loading,
+        used: data.used,
+        capacity: data.capacity,
+        bypass: data.bypass,
+        refresh,
+    };
 }
