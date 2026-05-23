@@ -190,7 +190,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
             }
             setStep(2);
         } catch {
-            setStep(2); // non-fatal — proceed anyway
+            setStep(2); // Naming failure is non-fatal; continue to the next step
         } finally {
             setSaving(false);
         }
@@ -418,7 +418,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                                 type="button"
                                 onClick={() => {
                                     setSelectedGroupId('new');
-                                    // Reset to just the newly claimed device (if any)
+                                    // Reset selection to the newly claimed device, if present
                                     setSelectedSensorIds(new Set(claimedSensor ? [claimedSensor.id] : []));
                                     setSelectedSwitchIds(new Set(claimedSwitch ? [claimedSwitch.id] : []));
                                 }}

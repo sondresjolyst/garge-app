@@ -18,7 +18,7 @@ export interface CreateSensorActivityPayload {
     notes?: string | null;
     /** Odometer reading in km. */
     odometerKm?: number | null;
-    /** ISO date string. If omitted, the API uses now. */
+    /** ISO date string. When omitted, the API defaults to the current time. */
     activityDate?: string | null;
 }
 

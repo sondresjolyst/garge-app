@@ -15,7 +15,7 @@ export interface Switch {
     role: string;
     customName?: string;
     registrationCode?: string;
-    /** The caller's relationship to this switch. Absent (older API) is treated as 'owner'. */
+    /** The caller's relationship to this switch. When absent, as returned by older API builds, it is treated as 'owner'. */
     access?: SensorAccess;
 }
 

@@ -20,7 +20,7 @@ export default function CookieBanner() {
                     if (!settings.cookieBannerEnabled) return;
                 }
             } catch {
-                // backend unreachable — fall through to consent check
+                // Backend unreachable; proceed to the consent check.
             }
 
             try {
