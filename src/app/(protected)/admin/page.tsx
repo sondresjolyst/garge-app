@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic';
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
+import ToggleSwitch from '@/components/ToggleSwitch';
 import { toast } from 'sonner';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
@@ -508,17 +509,14 @@ export default function AdminPage() {
 
                     {/* Users */}
                     <Section title="Users">
-                        <div className="flex items-center justify-end mb-3">
-                            <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer select-none">
-                                <input
-                                    type="checkbox"
-                                    checked={showDeletedUsers}
-                                    onChange={e => reloadUsersForDeletedToggle(e.target.checked)}
-                                    disabled={usersLoading}
-                                    className="rounded border-gray-600 bg-gray-900 text-sky-500 focus:ring-sky-500/40"
-                                />
-                                Show deleted{usersLoading ? '…' : ''}
-                            </label>
+                        <div className="flex items-center justify-end gap-2 mb-3">
+                            <span className="text-xs text-gray-400 select-none">Show deleted{usersLoading ? '…' : ''}</span>
+                            <ToggleSwitch
+                                checked={showDeletedUsers}
+                                onChange={() => reloadUsersForDeletedToggle(!showDeletedUsers)}
+                                disabled={usersLoading}
+                                ariaLabel="Show deleted users"
+                            />
                         </div>
                         {users.length > 0 && (
                             <input
