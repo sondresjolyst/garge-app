@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.18.0](https://github.com/sondresjolyst/garge-app/compare/v1.17.0...v1.18.0) (2026-05-23)
+
+
+### Features
+
+* add a Show deleted toggle to the admin user list ([#333](https://github.com/sondresjolyst/garge-app/issues/333)) ([9884e17](https://github.com/sondresjolyst/garge-app/commit/9884e172ded35e10b28e68c32333082f82a4415d))
+* data-retention opt-out toggle + cancel/downgrade retention notice ([#324](https://github.com/sondresjolyst/garge-app/issues/324)) ([4847704](https://github.com/sondresjolyst/garge-app/commit/484770401d4dd40a63c093eb360630f4056ca4d8))
+* device sharing UI (sensors + sockets, Read/Edit) ([#334](https://github.com/sondresjolyst/garge-app/issues/334)) ([020e2a7](https://github.com/sondresjolyst/garge-app/commit/020e2a7971bb47b335323481b76b78550d9803e8))
+* drive claim eligibility from the backend capacity endpoint ([#331](https://github.com/sondresjolyst/garge-app/issues/331)) ([a97f75b](https://github.com/sondresjolyst/garge-app/commit/a97f75bbc3f5374461d6248cd8aa812f6d4d3548))
+* show sensor capacity (X of Y used) in profile ([#329](https://github.com/sondresjolyst/garge-app/issues/329)) ([339cc04](https://github.com/sondresjolyst/garge-app/commit/339cc04ec183cf6720b9119894574df29fb15ce4))
+* suspended-sensor UI - locked state + on/off toggle ([#323](https://github.com/sondresjolyst/garge-app/issues/323)) ([0dd44c0](https://github.com/sondresjolyst/garge-app/commit/0dd44c0e7ec59f525ac97ebcf05e6bd6bd16514b))
+
+
+### Bug Fixes
+
+* **deps:** patch uuid and postcss security advisories ([#337](https://github.com/sondresjolyst/garge-app/issues/337)) ([e729abd](https://github.com/sondresjolyst/garge-app/commit/e729abd6ab2901328c80f376442eb40ddf3c8159))
+* use 'capacity' not 'plan' in suspension copy ([#328](https://github.com/sondresjolyst/garge-app/issues/328)) ([ec08df4](https://github.com/sondresjolyst/garge-app/commit/ec08df4f2b203ed88ff488c701ebce6ebaa2ba46))
+* use shared ToggleSwitch for admin Show deleted control ([#338](https://github.com/sondresjolyst/garge-app/issues/338)) ([4d036ac](https://github.com/sondresjolyst/garge-app/commit/4d036ac8be27050f8e32019a95bdfc6659b158f5))
+
 ## [1.17.0](https://github.com/sondresjolyst/garge-app/compare/v1.16.0...v1.17.0) (2026-05-20)
 
 
