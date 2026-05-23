@@ -68,7 +68,6 @@ export interface BatteryHealthData {
     fullChargesLast30d: number;
     dailyDropPctPerWeek: number | null;
     chargeAcceptanceRatio: number | null;
-    calibrationOffsetV: number | null;
     timestamp: string;
 }
 
@@ -283,18 +282,6 @@ const SensorService = {
             { params }
         );
         return response.data;
-    },
-
-    async calibrateBattery(sensorName: string, multimeterVoltage: number): Promise<{ calibrationOffsetV: number }> {
-        const response = await axiosInstance.post<{ calibrationOffsetV: number }>(
-            `/battery-health/name/${encodeURIComponent(sensorName)}/calibration`,
-            { multimeterVoltage }
-        );
-        return response.data;
-    },
-
-    async clearCalibration(sensorName: string): Promise<void> {
-        await axiosInstance.delete(`/battery-health/name/${encodeURIComponent(sensorName)}/calibration`);
     },
 
     async reanalyzeBatteryHealth(): Promise<{ processed: number; failed: number; total: number }> {
