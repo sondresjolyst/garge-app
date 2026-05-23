@@ -56,6 +56,31 @@ describe('AdminService.getEmailStats', () => {
     })
 })
 
+describe('AdminService.getUsers', () => {
+    const users = [
+        { id: 'u1', userName: 'a', firstName: 'A', lastName: 'B', email: 'a@x', isDeleted: false, roles: [] },
+    ]
+
+    it('hides deleted by default (no includeDeleted param)', async () => {
+        mockGet.mockResolvedValueOnce({ data: users })
+        const result = await AdminService.getUsers()
+        expect(mockGet).toHaveBeenCalledWith('/users', { params: undefined })
+        expect(result).toEqual(users)
+    })
+
+    it('passes includeDeleted=true when requested', async () => {
+        mockGet.mockResolvedValueOnce({ data: users })
+        await AdminService.getUsers({ includeDeleted: true })
+        expect(mockGet).toHaveBeenCalledWith('/users', { params: { includeDeleted: true } })
+    })
+
+    it('unwraps a $values envelope', async () => {
+        mockGet.mockResolvedValueOnce({ data: { $values: users } })
+        const result = await AdminService.getUsers()
+        expect(result).toEqual(users)
+    })
+})
+
 describe('AdminService.getAppSettings', () => {
     const mockSettings: AppSettings = { cookieBannerEnabled: true }
 

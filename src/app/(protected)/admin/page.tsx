@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -53,6 +53,10 @@ export default function AdminPage() {
 
     const [userSearch, setUserSearch] = useState('');
     const [userPage, setUserPage] = useState(0);
+    const [showDeletedUsers, setShowDeletedUsers] = useState(false);
+    const [usersLoading, setUsersLoading] = useState(false);
+    // Lets the full reload (load) honor the current toggle without re-creating its callback.
+    const showDeletedRef = useRef(false);
     const PAGE_SIZE = 10;
 
     const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
@@ -65,7 +69,7 @@ export default function AdminPage() {
         try {
             const [s, u, h] = await Promise.all([
                 AdminService.getStats({ test: statsTest }),
-                AdminService.getUsers(),
+                AdminService.getUsers({ includeDeleted: showDeletedRef.current }),
                 AdminService.getStatsHistory(),
             ]);
             setStats(s);
@@ -90,6 +94,20 @@ export default function AdminPage() {
             toast.error('Failed to reload stats');
         } finally {
             setStatsLoading(false);
+        }
+    }, []);
+
+    const reloadUsersForDeletedToggle = useCallback(async (includeDeleted: boolean) => {
+        setShowDeletedUsers(includeDeleted);
+        showDeletedRef.current = includeDeleted;
+        setUserPage(0);
+        setUsersLoading(true);
+        try {
+            setUsers(await AdminService.getUsers({ includeDeleted }));
+        } catch {
+            toast.error('Failed to reload users');
+        } finally {
+            setUsersLoading(false);
         }
     }, []);
 
@@ -490,6 +508,18 @@ export default function AdminPage() {
 
                     {/* Users */}
                     <Section title="Users">
+                        <div className="flex items-center justify-end mb-3">
+                            <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={showDeletedUsers}
+                                    onChange={e => reloadUsersForDeletedToggle(e.target.checked)}
+                                    disabled={usersLoading}
+                                    className="rounded border-gray-600 bg-gray-900 text-sky-500 focus:ring-sky-500/40"
+                                />
+                                Show deleted{usersLoading ? '…' : ''}
+                            </label>
+                        </div>
                         {users.length > 0 && (
                             <input
                                 type="text"
@@ -516,21 +546,28 @@ export default function AdminPage() {
                                             const isAddingRole = addRoleFor === u.id;
                                             const available = allRoles.filter(r => !u.roles.includes(r));
                                             return (
-                                                <li key={u.id} className="bg-gray-900/40 border border-gray-700/30 rounded-xl p-3 space-y-2">
+                                                <li key={u.id} className={`bg-gray-900/40 border border-gray-700/30 rounded-xl p-3 space-y-2 ${u.isDeleted ? 'opacity-60' : ''}`}>
                                                     <div className="flex items-start justify-between gap-2">
                                                         <div>
-                                                            <p className="text-sm font-medium text-gray-200">
+                                                            <p className="text-sm font-medium text-gray-200 flex items-center gap-2">
                                                                 {u.firstName} {u.lastName}
+                                                                {u.isDeleted && (
+                                                                    <span className="px-1.5 py-0.5 bg-red-600/20 border border-red-600/30 rounded text-[10px] font-medium text-red-300">
+                                                                        Deleted
+                                                                    </span>
+                                                                )}
                                                             </p>
                                                             <p className="text-xs text-gray-500">{u.email}</p>
                                                         </div>
-                                                        <button
-                                                            onClick={() => setDeleteTarget(u)}
-                                                            className="p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-gray-700/60 transition-all flex-shrink-0"
-                                                            title="Delete user"
-                                                        >
-                                                            <TrashIcon className="h-4 w-4" />
-                                                        </button>
+                                                        {!u.isDeleted && (
+                                                            <button
+                                                                onClick={() => setDeleteTarget(u)}
+                                                                className="p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-gray-700/60 transition-all flex-shrink-0"
+                                                                title="Delete user"
+                                                            >
+                                                                <TrashIcon className="h-4 w-4" />
+                                                            </button>
+                                                        )}
                                                     </div>
 
                                                     <div className="flex flex-wrap gap-1.5 items-center">

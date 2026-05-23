@@ -34,6 +34,8 @@ export interface AdminUser {
     firstName: string;
     lastName: string;
     email: string;
+    /** True for soft-deleted (scrubbed) accounts. Hidden by default; shown via the "Show deleted" toggle. */
+    isDeleted: boolean;
     roles: string[];
 }
 
@@ -84,8 +86,10 @@ const AdminService = {
         return '$values' in data ? data.$values : data;
     },
 
-    async getUsers(): Promise<AdminUser[]> {
-        const res = await axiosInstance.get<AdminUser[] | { $values: AdminUser[] }>('/users');
+    async getUsers(opts?: { includeDeleted?: boolean }): Promise<AdminUser[]> {
+        const res = await axiosInstance.get<AdminUser[] | { $values: AdminUser[] }>('/users', {
+            params: opts?.includeDeleted ? { includeDeleted: true } : undefined,
+        });
         const data = res.data;
         return '$values' in data ? data.$values : data;
     },
