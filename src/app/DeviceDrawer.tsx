@@ -15,7 +15,6 @@ import SensorPhotoService from '@/services/sensorPhotoService';
 import type { Photo } from '@/services/photoServiceFactory';
 import { toast } from 'sonner';
 import ActivitiesSection from '@/components/ActivitiesSection';
-import CalibrationModal from '@/components/CalibrationModal';
 import type { UnifiedDevice } from './DeviceDashboard';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
@@ -152,7 +151,6 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
 
     // Photo (sensors only)
     const [photo, setPhoto] = useState<Photo | null | undefined>(undefined);
-    const [showCalibration, setShowCalibration] = useState(false);
 
     // Inline name editing (sensors + sockets)
     const [editingName, setEditingName] = useState(false);
@@ -474,15 +472,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                     {/* Battery health details — server-side analyzer output */}
                     {health && healthCfg && (
                         <div className="bg-gray-800/60 border border-gray-700/40 rounded-2xl p-4 space-y-3">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-semibold text-gray-300">Battery Health</h3>
-                                <button
-                                    onClick={() => setShowCalibration(true)}
-                                    className="text-xs text-sky-400 hover:text-sky-300 transition-colors"
-                                >
-                                    Calibrate
-                                </button>
-                            </div>
+                            <h3 className="text-sm font-semibold text-gray-300">Battery Health</h3>
                             <div className="space-y-2.5">
                                 <div className="flex items-center justify-between text-sm">
                                     <InfoLabel tooltip="Overall battery health. Needs ≥14 days of data and at least one charge event to assess.">
@@ -532,11 +522,6 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                                     </InfoLabel>
                                     <span className="text-gray-200 font-medium tabular-nums">
                                         {health.restingMedian.toFixed(2)} V
-                                        {health.calibrationOffsetV !== null && (
-                                            <span className="text-gray-500 text-xs ml-1">
-                                                ≈ {(health.restingMedian + health.calibrationOffsetV).toFixed(2)} V actual
-                                            </span>
-                                        )}
                                     </span>
                                 </div>
 
@@ -557,11 +542,6 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                                             </InfoLabel>
                                             <span className="text-gray-200 font-medium tabular-nums">
                                                 {health.peakResting.toFixed(2)} V
-                                                {health.calibrationOffsetV !== null && (
-                                                    <span className="text-gray-500 text-xs ml-1">
-                                                        ≈ {(health.peakResting + health.calibrationOffsetV).toFixed(2)} V actual
-                                                    </span>
-                                                )}
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between text-sm">
@@ -603,19 +583,6 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
                                 )}
                             </div>
                         </div>
-                    )}
-
-                    {showCalibration && health && device.sensorName && (
-                        <CalibrationModal
-                            sensorName={device.sensorName}
-                            currentSensorReading={health.currentVoltage}
-                            existingOffset={health.calibrationOffsetV}
-                            onClose={() => setShowCalibration(false)}
-                            onSaved={() => {
-                                setShowCalibration(false);
-                                toast.message('Calibration applied. Voltage display will update on next refresh.');
-                            }}
-                        />
                     )}
 
                     {/* Activities (sensors only — e.g. log motorcycle activities for a voltmeter) */}
