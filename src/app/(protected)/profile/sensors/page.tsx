@@ -15,6 +15,9 @@ const config: DevicePageConfig<Sensor> = {
     getDefaultName: (s) => s.defaultName ?? undefined,
     suspend: (id) => SensorService.suspendSensor(id),
     activate: (id) => SensorService.activateSensor(id),
+    listShares: (id) => SensorService.getSensorShares(id),
+    share: (id, email, permission) => SensorService.shareSensor(id, email, permission),
+    revokeShare: (id, userId) => SensorService.revokeSensorShare(id, userId),
 };
 
 export default function SensorsPage() {

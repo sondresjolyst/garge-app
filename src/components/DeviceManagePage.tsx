@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { PencilIcon, CheckIcon, XMarkIcon, TrashIcon, ClipboardDocumentIcon, ArrowLeftIcon, PowerIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, CheckIcon, XMarkIcon, TrashIcon, ClipboardDocumentIcon, ArrowLeftIcon, PowerIcon, ShareIcon } from '@heroicons/react/24/outline';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
 import Section from '@/components/Section';
@@ -12,6 +12,8 @@ import Alert from '@/components/Alert';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useCanClaimDevice } from '@/hooks/useCanClaimDevice';
+import ShareDeviceModal from '@/components/ShareDeviceModal';
+import { SensorAccess, SensorShare, SharePermission } from '@/services/sensorService';
 
 export interface DeviceItem {
     id: number;
@@ -20,6 +22,8 @@ export interface DeviceItem {
     registrationCode?: string | null;
     /** When true, the device is turned off / over-quota suspended: its data reads are blocked. */
     suspended?: boolean;
+    /** The caller's relationship to this device. Absent is treated as 'owner'. */
+    access?: SensorAccess;
 }
 
 export interface DevicePageConfig<T extends DeviceItem> {
@@ -36,6 +40,10 @@ export interface DevicePageConfig<T extends DeviceItem> {
     suspend?: (id: number) => Promise<unknown>;
     /** Optional: turn a device back on. Rejected by the API (and surfaced as a toast) if it would exceed the caller's capacity. */
     activate?: (id: number) => Promise<unknown>;
+    /** Optional sharing trio — when all present, owners get a Share action. */
+    listShares?: (id: number) => Promise<SensorShare[]>;
+    share?: (id: number, email: string, permission: SharePermission) => Promise<unknown>;
+    revokeShare?: (id: number, userId: string) => Promise<unknown>;
 }
 
 interface Props<T extends DeviceItem> {
@@ -60,10 +68,13 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
     const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
     const { canClaim, loading: eligibilityLoading, refresh: refreshEligibility } = useCanClaimDevice();
 
-    const { title, itemLabel, emoji, fetchAll, claim, unclaim, updateName, getDisplayName, getDefaultName, suspend, activate } = config;
+    const { title, itemLabel, emoji, fetchAll, claim, unclaim, updateName, getDisplayName, getDefaultName, suspend, activate, listShares, share, revokeShare } = config;
     const label = itemLabel;
     const Label = label.charAt(0).toUpperCase() + label.slice(1);
     const [togglingId, setTogglingId] = useState<number | null>(null);
+    const [shareTarget, setShareTarget] = useState<T | null>(null);
+    const sharingEnabled = Boolean(listShares && share && revokeShare);
+    const isOwner = (item: T) => (item.access ?? 'owner') === 'owner';
 
     const refresh = async () => {
         const all = await fetchAll();
@@ -156,16 +167,31 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
     };
 
     const confirmItem = items.find(i => i.id === confirmDeleteId);
+    const confirmIsOwner = confirmItem ? isOwner(confirmItem) : true;
 
     return (
         <>
             {confirmDeleteId !== null && confirmItem && (
                 <ConfirmModal
-                    title={`Remove ${label}`}
-                    message={<>Are you sure you want to remove <span className="font-medium text-gray-100">{getDisplayName(confirmItem)}</span> from your account? You can re-add it later using the device code.</>}
-                    confirmLabel="Remove"
+                    title={confirmIsOwner ? `Remove ${label}` : `Leave ${label}`}
+                    message={confirmIsOwner
+                        ? <>Remove <span className="font-medium text-gray-100">{getDisplayName(confirmItem)}</span> from your account? Anyone you shared it with will lose access. You can re-add it later using the device code.</>
+                        : <>Stop viewing <span className="font-medium text-gray-100">{getDisplayName(confirmItem)}</span>? The owner can share it with you again.</>}
+                    confirmLabel={confirmIsOwner ? 'Remove' : 'Leave'}
                     onConfirm={handleUnclaim}
                     onCancel={() => setConfirmDeleteId(null)}
+                />
+            )}
+
+            {shareTarget && listShares && share && revokeShare && (
+                <ShareDeviceModal
+                    deviceLabel={label}
+                    deviceName={getDisplayName(shareTarget)}
+                    deviceId={shareTarget.id}
+                    listShares={listShares}
+                    share={share}
+                    revokeShare={revokeShare}
+                    onClose={() => setShareTarget(null)}
                 />
             )}
 
@@ -259,6 +285,11 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
                                                                 Off
                                                             </span>
                                                         )}
+                                                        {!isOwner(item) && (
+                                                            <span className="flex-shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                                                                {item.access === 'edit' ? 'Shared · edit' : 'Shared · read'}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                     <button onClick={() => startEditing(item)} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700/60 transition-all flex-shrink-0" title="Rename">
                                                         <PencilIcon className="h-3.5 w-3.5" />
@@ -284,7 +315,7 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-4">
-                                                    {suspend && activate && (
+                                                    {suspend && activate && isOwner(item) && (
                                                         <button
                                                             onClick={() => handleToggleActive(item)}
                                                             disabled={togglingId === item.id}
@@ -295,13 +326,23 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
                                                             {togglingId === item.id ? '…' : item.suspended ? 'Turn on' : 'Turn off'}
                                                         </button>
                                                     )}
+                                                    {sharingEnabled && isOwner(item) && (
+                                                        <button
+                                                            onClick={() => setShareTarget(item)}
+                                                            className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-sky-400 transition-colors"
+                                                            title={`Share ${label}`}
+                                                        >
+                                                            <ShareIcon className="h-3.5 w-3.5" />
+                                                            Share
+                                                        </button>
+                                                    )}
                                                     <button
                                                         onClick={() => setConfirmDeleteId(item.id)}
                                                         className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-red-400 transition-colors"
-                                                        title="Remove from account"
+                                                        title={isOwner(item) ? 'Remove from account' : 'Leave'}
                                                     >
                                                         <TrashIcon className="h-3.5 w-3.5" />
-                                                        Remove from account
+                                                        {isOwner(item) ? 'Remove from account' : 'Leave'}
                                                     </button>
                                                 </div>
                                             </>
