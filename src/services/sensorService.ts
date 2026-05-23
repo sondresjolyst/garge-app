@@ -13,7 +13,29 @@ export interface Sensor {
     parentName: string;
     /** True when the owner has turned this sensor off / it was auto-suspended for being over quota. Its data reads are blocked. */
     suspended?: boolean;
+    /** The caller's relationship to this sensor. Absent (older API) is treated as 'owner'. */
+    access?: SensorAccess;
 }
+
+/** What the caller may do with a sensor: full owner, editor, or read-only viewer. */
+export type SensorAccess = 'owner' | 'edit' | 'read';
+
+/** A share tier when sharing a sensor with another user. */
+export type SharePermission = 'read' | 'edit';
+
+/** A recipient of a shared sensor (GET /sensors/{id}/shares). */
+export interface SensorShare {
+    userId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    permission: SharePermission;
+    sharedAt: string;
+}
+
+// The API serializes the SharePermission enum as an integer (Read=0, Edit=1).
+const permissionToApi = (p: SharePermission): number => (p === 'edit' ? 1 : 0);
+const permissionFromApi = (n: number): SharePermission => (n === 1 ? 'edit' : 'read');
 
 export interface SensorData {
     id: number;
@@ -193,6 +215,36 @@ const SensorService = {
             return response.data;
         } catch (error: unknown) {
             throw new Error(formatApiError(error, 'Failed to remove sensor'));
+        }
+    },
+
+    async getSensorShares(id: number): Promise<SensorShare[]> {
+        try {
+            const response = await axiosInstance.get<Array<Omit<SensorShare, 'permission'> & { permission: number }>>(`/sensors/${id}/shares`);
+            return response.data.map(s => ({ ...s, permission: permissionFromApi(s.permission) }));
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to load shares'));
+        }
+    },
+
+    async shareSensor(id: number, email: string, permission: SharePermission): Promise<{ message: string }> {
+        try {
+            const response = await axiosInstance.post<{ message: string }>(`/sensors/${id}/share`, {
+                email,
+                permission: permissionToApi(permission),
+            });
+            return response.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to share sensor'));
+        }
+    },
+
+    async revokeSensorShare(id: number, userId: string): Promise<{ message: string }> {
+        try {
+            const response = await axiosInstance.delete<{ message: string }>(`/sensors/${id}/share/${userId}`);
+            return response.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to revoke share'));
         }
     },
 
