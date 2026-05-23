@@ -11,9 +11,9 @@ export interface Sensor {
     defaultName: string;
     registrationCode: string;
     parentName: string;
-    /** True when the owner has turned this sensor off / it was auto-suspended for being over quota. Its data reads are blocked. */
+    /** True when the owner has turned this sensor off, or it was auto-suspended for being over quota. Data reads are blocked while suspended. */
     suspended?: boolean;
-    /** The caller's relationship to this sensor. Absent (older API) is treated as 'owner'. */
+    /** The caller's relationship to this sensor. When absent, as returned by older API builds, it is treated as 'owner'. */
     access?: SensorAccess;
 }
 
@@ -34,7 +34,7 @@ export interface SensorShare {
 }
 
 // The API serializes the SharePermission enum as an integer (Read=0, Edit=1). Exported so switchService
-// reuses the same mapping (sockets share the device-sharing contract).
+// reuses the same mapping, since sockets share the device-sharing contract.
 export const permissionToApi = (p: SharePermission): number => (p === 'edit' ? 1 : 0);
 export const permissionFromApi = (n: number): SharePermission => (n === 1 ? 'edit' : 'read');
 

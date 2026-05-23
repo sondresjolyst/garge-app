@@ -55,7 +55,7 @@ export default function AdminPage() {
     const [userPage, setUserPage] = useState(0);
     const [showDeletedUsers, setShowDeletedUsers] = useState(false);
     const [usersLoading, setUsersLoading] = useState(false);
-    // Lets the full reload (load) honor the current toggle without re-creating its callback.
+    // Allows the full reload (load) to honor the current toggle without re-creating its callback.
     const showDeletedRef = useRef(false);
     const PAGE_SIZE = 10;
 

@@ -49,7 +49,7 @@ export default function ShopPage() {
             ShopService.getShopItems(),
             ProductService.getProducts(),
             AdminService.getAppSettings(),
-            // A 401/empty mySubs shouldn't break the shop, so swallow + treat as no primary.
+            // A 401 or empty subscription list must not break the shop; ignore the error and treat as no primary subscription.
             SubscriptionService.getMySubscriptions().catch(() => []),
         ])
             .then(([shopItems, prods, settings, mySubs]) => {

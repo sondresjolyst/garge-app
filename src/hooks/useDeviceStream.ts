@@ -34,10 +34,10 @@ interface Handlers {
  * Opens a SignalR connection to garge-api's DeviceHub for the current
  * authenticated user and forwards events to the supplied handlers.
  *
- * Dependency array is intentionally `[]`: the connection lifecycle is tied
- * to the component lifetime, not to handler identity. The latest handlers
- * are captured into a ref on every render so consumers don't need to
- * memoize callbacks; the ref is read inside the connection-event closures.
+ * The dependency array is intentionally `[]`: the connection lifecycle is
+ * tied to the component lifetime, not to handler identity. The latest handlers
+ * are captured into a ref on every render so consumers need not memoize
+ * callbacks; the ref is read inside the connection-event closures.
  */
 export function useDeviceStream(handlers: Handlers): void {
     const handlersRef = useRef<Handlers>(handlers);
@@ -55,9 +55,9 @@ export function useDeviceStream(handlers: Handlers): void {
 
         (async () => {
             // NEXT_PUBLIC_API_URL is the REST root (e.g. https://host/api).
-            // The SignalR hub is mapped at /hubs/devices on the api host —
-            // outside the /api segment — so strip a trailing /api before
-            // appending the hub path. Tolerates trailing slashes either way.
+            // The SignalR hub is mapped at /hubs/devices on the API host,
+            // outside the /api segment, so strip a trailing /api before
+            // appending the hub path. Trailing slashes are handled either way.
             const hubUrl =
                 `${apiBase.replace(/\/?api\/?$/, '').replace(/\/$/, '')}/hubs/devices`;
 
@@ -69,10 +69,11 @@ export function useDeviceStream(handlers: Handlers): void {
                     },
                 })
                 .withAutomaticReconnect()
-                // None in dev silences SignalR's internal logger noise from
-                // StrictMode double-mount aborts and from auto-fallback when
-                // WebSocket is blocked by Firefox+self-signed-cert. Production
-                // gets Warning so real connectivity issues surface.
+                // LogLevel.None in development suppresses SignalR's internal
+                // log output from StrictMode double-mount aborts and from
+                // transport auto-fallback when WebSocket is blocked by Firefox
+                // with a self-signed certificate. Production uses Warning so
+                // real connectivity issues surface.
                 .configureLogging(process.env.NODE_ENV === 'development' ? LogLevel.None : LogLevel.Warning)
                 .build();
 
@@ -95,9 +96,9 @@ export function useDeviceStream(handlers: Handlers): void {
                     await connection.stop();
                 }
             } catch (err) {
-                // React StrictMode mounts twice in dev; the first cleanup
-                // aborts the in-flight start(). Treat that abort as expected
-                // and stay quiet so it doesn't pollute the console.
+                // React StrictMode mounts twice in development; the first
+                // cleanup aborts the in-flight start(). That abort is expected,
+                // so it is suppressed rather than logged.
                 if (cancelled) return;
                 if (process.env.NODE_ENV === 'development') {
                     console.error('useDeviceStream connect failed:', err);
@@ -108,7 +109,7 @@ export function useDeviceStream(handlers: Handlers): void {
         return () => {
             cancelled = true;
             // Suppress AbortError from stopping a connection that is still
-            // negotiating — see comment above on StrictMode double-mount.
+            // negotiating; see the StrictMode double-mount note above.
             connection?.stop().catch(() => { });
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -23,7 +23,7 @@ export async function compressImage(file: File): Promise<{ base64: string; conte
             let quality = QUALITY;
             let dataUrl = canvas.toDataURL('image/jpeg', quality);
 
-            // reduce quality until under MAX_BYTES
+            // Reduce quality until the output is under MAX_BYTES.
             while (dataUrl.length * 0.75 > MAX_BYTES && quality > 0.3) {
                 quality -= 0.05;
                 dataUrl = canvas.toDataURL('image/jpeg', quality);

@@ -36,11 +36,11 @@ export interface DevicePageConfig<T extends DeviceItem> {
     updateName: (id: number, name: string) => Promise<unknown>;
     getDisplayName: (item: T) => string;
     getDefaultName: (item: T) => string | undefined;
-    /** Optional: turn a device off (frees a quota slot). Enables the on/off toggle when paired with `activate`. */
+    /** Optional handler that turns a device off, freeing a quota slot. Enables the on/off toggle when paired with `activate`. */
     suspend?: (id: number) => Promise<unknown>;
-    /** Optional: turn a device back on. Rejected by the API (and surfaced as a toast) if it would exceed the caller's capacity. */
+    /** Optional handler that turns a device back on. The API rejects the request, and a toast reports it, if reactivation would exceed the caller's capacity. */
     activate?: (id: number) => Promise<unknown>;
-    /** Optional sharing trio — when all present, owners get a Share action. */
+    /** Optional sharing handlers. When all three are present, owners get a Share action. */
     listShares?: (id: number) => Promise<SensorShare[]>;
     share?: (id: number, email: string, permission: SharePermission) => Promise<unknown>;
     revokeShare?: (id: number, userId: string) => Promise<unknown>;
