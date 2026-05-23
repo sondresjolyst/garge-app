@@ -33,9 +33,10 @@ export interface SensorShare {
     sharedAt: string;
 }
 
-// The API serializes the SharePermission enum as an integer (Read=0, Edit=1).
-const permissionToApi = (p: SharePermission): number => (p === 'edit' ? 1 : 0);
-const permissionFromApi = (n: number): SharePermission => (n === 1 ? 'edit' : 'read');
+// The API serializes the SharePermission enum as an integer (Read=0, Edit=1). Exported so switchService
+// reuses the same mapping (sockets share the device-sharing contract).
+export const permissionToApi = (p: SharePermission): number => (p === 'edit' ? 1 : 0);
+export const permissionFromApi = (n: number): SharePermission => (n === 1 ? 'edit' : 'read');
 
 export interface SensorData {
     id: number;

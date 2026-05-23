@@ -1,5 +1,12 @@
 import axiosInstance from '@/services/axiosInstance';
 import { formatApiError } from '@/lib/errorMessages';
+import {
+    SensorAccess,
+    SensorShare,
+    SharePermission,
+    permissionFromApi,
+    permissionToApi,
+} from '@/services/sensorService';
 
 export interface Switch {
     id: number;
@@ -8,6 +15,8 @@ export interface Switch {
     role: string;
     customName?: string;
     registrationCode?: string;
+    /** The caller's relationship to this switch. Absent (older API) is treated as 'owner'. */
+    access?: SensorAccess;
 }
 
 export interface SwitchData {
@@ -103,6 +112,36 @@ const SwitchService = {
             await axiosInstance.delete(`/switches/${switchId}/claim`);
         } catch (error: unknown) {
             throw new Error(formatApiError(error, 'Failed to unclaim socket'));
+        }
+    },
+
+    async getSwitchShares(switchId: number): Promise<SensorShare[]> {
+        try {
+            const response = await axiosInstance.get<Array<Omit<SensorShare, 'permission'> & { permission: number }>>(`/switches/${switchId}/shares`);
+            return response.data.map(s => ({ ...s, permission: permissionFromApi(s.permission) }));
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to load shares'));
+        }
+    },
+
+    async shareSwitch(switchId: number, email: string, permission: SharePermission): Promise<{ message: string }> {
+        try {
+            const response = await axiosInstance.post<{ message: string }>(`/switches/${switchId}/share`, {
+                email,
+                permission: permissionToApi(permission),
+            });
+            return response.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to share socket'));
+        }
+    },
+
+    async revokeSwitchShare(switchId: number, userId: string): Promise<{ message: string }> {
+        try {
+            const response = await axiosInstance.delete<{ message: string }>(`/switches/${switchId}/share/${userId}`);
+            return response.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to revoke share'));
         }
     }
 };

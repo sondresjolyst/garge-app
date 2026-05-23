@@ -13,6 +13,9 @@ const config: DevicePageConfig<Switch> = {
     updateName: (id, name) => SwitchService.updateCustomName(id, name),
     getDisplayName: (sw) => sw.customName ?? sw.name,
     getDefaultName: (sw) => sw.name,
+    listShares: (id) => SwitchService.getSwitchShares(id),
+    share: (id, email, permission) => SwitchService.shareSwitch(id, email, permission),
+    revokeShare: (id, userId) => SwitchService.revokeSwitchShare(id, userId),
 };
 
 export default function SocketsPage() {
