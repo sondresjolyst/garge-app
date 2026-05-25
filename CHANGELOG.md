@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.1](https://github.com/sondresjolyst/garge-app/compare/v1.18.0...v1.18.1) (2026-05-25)
+
+
+### Bug Fixes
+
+* **app:** ship device-rename fix and shared-UI refactor ([#348](https://github.com/sondresjolyst/garge-app/issues/348)) ([e6f7636](https://github.com/sondresjolyst/garge-app/commit/e6f7636ec014bee22dfc9e89b0f46dbb8f8de88e))
+
 ## [1.18.0](https://github.com/sondresjolyst/garge-app/compare/v1.17.0...v1.18.0) (2026-05-23)
 
 
