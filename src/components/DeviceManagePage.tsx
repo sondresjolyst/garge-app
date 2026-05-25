@@ -1,8 +1,6 @@
 "use client"
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import { PencilIcon, CheckIcon, XMarkIcon, TrashIcon, ClipboardDocumentIcon, ArrowLeftIcon, PowerIcon, ShareIcon } from '@heroicons/react/24/outline';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
@@ -51,10 +49,6 @@ interface Props<T extends DeviceItem> {
 }
 
 export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
-    const { status } = useSession();
-    const router = useRouter();
-    const isAuthenticated = status === 'authenticated';
-
     const [items, setItems] = useState<T[]>([]);
     const [loading, setLoading] = useState(true);
     const [claimCode, setClaimCode] = useState('');
@@ -82,11 +76,12 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
     };
 
     useEffect(() => {
-        if (!isAuthenticated) { router.push('/login'); return; }
         setLoading(true);
-        refresh().catch(console.error).finally(() => setLoading(false));
+        refresh()
+            .catch((err: unknown) => toast.error(err instanceof Error ? err.message : `Failed to load ${title.toLowerCase()}.`))
+            .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAuthenticated, router]);
+    }, []);
 
     const handleClaim = async () => {
         if (!claimCode.trim()) { setClaimMessage('Please enter a device code.'); setClaimError(true); return; }

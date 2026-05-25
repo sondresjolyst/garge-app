@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MagnifyingGlassIcon, ChevronDownIcon, PlusIcon, PencilIcon, TrashIcon, XMarkIcon, SignalIcon } from '@heroicons/react/24/outline';
 import { TYPE_CONFIG, DEFAULT_TYPE } from '@/lib/typeConfig';
-import { formatSensorValue } from '@/lib/typeUtils';
+import { formatSensorValue, typeEmoji } from '@/lib/typeUtils';
 import LoadingDots from '@/components/LoadingDots';
 import SensorService, { Sensor, BatteryHealthData } from '@/services/sensorService';
 import SwitchService, { Switch } from '@/services/switchService';
@@ -171,6 +171,8 @@ const DeviceDashboard: React.FC = () => {
     const [sort, setSort]             = useLocalStorage<SortKey>('device-sort', 'name-asc');
     const [typeFilter, setTypeFilter] = useLocalStorage<string>('device-type-filter', 'all');
     const [selected, setSelected]     = useState<UnifiedDevice | null>(null);
+    const selectedRef = useRef<UnifiedDevice | null>(null);
+    selectedRef.current = selected;
     const [wizardOpen, setWizardOpen]   = useState(false);
     const [wizardStep, setWizardStep]   = useState(0);
     const [wizardGroupId, setWizardGroupId] = useState<number | undefined>(undefined);
@@ -338,6 +340,19 @@ const DeviceDashboard: React.FC = () => {
             debouncedReload();
         },
     });
+
+    const handleRename = useCallback((id: number, name: string) => {
+        // The drawer only renames the currently selected device. Match the
+        // devices list on that device's kind + id to avoid colliding with a
+        // sensor and socket that happen to share the same numeric id.
+        const kind = selectedRef.current?.id === id ? selectedRef.current.kind : undefined;
+        setDevices(prev => prev.map(d =>
+            d.id === id && (kind === undefined || d.kind === kind)
+                ? { ...d, displayName: name }
+                : d
+        ));
+        setSelected(prev => (prev && prev.id === id ? { ...prev, displayName: name } : prev));
+    }, []);
 
     const filterPills = useMemo(() => {
         const types = [...new Set(devices.map(d => d.type))].sort();
@@ -517,12 +532,7 @@ const DeviceDashboard: React.FC = () => {
                                                         className="flex flex-col items-start bg-gray-900/50 border border-gray-700/30 rounded-xl px-2.5 py-2 hover:bg-gray-700/40 hover:border-gray-600/50 transition-all"
                                                     >
                                                         <div className="flex items-center gap-1 leading-tight">
-                                                            <span className="text-xs">{
-                                                                d.type === 'temperature' ? '🌡️' :
-                                                                d.type === 'humidity'    ? '💧' :
-                                                                d.type === 'voltage'     ? '⚡' :
-                                                                d.type === 'socket'      ? '🔌' : '📡'
-                                                            }</span>
+                                                            <span className="text-xs">{typeEmoji(d.type)}</span>
                                                             <span className="text-sm font-bold text-gray-100 tabular-nums">{formatValue(d)}</span>
                                                         </div>
                                                         <span className="text-[10px] text-gray-500 leading-tight mt-0.5 truncate max-w-[80px]">{d.displayName}</span>
@@ -638,7 +648,11 @@ const DeviceDashboard: React.FC = () => {
             </div>
 
             {selected && (
-                <DeviceDrawer device={selected} onClose={() => setSelected(null)} />
+                <DeviceDrawer
+                    device={selected}
+                    onClose={() => setSelected(null)}
+                    onRename={handleRename}
+                />
             )}
 
             {deleteGroup && (() => {

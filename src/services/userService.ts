@@ -65,11 +65,7 @@ const UserService = {
         }
 
         try {
-            const response = await axiosInstance.get<UserDTO>(`/users/${sub}/profile`, {
-                headers: {
-                    Authorization: `Bearer ${session.accessToken}`,
-                },
-            });
+            const response = await axiosInstance.get<UserDTO>(`/users/${sub}/profile`);
             return { ...response.data, id: sub };
         } catch (error: unknown) {
             throw new Error(formatApiError(error, 'Failed to fetch user profile'));

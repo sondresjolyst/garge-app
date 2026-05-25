@@ -1,3 +1,5 @@
+import { getPublicAppSettings } from '@/services/appSettingsService';
+
 export const COMPANY = {
     name: 'Garge',
     legalName: 'Sjølyst Innovations',
@@ -14,16 +16,8 @@ export const COMPANY = {
  * from the admin settings page.
  */
 export async function fetchVatEnabled(): Promise<boolean> {
-    try {
-        const base = process.env.NEXT_PUBLIC_API_URL;
-        if (!base) return false;
-        const res = await fetch(`${base}/admin/settings`, { cache: 'no-store' });
-        if (!res.ok) return false;
-        const data = await res.json();
-        return Boolean(data?.vatEnabled);
-    } catch {
-        return false;
-    }
+    const settings = await getPublicAppSettings();
+    return Boolean(settings?.vatEnabled);
 }
 
 export function formatOrgNumber(orgNumber: string, vatEnabled: boolean) {

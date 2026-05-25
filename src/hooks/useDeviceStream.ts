@@ -27,7 +27,6 @@ interface Handlers {
     onSwitch?: (e: SwitchEvent) => void;
     onSensor?: (e: SensorEvent) => void;
     onDeviceCreated?: (e: DeviceCreatedEvent) => void;
-    onForceLogout?: () => void;
 }
 
 /**
@@ -85,9 +84,6 @@ export function useDeviceStream(handlers: Handlers): void {
             });
             connection.on('device-created', (payload: DeviceCreatedEvent) => {
                 handlersRef.current.onDeviceCreated?.(payload);
-            });
-            connection.on('forceLogout', () => {
-                handlersRef.current.onForceLogout?.();
             });
 
             try {

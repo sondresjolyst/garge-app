@@ -17,6 +17,7 @@ export function typeEmoji(type: string): string {
     if (type === 'temperature') return '🌡️';
     if (type === 'humidity')    return '💧';
     if (type === 'voltage')     return '⚡';
+    if (type === 'socket')      return '🔌';
     if (type === 'unknown')     return '🔒';
     return '📡';
 }

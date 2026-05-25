@@ -417,14 +417,12 @@ export default function AdminPage() {
                                 {appSettings === null ? (
                                     <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />
                                 ) : (
-                                    <button
-                                        onClick={() => handleToggleAppSetting('cookieBannerEnabled', !appSettings.cookieBannerEnabled)}
+                                    <ToggleSwitch
+                                        checked={appSettings.cookieBannerEnabled}
+                                        onChange={() => handleToggleAppSetting('cookieBannerEnabled', !appSettings.cookieBannerEnabled)}
                                         disabled={appSettingsLoading}
-                                        aria-label="Toggle cookie banner"
-                                        className={`relative shrink-0 w-10 h-6 rounded-full transition-colors disabled:opacity-50 ${appSettings.cookieBannerEnabled ? 'bg-sky-600' : 'bg-gray-600'}`}
-                                    >
-                                        <span className={`absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow transition-transform ${appSettings.cookieBannerEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
-                                    </button>
+                                        ariaLabel="Toggle cookie banner"
+                                    />
                                 )}
                             </div>
                             <div className="flex items-center justify-between gap-4 bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
@@ -435,14 +433,12 @@ export default function AdminPage() {
                                 {appSettings === null ? (
                                     <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />
                                 ) : (
-                                    <button
-                                        onClick={() => handleToggleAppSetting('vatEnabled', !appSettings.vatEnabled)}
+                                    <ToggleSwitch
+                                        checked={appSettings.vatEnabled}
+                                        onChange={() => handleToggleAppSetting('vatEnabled', !appSettings.vatEnabled)}
                                         disabled={appSettingsLoading}
-                                        aria-label="Toggle VAT"
-                                        className={`relative shrink-0 w-10 h-6 rounded-full transition-colors disabled:opacity-50 ${appSettings.vatEnabled ? 'bg-sky-600' : 'bg-gray-600'}`}
-                                    >
-                                        <span className={`absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow transition-transform ${appSettings.vatEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
-                                    </button>
+                                        ariaLabel="Toggle VAT"
+                                    />
                                 )}
                             </div>
                             <div className="flex items-center justify-between gap-4 bg-gray-900/50 border border-amber-700/30 rounded-xl p-4">
@@ -453,14 +449,12 @@ export default function AdminPage() {
                                 {appSettings === null ? (
                                     <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />
                                 ) : (
-                                    <button
-                                        onClick={() => handleToggleAppSetting('vippsTestMode', !appSettings.vippsTestMode)}
+                                    <ToggleSwitch
+                                        checked={appSettings.vippsTestMode}
+                                        onChange={() => handleToggleAppSetting('vippsTestMode', !appSettings.vippsTestMode)}
                                         disabled={appSettingsLoading}
-                                        aria-label="Toggle Vipps test mode"
-                                        className={`relative shrink-0 w-10 h-6 rounded-full transition-colors disabled:opacity-50 ${appSettings.vippsTestMode ? 'bg-amber-500' : 'bg-gray-600'}`}
-                                    >
-                                        <span className={`absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow transition-transform ${appSettings.vippsTestMode ? 'translate-x-5' : 'translate-x-1'}`} />
-                                    </button>
+                                        ariaLabel="Toggle Vipps test mode"
+                                    />
                                 )}
                             </div>
                         </div>
