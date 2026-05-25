@@ -2,9 +2,10 @@ import axiosInstance from '@/services/axiosInstance';
 import { UserDTO } from '@/dto/UserDTO';
 import { AxiosError } from 'axios';
 import { getSession } from 'next-auth/react';
-import { z } from 'zod';
 import { formatApiError } from '@/lib/errorMessages';
 import { parseValidationErrors } from '@/lib/apiErrors';
+import { FieldValidationError } from '@/lib/errors';
+import { registerSchema, zodIssuesToFieldErrors } from '@/lib/validation/registerSchema';
 
 interface RegisterData extends LoginData {
     firstName: string;
@@ -24,33 +25,6 @@ export interface DataRetention {
     optOut: boolean;
     optedOutAt: string | null;
 }
-
-const registerSchema = z.object({
-    firstName: z
-        .string()
-        .min(2, { message: 'First Name must be at least 2 characters long.' })
-        .trim(),
-    lastName: z
-        .string()
-        .min(2, { message: 'Last Name must be at least 2 characters long.' })
-        .trim(),
-    userName: z
-        .string()
-        .min(2, { message: 'Username must be at least 2 characters long.' })
-        .trim(),
-    email: z.string().email({ message: 'Please enter a valid email.' }).trim(),
-    password: z
-        .string()
-        .min(8, { message: 'Be at least 8 characters long.' })
-        .max(128, { message: 'Be at most 128 characters long.' })
-        .regex(/[a-zA-Z]/, { message: 'Contain at least one letter.' })
-        .regex(/[0-9]/, { message: 'Contain at least one number.' })
-        .regex(/[A-Z]/, { message: 'Contain at least one uppercase letter.' })
-        .regex(/[^a-zA-Z0-9]/, {
-            message: 'Contain at least one special character.',
-        })
-        .trim(),
-});
 
 const UserService = {
     async getUserProfile(): Promise<UserDTO> {
@@ -85,15 +59,7 @@ const UserService = {
         const result = registerSchema.safeParse(data);
 
         if (!result.success) {
-            const errors = result.error.issues.reduce((acc, error) => {
-                const path = error.path[0] as string;
-                if (!acc[path]) {
-                    acc[path] = [];
-                }
-                acc[path].push(error.message);
-                return acc;
-            }, {} as Record<string, string[]>);
-            throw new Error(JSON.stringify(errors));
+            throw new FieldValidationError(zodIssuesToFieldErrors(result.error.issues));
         }
 
         try {
@@ -102,7 +68,7 @@ const UserService = {
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 const fieldErrors = parseValidationErrors(error.response?.data);
-                if (fieldErrors) throw new Error(JSON.stringify(fieldErrors));
+                if (fieldErrors) throw new FieldValidationError(fieldErrors);
             }
             throw new Error(formatApiError(error, 'Failed to register'));
         }

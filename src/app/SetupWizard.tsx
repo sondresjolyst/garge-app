@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { XMarkIcon, ChevronRightIcon, CheckIcon } from '@heroicons/react/24/outline';
+import Modal from '@/components/Modal';
 import SensorService, { Sensor } from '@/services/sensorService';
 import SwitchService, { Switch } from '@/services/switchService';
 import GroupService, { Group } from '@/services/groupService';
@@ -96,17 +97,9 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
     );
     const [selectedSwitchIds, setSelectedSwitchIds] = useState<Set<number>>(new Set());
 
-    const overlayRef = useRef<HTMLDivElement>(null);
     const { canClaim, loading: eligibilityLoading, refresh: refreshEligibility } = useCanClaimDevice();
 
     const TOTAL_STEPS = 4; // 0: claim, 1: name, 2: group, 3: done
-
-    // Close on Escape
-    useEffect(() => {
-        const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-        window.addEventListener('keydown', handler);
-        return () => window.removeEventListener('keydown', handler);
-    }, [onClose]);
 
     // Load groups + all sensors + all switches when reaching step 2
     useEffect(() => {
@@ -613,14 +606,12 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
     };
 
     return (
-        <div
-            ref={overlayRef}
-            role="dialog"
-            aria-modal="true"
-            className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/60 backdrop-blur-sm"
-            onClick={e => { if (e.target === overlayRef.current) onClose(); }}
+        <Modal
+            open
+            onClose={onClose}
+            containerClassName="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/60 backdrop-blur-sm"
+            panelClassName="relative w-full sm:max-w-md max-h-[90dvh] sm:max-h-[85vh] flex flex-col bg-gray-900 border border-gray-700/50 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
         >
-            <div className="relative w-full sm:max-w-md max-h-[90dvh] sm:max-h-[85vh] flex flex-col bg-gray-900 border border-gray-700/50 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
                 {/* Drag handle — mobile only */}
                 <div className="sm:hidden flex justify-center pt-3 pb-1 flex-shrink-0">
                     <div className="w-10 h-1 rounded-full bg-gray-700" />
@@ -641,8 +632,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
 
                     {renderStep()}
                 </div>
-            </div>
-        </div>
+        </Modal>
     );
 };
 

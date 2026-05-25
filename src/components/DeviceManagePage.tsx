@@ -1,11 +1,12 @@
 "use client"
 
 import { useEffect, useState } from 'react';
-import { PencilIcon, CheckIcon, XMarkIcon, TrashIcon, ClipboardDocumentIcon, ArrowLeftIcon, PowerIcon, ShareIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, ClipboardDocumentIcon, ArrowLeftIcon, PowerIcon, ShareIcon } from '@heroicons/react/24/outline';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
 import Section from '@/components/Section';
 import { inputClass } from '@/components/TextInput';
+import InlineEditField from '@/components/InlineEditField';
 import Alert from '@/components/Alert';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -245,31 +246,16 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
                                 return (
                                     <div key={item.id} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
                                         {editingId === item.id ? (
-                                            <div className="space-y-2">
-                                                <div className="relative">
-                                                    <input
-                                                        type="text"
-                                                        value={editName}
-                                                        onChange={e => setEditName(e.target.value)}
-                                                        className={inputClass}
-                                                        maxLength={50}
-                                                        disabled={editLoading}
-                                                        autoFocus
-                                                    />
-                                                    <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] tabular-nums pointer-events-none ${editName.length >= 45 ? 'text-amber-400' : 'text-gray-600'}`}>{editName.length}/50</span>
-                                                </div>
-                                                {editError && <p className="text-xs text-red-400">{editError}</p>}
-                                                <div className="flex gap-2">
-                                                    <button onClick={() => handleSaveName(item.id)} disabled={editLoading} className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-all">
-                                                        <CheckIcon className="h-3.5 w-3.5" />
-                                                        {editLoading ? 'Saving…' : 'Save'}
-                                                    </button>
-                                                    <button onClick={cancelEditing} disabled={editLoading} className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs font-medium rounded-lg transition-all">
-                                                        <XMarkIcon className="h-3.5 w-3.5" />
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </div>
+                                            <InlineEditField
+                                                value={editName}
+                                                onChange={setEditName}
+                                                onSave={() => handleSaveName(item.id)}
+                                                onCancel={cancelEditing}
+                                                saving={editLoading}
+                                                maxLength={50}
+                                                error={editError}
+                                                autoFocus
+                                            />
                                         ) : (
                                             <>
                                                 <div className="flex items-start justify-between gap-2 mb-2">

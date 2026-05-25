@@ -15,6 +15,7 @@ import { groupEmoji } from '@/lib/groupIcons';
 import { useLocalStorage } from '@/lib/useLocalStorage';
 import CollapsibleSection from '@/components/CollapsibleSection';
 import { useDeviceStream } from '@/hooks/useDeviceStream';
+import { useOutsideClick } from '@/hooks/useOutsideClick';
 
 // ── Type sort order for group cards ───────────────────────────────────────────
 const TYPE_ORDER: Record<string, number> = { voltage: 0, temperature: 1, humidity: 2, socket: 3 };
@@ -39,13 +40,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ value, options, onChange })
     const ref = useRef<HTMLDivElement>(null);
     const selected = options.find(o => o.value === value);
 
-    useEffect(() => {
-        const handler = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-        };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
-    }, []);
+    useOutsideClick(ref, () => setOpen(false), open);
 
     return (
         <div ref={ref} className="relative">

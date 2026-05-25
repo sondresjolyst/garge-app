@@ -4,8 +4,8 @@ import { useState } from 'react';
 import AuthService from '@/services/userService';
 import Image from 'next/image';
 import Link from 'next/link';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { inputClass } from '@/components/TextInput';
+import PasswordInput from '@/components/PasswordInput';
 import Alert from '@/components/Alert';
 
 const ResetPassword: React.FC = () => {
@@ -13,7 +13,6 @@ const ResetPassword: React.FC = () => {
     const [email, setEmail] = useState('');
     const [code, setCode] = useState('');
     const [NewPassword, setNewPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const [apiMessage, setApiMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [loading, setLoading] = useState(false);
@@ -89,18 +88,11 @@ const ResetPassword: React.FC = () => {
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-gray-400 mb-1.5">New password</label>
-                                <div className="relative">
-                                    <input
-                                        className={`${inputClass} pr-10`}
-                                        type={showPassword ? 'text' : 'password'}
-                                        placeholder="••••••••"
-                                        value={NewPassword}
-                                        onChange={e => setNewPassword(e.target.value)}
-                                    />
-                                    <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors" tabIndex={-1}>
-                                        {showPassword ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
-                                    </button>
-                                </div>
+                                <PasswordInput
+                                    placeholder="••••••••"
+                                    value={NewPassword}
+                                    onChange={e => setNewPassword(e.target.value)}
+                                />
                             </div>
                             {apiMessage && <Alert variant="error">{apiMessage}</Alert>}
                             <button className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all text-sm" type="submit" disabled={loading}>

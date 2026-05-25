@@ -15,17 +15,15 @@ import { formatApiError } from '@/lib/errorMessages';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
 import ToggleSwitch from '@/components/ToggleSwitch';
+import AutomationRuleForm from './AutomationRuleForm';
 import {
     PlusIcon,
     XMarkIcon,
     ClockIcon,
     PencilSquareIcon,
-    TrashIcon,
     BoltIcon,
 } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
-
-const PRICE_AREAS = ['NO1', 'NO2', 'NO3', 'NO4', 'NO5'];
 
 const initialForm: CreateAutomationRuleDto = {
     targetType: '',
@@ -37,14 +35,6 @@ const initialForm: CreateAutomationRuleDto = {
     action: 'on',
     isEnabled: true,
 };
-
-const conditionOptions = [
-    { label: 'Equals',                value: '==' },
-    { label: 'Less than',             value: '<'  },
-    { label: 'Greater than',          value: '>'  },
-    { label: 'Less than or equal',    value: '<=' },
-    { label: 'Greater than or equal', value: '>=' },
-];
 
 const conditionSymbol: Record<string, string> = {
     '==': '=', '<': '<', '>': '>', '<=': '≤', '>=': '≥',
@@ -58,11 +48,6 @@ const conditionVerb: Record<string, string> = {
     '>=': 'reaches',
 };
 
-const actionOptions = [
-    { label: 'Turn On',  value: 'on'  },
-    { label: 'Turn Off', value: 'off' },
-];
-
 const formatTriggered = (iso: string | null): string | null => {
     if (!iso) return null;
     return formatDateTime(iso);
@@ -75,126 +60,6 @@ const formatTimerRemaining = (activatedAt: string, durationHours: number): strin
     const h = Math.floor(remainingMs / 3600000);
     const m = Math.floor((remainingMs % 3600000) / 60000);
     return h > 0 ? `${h}h ${m}m remaining` : `${m}m remaining`;
-};
-
-const checkCondition = (value: number, condition: string, threshold: number): boolean => {
-    switch (condition) {
-        case '==': return value === threshold;
-        case '<':  return value < threshold;
-        case '>':  return value > threshold;
-        case '<=': return value <= threshold;
-        case '>=': return value >= threshold;
-        default:   return false;
-    }
-};
-
-// ── Shared field components ───────────────────────────────────────────────────
-
-const FieldLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <label className="block text-xs font-semibold text-gray-400 mb-1.5 uppercase tracking-wider">
-        {children}
-    </label>
-);
-
-const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = ({ className = '', ...props }) => (
-    <select
-        className={`block w-full px-3 py-2.5 bg-gray-800 border border-gray-600/60 rounded-lg text-gray-200 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30 transition-all ${className}`}
-        {...props}
-    />
-);
-
-const NumberInput: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ className = '', onFocus, ...props }) => (
-    <input
-        type="number"
-        className={`block w-full px-3 py-2.5 bg-gray-800 border border-gray-600/60 rounded-lg text-gray-200 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30 transition-all ${className}`}
-        onFocus={e => { const el = e.currentTarget; setTimeout(() => el.select(), 0); onFocus?.(e); }}
-        {...props}
-    />
-);
-
-// ── Electricity price sub-form ────────────────────────────────────────────────
-
-interface PriceConditionFields {
-    electricityPriceCondition?: string;
-    electricityPriceThreshold?: number;
-    electricityPriceArea?: string;
-    electricityPriceOperator?: string;
-}
-
-interface PriceConditionFormProps {
-    value: PriceConditionFields;
-    defaultArea: string;
-    onChange: (v: PriceConditionFields) => void;
-}
-
-const PriceConditionForm: React.FC<PriceConditionFormProps> = ({ value, defaultArea, onChange }) => {
-    const [enabled, setEnabled] = useState(!!value.electricityPriceCondition);
-
-    const toggle = () => {
-        const next = !enabled;
-        setEnabled(next);
-        if (!next) {
-            onChange({
-                electricityPriceCondition: undefined,
-                electricityPriceThreshold: undefined,
-                electricityPriceArea: undefined,
-                electricityPriceOperator: undefined,
-            });
-        } else {
-            onChange({
-                electricityPriceCondition: '<',
-                electricityPriceThreshold: 0,
-                electricityPriceArea: value.electricityPriceArea || defaultArea,
-                electricityPriceOperator: 'AND',
-            });
-        }
-    };
-
-    return (
-        <div className="pt-4 border-t border-gray-700/60">
-            <div className="flex items-center justify-between mb-3">
-                <div>
-                    <p className="text-sm font-medium text-gray-300">Electricity price condition</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Also check current electricity price</p>
-                </div>
-                <ToggleSwitch
-                    checked={enabled}
-                    onChange={toggle}
-                    ariaLabel={enabled ? 'Disable electricity price condition' : 'Enable electricity price condition'}
-                />
-            </div>
-            {enabled && (
-                <div className="mt-3 p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg space-y-3">
-                    <div>
-                        <FieldLabel>Combine with sensor condition using</FieldLabel>
-                        <Select value={value.electricityPriceOperator ?? 'AND'} onChange={e => onChange({ ...value, electricityPriceOperator: e.target.value })}>
-                            <option value="AND">AND (both must be true)</option>
-                            <option value="OR">OR (either can be true)</option>
-                        </Select>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                        <div>
-                            <FieldLabel>Condition</FieldLabel>
-                            <Select value={value.electricityPriceCondition ?? '<'} onChange={e => onChange({ ...value, electricityPriceCondition: e.target.value })}>
-                                {conditionOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                            </Select>
-                        </div>
-                        <div>
-                            <FieldLabel>Price (kr/kWh)</FieldLabel>
-                            <NumberInput value={value.electricityPriceThreshold ?? 0} step="0.1" placeholder="0"
-                                onChange={e => onChange({ ...value, electricityPriceThreshold: Number(e.target.value) })} />
-                        </div>
-                        <div>
-                            <FieldLabel>Area</FieldLabel>
-                            <Select value={value.electricityPriceArea ?? defaultArea} onChange={e => onChange({ ...value, electricityPriceArea: e.target.value })}>
-                                {PRICE_AREAS.map(a => <option key={a} value={a}>{a}</option>)}
-                            </Select>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
 };
 
 // ── AutomationsPage ───────────────────────────────────────────────────────────
@@ -348,21 +213,8 @@ const AutomationsPage: React.FC = () => {
         finally { setSubmitting(false); }
     };
 
-    const handleTargetChange = (id: number) => {
-        const selected = switches.find(sw => sw.id === id);
-        setForm({ ...form, targetId: id, targetType: selected?.type || '' });
-    };
-    const handleSensorChange = (id: number) => {
-        const selected = sensors.find(s => s.id === id);
-        setForm({ ...form, sensorId: id, sensorType: selected?.type || '' });
-    };
-
     // ── Derived values ─────────────────────────────────────────────────────────
     const isEditMode     = editingId !== null && editForm !== null;
-    const editSensorObj  = sensors.find(s => s.id === editForm?.sensorId);
-    const editUnit       = editSensorObj ? unitForType(editSensorObj.type) : '';
-    const createSensorObj = sensors.find(s => s.id === form.sensorId);
-    const createUnit      = createSensorObj ? unitForType(createSensorObj.type) : '';
 
     const openCreateDrawer = () => { setEditingId(null); setEditForm(null); setFormOpen(true); };
     const closeDrawer      = () => { setFormOpen(false); setEditingId(null); setEditForm(null); };
@@ -370,191 +222,38 @@ const AutomationsPage: React.FC = () => {
     // ── Form contents (shared between drawer modes) ────────────────────────────
 
     const createFormContent = (
-        <form onSubmit={handleCreate} className="space-y-5">
-            <div>
-                <FieldLabel>Target socket</FieldLabel>
-                <Select value={form.targetId} required onChange={e => handleTargetChange(Number(e.target.value))}>
-                    <option value={0}>Select a socket</option>
-                    {sortedSwitches.map(sw => <option key={sw.id} value={sw.id}>{sw.customName ?? sw.name}</option>)}
-                </Select>
-            </div>
-            <div>
-                <FieldLabel>Trigger sensor</FieldLabel>
-                <Select value={form.sensorId} required onChange={e => handleSensorChange(Number(e.target.value))}>
-                    <option value={0}>Select a sensor</option>
-                    {sortedSensors.map(s => <option key={s.id} value={s.id}>{s.customName ?? s.defaultName}</option>)}
-                </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-                <div>
-                    <FieldLabel>Condition</FieldLabel>
-                    <Select value={form.condition} required onChange={e => setForm({ ...form, condition: e.target.value })}>
-                        {conditionOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </Select>
-                </div>
-                <div>
-                    <FieldLabel>Threshold{createUnit ? ` (${createUnit})` : ''}</FieldLabel>
-                    <NumberInput value={form.threshold} step="0.1" placeholder="0" required
-                        onChange={e => setForm({ ...form, threshold: Number(e.target.value) })} />
-                </div>
-            </div>
-            {form.sensorId > 0 && latestValueMap[form.sensorId] !== undefined && (() => {
-                const current = latestValueMap[form.sensorId];
-                const met = checkCondition(current, form.condition, form.threshold);
-                return (
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium ${met ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-gray-800/50 border-gray-700/30 text-gray-500'}`}>
-                        <BoltIcon className="h-3.5 w-3.5 flex-shrink-0" />
-                        {met ? `Would trigger now — current value: ${current}${createUnit ? ` ${createUnit}` : ''}` : `Would not trigger — current value: ${current}${createUnit ? ` ${createUnit}` : ''}`}
-                    </div>
-                );
-            })()}
-            <div>
-                <FieldLabel>Action</FieldLabel>
-                <Select value={form.action} required onChange={e => setForm({ ...form, action: e.target.value })}>
-                    {actionOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </Select>
-            </div>
-            {form.action === 'on' && (
-                <div className="pt-4 border-t border-gray-700/60">
-                    <div className="flex items-center justify-between mb-3">
-                        <div>
-                            <p className="text-sm font-medium text-gray-300">Auto-off timer</p>
-                            <p className="text-xs text-gray-500 mt-0.5">Automatically turn off after a set duration</p>
-                        </div>
-                        <ToggleSwitch
-                            checked={!!form.timerDurationHours}
-                            onChange={() => setForm({ ...form, timerDurationHours: form.timerDurationHours ? undefined : 2 })}
-                            ariaLabel={form.timerDurationHours ? 'Disable auto-off timer' : 'Enable auto-off timer'}
-                        />
-                    </div>
-                    {form.timerDurationHours != null && (
-                        <div>
-                            <FieldLabel>Duration (hours)</FieldLabel>
-                            <NumberInput value={form.timerDurationHours} step="0.5" min="0.5" placeholder="2"
-                                onChange={e => setForm({ ...form, timerDurationHours: Number(e.target.value) })} />
-                        </div>
-                    )}
-                </div>
-            )}
-            <PriceConditionForm
-                key="create"
-                value={form}
-                defaultArea={defaultPriceArea}
-                onChange={fields => setForm({ ...form, ...fields })}
-            />
-            <div className="flex gap-3 pt-2">
-                <button type="submit" disabled={submitting}
-                    className="flex-1 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-all">
-                    {submitting ? 'Creating…' : 'Create Rule'}
-                </button>
-                <button type="button" onClick={closeDrawer}
-                    className="px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium rounded-lg transition-all">
-                    Cancel
-                </button>
-            </div>
-        </form>
+        <AutomationRuleForm
+            mode="create"
+            value={form}
+            onChange={setForm}
+            onSubmit={handleCreate}
+            onCancel={closeDrawer}
+            submitting={submitting}
+            sortedSwitches={sortedSwitches}
+            sortedSensors={sortedSensors}
+            sensors={sensors}
+            latestValueMap={latestValueMap}
+            defaultPriceArea={defaultPriceArea}
+            priceFormKey="create"
+        />
     );
 
     const editFormContent = editForm && (
-        <form onSubmit={handleUpdate} className="space-y-5">
-            <div>
-                <FieldLabel>Target socket</FieldLabel>
-                <Select value={editForm.targetId} required onChange={e => {
-                    const id = Number(e.target.value);
-                    setEditForm({ ...editForm, targetId: id, targetType: switches.find(sw => sw.id === id)?.type || '' });
-                }}>
-                    <option value={0}>Select a socket</option>
-                    {sortedSwitches.map(sw => <option key={sw.id} value={sw.id}>{sw.customName ?? sw.name}</option>)}
-                </Select>
-            </div>
-            <div>
-                <FieldLabel>Trigger sensor</FieldLabel>
-                <Select value={editForm.sensorId} required onChange={e => {
-                    const id = Number(e.target.value);
-                    setEditForm({ ...editForm, sensorId: id, sensorType: sensors.find(s => s.id === id)?.type || '' });
-                }}>
-                    <option value={0}>Select a sensor</option>
-                    {sortedSensors.map(s => <option key={s.id} value={s.id}>{s.customName ?? s.defaultName}</option>)}
-                </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-                <div>
-                    <FieldLabel>Condition</FieldLabel>
-                    <Select value={editForm.condition} required onChange={e => setEditForm({ ...editForm, condition: e.target.value })}>
-                        {conditionOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </Select>
-                </div>
-                <div>
-                    <FieldLabel>Threshold{editUnit ? ` (${editUnit})` : ''}</FieldLabel>
-                    <NumberInput value={editForm.threshold} step="0.1" required
-                        onChange={e => setEditForm({ ...editForm, threshold: Number(e.target.value) })} />
-                </div>
-            </div>
-            {editForm.sensorId > 0 && latestValueMap[editForm.sensorId] !== undefined && (() => {
-                const current = latestValueMap[editForm.sensorId];
-                const met = checkCondition(current, editForm.condition, editForm.threshold);
-                return (
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium ${met ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-gray-800/50 border-gray-700/30 text-gray-500'}`}>
-                        <BoltIcon className="h-3.5 w-3.5 flex-shrink-0" />
-                        {met ? `Would trigger now — current value: ${current}${editUnit ? ` ${editUnit}` : ''}` : `Would not trigger — current value: ${current}${editUnit ? ` ${editUnit}` : ''}`}
-                    </div>
-                );
-            })()}
-            <div>
-                <FieldLabel>Action</FieldLabel>
-                <Select value={editForm.action} required onChange={e => setEditForm({ ...editForm, action: e.target.value })}>
-                    {actionOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </Select>
-            </div>
-            {editForm.action === 'on' && (
-                <div className="pt-4 border-t border-gray-700/60">
-                    <div className="flex items-center justify-between mb-3">
-                        <div>
-                            <p className="text-sm font-medium text-gray-300">Auto-off timer</p>
-                            <p className="text-xs text-gray-500 mt-0.5">Automatically turn off after a set duration</p>
-                        </div>
-                        <ToggleSwitch
-                            checked={!!editForm.timerDurationHours}
-                            onChange={() => setEditForm({ ...editForm, timerDurationHours: editForm.timerDurationHours ? undefined : 2 })}
-                            ariaLabel={editForm.timerDurationHours ? 'Disable auto-off timer' : 'Enable auto-off timer'}
-                        />
-                    </div>
-                    {editForm.timerDurationHours != null && (
-                        <div>
-                            <FieldLabel>Duration (hours)</FieldLabel>
-                            <NumberInput value={editForm.timerDurationHours} step="0.5" min="0.5" placeholder="2"
-                                onChange={e => setEditForm({ ...editForm, timerDurationHours: Number(e.target.value) })} />
-                        </div>
-                    )}
-                </div>
-            )}
-            <PriceConditionForm
-                key={editingId ?? 'edit'}
-                value={editForm}
-                defaultArea={defaultPriceArea}
-                onChange={fields => setEditForm({ ...editForm, ...fields })}
-            />
-            <div className="flex gap-3 pt-2">
-                <button type="submit" disabled={submitting}
-                    className="flex-1 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-all">
-                    {submitting ? 'Saving…' : 'Save Changes'}
-                </button>
-                <button type="button" onClick={closeDrawer}
-                    className="px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium rounded-lg transition-all">
-                    Cancel
-                </button>
-            </div>
-            <div className="pt-4 border-t border-gray-700/60">
-                <button
-                    type="button"
-                    onClick={() => editingId && setDeleteTargetId(editingId)}
-                    className="w-full px-4 py-2.5 bg-rose-600/10 hover:bg-rose-600/20 border border-rose-600/30 text-rose-400 text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2"
-                >
-                    <TrashIcon className="h-4 w-4" />
-                    Delete Rule
-                </button>
-            </div>
-        </form>
+        <AutomationRuleForm
+            mode="edit"
+            value={editForm}
+            onChange={setEditForm}
+            onSubmit={handleUpdate}
+            onCancel={closeDrawer}
+            submitting={submitting}
+            sortedSwitches={sortedSwitches}
+            sortedSensors={sortedSensors}
+            sensors={sensors}
+            latestValueMap={latestValueMap}
+            defaultPriceArea={defaultPriceArea}
+            priceFormKey={editingId ?? 'edit'}
+            onDelete={() => editingId && setDeleteTargetId(editingId)}
+        />
     );
 
     // ── Empty state ────────────────────────────────────────────────────────────

@@ -16,6 +16,7 @@ import Section from '@/components/Section';
 import CapacityMeter from '@/components/CapacityMeter';
 import ToggleSwitch from '@/components/ToggleSwitch';
 import { inputClass } from '@/components/TextInput';
+import InlineEditField from '@/components/InlineEditField';
 import Alert from '@/components/Alert';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -395,30 +396,19 @@ const Profile: React.FC = () => {
                                 {editingField === 'phone' ? (
                                     <div className="space-y-2">
                                         <span className="text-sm text-gray-400">Phone</span>
-                                        <input
-                                            type="tel"
+                                        <InlineEditField
+                                            value={editPhone}
+                                            onChange={setEditPhone}
+                                            onSave={handleSavePhone}
+                                            onCancel={cancelEdit}
+                                            saving={profileSaving}
+                                            inputType="tel"
                                             inputMode="tel"
                                             autoComplete="tel"
-                                            value={editPhone}
-                                            onChange={e => setEditPhone(e.target.value)}
                                             placeholder="91 23 45 67"
-                                            className={inputClass}
+                                            error={editPhone.trim() && normalizeNoPhone(editPhone) === null ? 'Enter a valid phone number.' : null}
                                             autoFocus
-                                            disabled={profileSaving}
                                         />
-                                        {editPhone.trim() && normalizeNoPhone(editPhone) === null && (
-                                            <p className="text-[11px] text-red-400">Enter a valid phone number.</p>
-                                        )}
-                                        <div className="flex gap-2">
-                                            <button onClick={handleSavePhone} disabled={profileSaving} className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition-all">
-                                                <CheckIcon className="h-3.5 w-3.5" />
-                                                {profileSaving ? 'Saving…' : 'Save'}
-                                            </button>
-                                            <button onClick={cancelEdit} disabled={profileSaving} className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs font-medium rounded-lg transition-all">
-                                                <XMarkIcon className="h-3.5 w-3.5" />
-                                                Cancel
-                                            </button>
-                                        </div>
                                     </div>
                                 ) : (
                                     <div className="flex items-center justify-between">

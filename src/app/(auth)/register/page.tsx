@@ -6,9 +6,11 @@ import { signIn, getSession } from 'next-auth/react';
 import AuthService from '@/services/userService';
 import Image from 'next/image';
 import Link from 'next/link';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { inputClass } from '@/components/TextInput';
+import PasswordInput from '@/components/PasswordInput';
 import Alert from '@/components/Alert';
+import { FieldValidationError, type FieldErrors } from '@/lib/errors';
+import { registerSchema, zodIssuesToFieldErrors } from '@/lib/validation/registerSchema';
 
 const TERMS_VERSION = 'v1-2026-05';
 
@@ -18,10 +20,10 @@ const Register: React.FC = () => {
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const [agreedToTerms, setAgreedToTerms] = useState(false);
     const [confirmAge16Plus, setConfirmAge16Plus] = useState(false);
-    const [errors, setErrors] = useState<{ userName?: string[]; firstName?: string[]; lastName?: string[]; email?: string[]; password?: string[] }>({});
+    const [errors, setErrors] = useState<FieldErrors>({});
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
     const [apiMessage, setApiMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -29,6 +31,35 @@ const Register: React.FC = () => {
     useEffect(() => {
         getSession().then(s => { if (s) router.push('/profile'); });
     }, [router]);
+
+    // Live client-side validation: re-check a field once the user has touched it,
+    // so password-rule feedback appears before the server round trip.
+    const validateField = (field: string, values: { userName: string; firstName: string; lastName: string; email: string; password: string }) => {
+        const result = registerSchema.safeParse(values);
+        setErrors(prev => {
+            const next = { ...prev };
+            if (result.success) {
+                delete next[field];
+            } else {
+                const fieldErrors = zodIssuesToFieldErrors(result.error.issues);
+                if (fieldErrors[field]) next[field] = fieldErrors[field];
+                else delete next[field];
+            }
+            return next;
+        });
+    };
+
+    const currentValues = () => ({ userName, firstName, lastName, email, password });
+
+    const handleFieldChange = (field: string, setter: (v: string) => void, value: string) => {
+        setter(value);
+        if (touched[field]) validateField(field, { ...currentValues(), [field]: value });
+    };
+
+    const handleFieldBlur = (field: string) => {
+        setTouched(prev => ({ ...prev, [field]: true }));
+        validateField(field, currentValues());
+    };
 
     const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -46,8 +77,10 @@ const Register: React.FC = () => {
             if (result?.error) { setApiMessage(result.error); setLoading(false); }
             else router.push('/profile');
         } catch (error: unknown) {
-            if (error instanceof Error) {
-                try { setErrors(JSON.parse(error.message)); } catch { setApiMessage(error.message); }
+            if (error instanceof FieldValidationError) {
+                setErrors(error.fieldErrors);
+            } else if (error instanceof Error) {
+                setApiMessage(error.message);
             } else {
                 setApiMessage('An unknown error occurred');
             }
@@ -72,48 +105,37 @@ const Register: React.FC = () => {
                     <form onSubmit={handleRegister} className="space-y-4">
                         <div>
                             <label className="block text-xs font-medium text-gray-400 mb-1.5">Username</label>
-                            <input className={inputClass} type="text" placeholder="username" value={userName} onChange={e => setUserName(e.target.value)} />
+                            <input className={inputClass} type="text" placeholder="username" value={userName} onChange={e => handleFieldChange('userName', setUserName, e.target.value)} onBlur={() => handleFieldBlur('userName')} />
                             {errors.userName?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <label className="block text-xs font-medium text-gray-400 mb-1.5">First name</label>
-                                <input className={inputClass} type="text" placeholder="First" value={firstName} onChange={e => setFirstName(e.target.value)} />
+                                <input className={inputClass} type="text" placeholder="First" value={firstName} onChange={e => handleFieldChange('firstName', setFirstName, e.target.value)} onBlur={() => handleFieldBlur('firstName')} />
                                 {errors.firstName?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-gray-400 mb-1.5">Last name</label>
-                                <input className={inputClass} type="text" placeholder="Last" value={lastName} onChange={e => setLastName(e.target.value)} />
+                                <input className={inputClass} type="text" placeholder="Last" value={lastName} onChange={e => handleFieldChange('lastName', setLastName, e.target.value)} onBlur={() => handleFieldBlur('lastName')} />
                                 {errors.lastName?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
                             </div>
                         </div>
 
                         <div>
                             <label className="block text-xs font-medium text-gray-400 mb-1.5">Email</label>
-                            <input className={inputClass} type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} />
+                            <input className={inputClass} type="email" placeholder="you@example.com" value={email} onChange={e => handleFieldChange('email', setEmail, e.target.value)} onBlur={() => handleFieldBlur('email')} />
                             {errors.email?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
                         </div>
 
                         <div>
                             <label className="block text-xs font-medium text-gray-400 mb-1.5">Password</label>
-                            <div className="relative">
-                                <input
-                                    className={`${inputClass} pr-10`}
-                                    type={showPassword ? 'text' : 'password'}
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={e => setPassword(e.target.value)}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(v => !v)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
-                                    tabIndex={-1}
-                                >
-                                    {showPassword ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
-                                </button>
-                            </div>
+                            <PasswordInput
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={e => handleFieldChange('password', setPassword, e.target.value)}
+                                onBlur={() => handleFieldBlur('password')}
+                            />
                             {errors.password?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
                         </div>
 

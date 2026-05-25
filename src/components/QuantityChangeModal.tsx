@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
-import { useEscapeKey } from '@/lib/useEscapeKey';
+import Modal from '@/components/Modal';
 import { effectivePriceInOre, vatLabel } from '@/lib/pricing';
 import { formatNok } from '@/lib/formatUtils';
 import type { Subscription } from '@/services/subscriptionService';
@@ -24,8 +24,6 @@ export default function QuantityChangeModal({
 }: QuantityChangeModalProps) {
     const [qty, setQty] = useState(subscription.quantity);
 
-    useEscapeKey(!submitting, onCancel);
-
     const unitPrice = effectivePriceInOre(subscription.priceInOre, vatEnabled);
     const newTotal = unitPrice * qty;
     const intervalLabel = subscription.interval === 'Monthly' ? 'month' : 'year';
@@ -36,14 +34,14 @@ export default function QuantityChangeModal({
     }
 
     return (
-        <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="qty-change-title"
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        <Modal
+            open
+            onClose={onCancel}
+            closable={!submitting}
+            labelledBy="qty-change-title"
+            containerClassName="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            panelClassName="relative bg-gray-900 border border-gray-700/60 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl"
         >
-            <div className="absolute inset-0" aria-hidden onClick={() => { if (!submitting) onCancel(); }} />
-            <div className="relative bg-gray-900 border border-gray-700/60 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
                 <div>
                     <p id="qty-change-title" className="text-sm font-semibold text-gray-100">Change quantity</p>
                     <p className="text-xs text-gray-500 mt-1">{subscription.productName} — currently × {subscription.quantity}</p>
@@ -103,7 +101,6 @@ export default function QuantityChangeModal({
                         Cancel
                     </button>
                 </div>
-            </div>
-        </div>
+        </Modal>
     );
 }
