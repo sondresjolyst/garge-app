@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { getPublicAppSettings } from '@/services/appSettingsService';
 
 const CONSENT_VERSION = 'v1';
 const STORAGE_KEY = 'cookie-consent';
@@ -13,15 +14,11 @@ export default function CookieBanner() {
 
     useEffect(() => {
         async function init() {
-            try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/settings`);
-                if (res.ok) {
-                    const settings = await res.json();
-                    if (!settings.cookieBannerEnabled) return;
-                }
-            } catch {
-                // Backend unreachable; proceed to the consent check.
-            }
+            // When the backend is reachable and the banner is disabled, skip it.
+            // If settings are null (backend unreachable), fall through to the
+            // consent check so the banner still shows.
+            const settings = await getPublicAppSettings();
+            if (settings && !settings.cookieBannerEnabled) return;
 
             try {
                 const raw = localStorage.getItem(STORAGE_KEY);

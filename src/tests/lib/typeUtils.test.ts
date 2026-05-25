@@ -20,6 +20,7 @@ describe('typeEmoji', () => {
     it('returns thermometer for temperature', () => expect(typeEmoji('temperature')).toBe('🌡️'))
     it('returns droplet for humidity', () => expect(typeEmoji('humidity')).toBe('💧'))
     it('returns bolt for voltage', () => expect(typeEmoji('voltage')).toBe('⚡'))
+    it('returns plug for socket', () => expect(typeEmoji('socket')).toBe('🔌'))
     it('returns lock for unknown', () => expect(typeEmoji('unknown')).toBe('🔒'))
     it('returns antenna for anything else', () => expect(typeEmoji('foobar')).toBe('📡'))
 })

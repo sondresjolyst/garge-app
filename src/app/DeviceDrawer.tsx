@@ -22,6 +22,8 @@ const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { 
 interface DeviceDrawerProps {
     device: UnifiedDevice;
     onClose: () => void;
+    /** Notifies the parent that the device was renamed so it can update its state. */
+    onRename: (id: number, name: string) => void;
 }
 
 function InfoLabel({ children, tooltip }: { children: React.ReactNode; tooltip: string }) {
@@ -139,7 +141,7 @@ const TimelineBar: React.FC<{ segments: Segment[]; rangeStart: number; rangeEnd:
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
+const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename }) => {
     const [chartData, setChartData] = useState<{ x: number; y: number }[]>([]);
     const [loadingChart, setLoadingChart] = useState(false);
     const [activeRange, setActiveRange] = useState<RangeIndex>(0);
@@ -252,15 +254,16 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose }) => {
         ? [...switchEvents].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]
         : null;
     const handleSaveName = async () => {
-        if (!editName.trim()) return;
+        const trimmed = editName.trim();
+        if (!trimmed) return;
         setSavingName(true);
         try {
             if (device.kind === 'sensor') {
-                await SensorService.updateCustomName(device.id, editName.trim());
+                await SensorService.updateCustomName(device.id, trimmed);
             } else {
-                await SwitchService.updateCustomName(device.id, editName.trim());
+                await SwitchService.updateCustomName(device.id, trimmed);
             }
-            device.displayName = editName.trim();
+            onRename(device.id, trimmed);
             setEditingName(false);
             toast.success(device.kind === 'sensor' ? 'Sensor renamed' : 'Socket renamed');
         } catch {

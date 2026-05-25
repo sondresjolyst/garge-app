@@ -11,8 +11,10 @@ import { UpdateAutomationRuleDto } from '@/dto/Automation/UpdateAutomationRuleDt
 import { unitForType } from '@/lib/typeUtils';
 import { formatDateTime } from '@/lib/dateUtils';
 import { sortAutomationRules } from '@/lib/automationSort';
-import { AxiosError } from 'axios';
+import { formatApiError } from '@/lib/errorMessages';
 import ConfirmModal from '@/components/ConfirmModal';
+import LoadingDots from '@/components/LoadingDots';
+import ToggleSwitch from '@/components/ToggleSwitch';
 import {
     PlusIcon,
     XMarkIcon,
@@ -110,27 +112,6 @@ const NumberInput: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ cl
     />
 );
 
-const LoadingDots = () => (
-    <div className="h-60 flex items-center justify-center">
-        <div className="flex gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-bounce [animation-delay:0ms]" />
-            <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-bounce [animation-delay:150ms]" />
-            <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-bounce [animation-delay:300ms]" />
-        </div>
-    </div>
-);
-
-const Toggle: React.FC<{ enabled: boolean; onClick: () => void; title?: string }> = ({ enabled, onClick, title }) => (
-    <button
-        type="button"
-        title={title}
-        onClick={onClick}
-        className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-gray-900 ${enabled ? 'bg-sky-600' : 'bg-gray-600'}`}
-    >
-        <span className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 ease-in-out ${enabled ? 'translate-x-5' : 'translate-x-0'}`} />
-    </button>
-);
-
 // ── Electricity price sub-form ────────────────────────────────────────────────
 
 interface PriceConditionFields {
@@ -176,7 +157,11 @@ const PriceConditionForm: React.FC<PriceConditionFormProps> = ({ value, defaultA
                     <p className="text-sm font-medium text-gray-300">Electricity price condition</p>
                     <p className="text-xs text-gray-500 mt-0.5">Also check current electricity price</p>
                 </div>
-                <Toggle enabled={enabled} onClick={toggle} />
+                <ToggleSwitch
+                    checked={enabled}
+                    onChange={toggle}
+                    ariaLabel={enabled ? 'Disable electricity price condition' : 'Enable electricity price condition'}
+                />
             </div>
             {enabled && (
                 <div className="mt-3 p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg space-y-3">
@@ -284,9 +269,7 @@ const AutomationsPage: React.FC = () => {
     };
 
     const handleError = (err: unknown, fallbackMsg?: string) => {
-        if (err instanceof AxiosError)  setError(err.response?.data?.message || fallbackMsg || 'A network error occurred');
-        else if (err instanceof Error)  setError(err.message);
-        else                            setError(fallbackMsg || 'An unknown error occurred');
+        setError(formatApiError(err, fallbackMsg || 'A network error occurred'));
     };
 
     const handleCreate = async (e: React.FormEvent) => {
@@ -438,9 +421,10 @@ const AutomationsPage: React.FC = () => {
                             <p className="text-sm font-medium text-gray-300">Auto-off timer</p>
                             <p className="text-xs text-gray-500 mt-0.5">Automatically turn off after a set duration</p>
                         </div>
-                        <Toggle
-                            enabled={!!form.timerDurationHours}
-                            onClick={() => setForm({ ...form, timerDurationHours: form.timerDurationHours ? undefined : 2 })}
+                        <ToggleSwitch
+                            checked={!!form.timerDurationHours}
+                            onChange={() => setForm({ ...form, timerDurationHours: form.timerDurationHours ? undefined : 2 })}
+                            ariaLabel={form.timerDurationHours ? 'Disable auto-off timer' : 'Enable auto-off timer'}
                         />
                     </div>
                     {form.timerDurationHours != null && (
@@ -529,9 +513,10 @@ const AutomationsPage: React.FC = () => {
                             <p className="text-sm font-medium text-gray-300">Auto-off timer</p>
                             <p className="text-xs text-gray-500 mt-0.5">Automatically turn off after a set duration</p>
                         </div>
-                        <Toggle
-                            enabled={!!editForm.timerDurationHours}
-                            onClick={() => setEditForm({ ...editForm, timerDurationHours: editForm.timerDurationHours ? undefined : 2 })}
+                        <ToggleSwitch
+                            checked={!!editForm.timerDurationHours}
+                            onChange={() => setEditForm({ ...editForm, timerDurationHours: editForm.timerDurationHours ? undefined : 2 })}
+                            ariaLabel={editForm.timerDurationHours ? 'Disable auto-off timer' : 'Enable auto-off timer'}
                         />
                     </div>
                     {editForm.timerDurationHours != null && (
@@ -645,10 +630,10 @@ const AutomationsPage: React.FC = () => {
                             {isOn ? 'Turn on rule' : 'Turn off rule'}
                         </span>
                     </div>
-                    <Toggle
-                        enabled={rule.isEnabled}
-                        onClick={() => handleToggleEnabled(rule)}
-                        title={rule.isEnabled ? 'Disable rule' : 'Enable rule'}
+                    <ToggleSwitch
+                        checked={rule.isEnabled}
+                        onChange={() => handleToggleEnabled(rule)}
+                        ariaLabel={rule.isEnabled ? 'Disable rule' : 'Enable rule'}
                     />
                 </div>
 
@@ -754,7 +739,7 @@ const AutomationsPage: React.FC = () => {
 
             {/* Content */}
             {loading ? (
-                <LoadingDots />
+                <LoadingDots height="h-60" />
             ) : rules.length === 0 ? (
                 emptyState
             ) : (

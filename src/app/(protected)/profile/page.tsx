@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import UserService from '@/services/userService';
 import { UserDTO } from '@/dto/UserDTO';
@@ -23,8 +22,6 @@ import Link from 'next/link';
 
 const Profile: React.FC = () => {
     const { status } = useSession();
-    const router = useRouter();
-    const isAuthenticated = status === 'authenticated';
 
     const [user, setUser] = useState<UserDTO | null>(null);
     const [priceZone, setPriceZone] = useState<string>('NO2');
@@ -61,13 +58,14 @@ const Profile: React.FC = () => {
     const { canClaim, loading: eligibilityLoading, refresh: refreshEligibility, capacity, used, bypass } = useCanClaimDevice();
 
     useEffect(() => {
-        if (!isAuthenticated) { router.push('/login'); return; }
         UserService.getUserProfile().then(u => {
             setUser(u);
             setPriceZone(u.priceZone ?? 'NO2');
             setOfflineThreshold(u.offlineAlertThresholdHours > 0 ? u.offlineAlertThresholdHours : 4);
             if (u.id) UserService.getDataRetention(u.id).then(r => setRetentionKeep(!r.optOut)).catch(() => { });
-        }).catch(console.error).finally(() => setProfileLoading(false));
+        }).catch((err: unknown) => {
+            toast.error(err instanceof Error ? err.message : 'Failed to load your profile.');
+        }).finally(() => setProfileLoading(false));
         if (isPushSupported()) {
             setPushPermission(Notification.permission);
             isPushSubscribed()
@@ -76,8 +74,7 @@ const Profile: React.FC = () => {
         }
         SensorService.getAllSensors().then(s => setSensorCount(s.length)).catch(() => setSensorCount(0));
         SwitchService.getAllSwitches().then(s => setSocketCount(s.length)).catch(() => setSocketCount(0));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAuthenticated, router]);
+    }, []);
 
     useEffect(() => {
         if (countdown <= 0) { setIsButtonDisabled(false); return; }
@@ -170,7 +167,9 @@ const Profile: React.FC = () => {
         setPriceZoneSaving(true);
         try {
             await UserService.updatePreferences(user.id, { priceZone: zone });
-        } catch { /* silent fail */ }
+        } catch (e: unknown) {
+            toast.error(e instanceof Error ? e.message : 'Failed to save price zone.');
+        }
         finally { setPriceZoneSaving(false); }
     };
 
@@ -221,7 +220,9 @@ const Profile: React.FC = () => {
         setThresholdSaving(true);
         try {
             await UserService.updatePreferences(user.id, { priceZone, offlineAlertThresholdHours: clamped });
-        } catch { /* silent */ }
+        } catch (e: unknown) {
+            toast.error(e instanceof Error ? e.message : 'Failed to save alert threshold.');
+        }
         finally { setThresholdSaving(false); }
     };
 
