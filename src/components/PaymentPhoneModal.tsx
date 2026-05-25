@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { CheckIcon } from '@heroicons/react/24/outline';
 import { normalizeNoPhone } from '@/lib/phone';
-import { useEscapeKey } from '@/lib/useEscapeKey';
+import Modal from '@/components/Modal';
 
 export interface PaymentPhoneModalProps {
     title: string;
@@ -31,8 +31,6 @@ export default function PaymentPhoneModal({
     const [agreed, setAgreed] = useState(false);
     const phoneRef = useRef<HTMLInputElement>(null);
 
-    useEscapeKey(!submitting, onCancel);
-
     useEffect(() => {
         phoneRef.current?.focus();
     }, []);
@@ -50,14 +48,14 @@ export default function PaymentPhoneModal({
     }
 
     return (
-        <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="payment-modal-title"
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        <Modal
+            open
+            onClose={onCancel}
+            closable={!submitting}
+            labelledBy="payment-modal-title"
+            containerClassName="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            panelClassName="relative bg-gray-900 border border-gray-700/60 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl"
         >
-            <div className="absolute inset-0" aria-hidden onClick={() => { if (!submitting) onCancel(); }} />
-            <div className="relative bg-gray-900 border border-gray-700/60 rounded-2xl p-5 w-full max-w-sm space-y-4 shadow-2xl">
                 <p id="payment-modal-title" className="text-sm font-semibold text-gray-100">{title}</p>
                 <div className="text-xs text-gray-500">{summary}</div>
 
@@ -132,7 +130,6 @@ export default function PaymentPhoneModal({
                         Cancel
                     </button>
                 </div>
-            </div>
-        </div>
+        </Modal>
     );
 }

@@ -10,6 +10,7 @@ import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
 import ToggleSwitch from '@/components/ToggleSwitch';
+import { StatGrid } from '@/components/StatCard';
 import { toast } from 'sonner';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
@@ -303,39 +304,25 @@ export default function AdminPage() {
 
                     {/* Orders */}
                     <Section title="Orders">
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            {([
-                                { label: 'Today', value: stats?.orders?.today },
-                                { label: 'This week', value: stats?.orders?.thisWeek },
-                                { label: 'This month', value: stats?.orders?.thisMonth },
-                                { label: 'Pending capture', value: stats?.orders?.pendingCapture },
-                                { label: 'Failed / cancelled', value: stats?.orders?.failedOrCancelled },
-                                { label: 'Month revenue', value: stats?.orders ? formatNok(stats.orders.monthRevenueInOre) : undefined },
-                                { label: 'Total revenue', value: stats?.orders ? formatNok(stats.orders.totalRevenueInOre) : undefined },
-                            ]).map(({ label, value }) => (
-                                <div key={label} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
-                                    <p className="text-2xl font-bold text-gray-100 tabular-nums">{value ?? '—'}</p>
-                                    <p className="text-xs text-gray-500 mt-1">{label}</p>
-                                </div>
-                            ))}
-                        </div>
+                        <StatGrid items={[
+                            { label: 'Today', value: stats?.orders?.today },
+                            { label: 'This week', value: stats?.orders?.thisWeek },
+                            { label: 'This month', value: stats?.orders?.thisMonth },
+                            { label: 'Pending capture', value: stats?.orders?.pendingCapture },
+                            { label: 'Failed / cancelled', value: stats?.orders?.failedOrCancelled },
+                            { label: 'Month revenue', value: stats?.orders ? formatNok(stats.orders.monthRevenueInOre) : undefined },
+                            { label: 'Total revenue', value: stats?.orders ? formatNok(stats.orders.totalRevenueInOre) : undefined },
+                        ]} />
                     </Section>
 
                     {/* Subscriptions */}
                     <Section title="Subscriptions">
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            {([
-                                { label: 'Active', value: stats?.subscriptions?.active },
-                                { label: 'Pending confirm', value: stats?.subscriptions?.pendingConfirm },
-                                { label: 'Stopped this month', value: stats?.subscriptions?.stoppedThisMonth },
-                                { label: 'Monthly recurring revenue', value: stats?.subscriptions ? formatNok(stats.subscriptions.monthlyRecurringInOre) : undefined },
-                            ]).map(({ label, value }) => (
-                                <div key={label} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
-                                    <p className="text-2xl font-bold text-gray-100 tabular-nums">{value ?? '—'}</p>
-                                    <p className="text-xs text-gray-500 mt-1">{label}</p>
-                                </div>
-                            ))}
-                        </div>
+                        <StatGrid items={[
+                            { label: 'Active', value: stats?.subscriptions?.active },
+                            { label: 'Pending confirm', value: stats?.subscriptions?.pendingConfirm },
+                            { label: 'Stopped this month', value: stats?.subscriptions?.stoppedThisMonth },
+                            { label: 'Monthly recurring revenue', value: stats?.subscriptions ? formatNok(stats.subscriptions.monthlyRecurringInOre) : undefined },
+                        ]} />
                     </Section>
 
                     {/* System Health */}
@@ -385,22 +372,15 @@ export default function AdminPage() {
                         {emailStatsLoading ? (
                             <LoadingDots height="h-16" />
                         ) : emailStats ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                {([
-                                    { label: 'Sent', value: emailStats.requests },
-                                    { label: 'Delivered', value: emailStats.delivered },
-                                    { label: 'Hard bounces', value: emailStats.hardBounces },
-                                    { label: 'Soft bounces', value: emailStats.softBounces },
-                                    { label: 'Blocked', value: emailStats.blocked },
-                                    { label: 'Spam reports', value: emailStats.spamReports },
-                                    { label: 'Invalid', value: emailStats.invalid },
-                                ]).map(({ label, value }) => (
-                                    <div key={label} className="bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
-                                        <p className="text-2xl font-bold tabular-nums text-gray-100">{value}</p>
-                                        <p className="text-xs text-gray-500 mt-1">{label}</p>
-                                    </div>
-                                ))}
-                            </div>
+                            <StatGrid items={[
+                                { label: 'Sent', value: emailStats.requests },
+                                { label: 'Delivered', value: emailStats.delivered },
+                                { label: 'Hard bounces', value: emailStats.hardBounces },
+                                { label: 'Soft bounces', value: emailStats.softBounces },
+                                { label: 'Blocked', value: emailStats.blocked },
+                                { label: 'Spam reports', value: emailStats.spamReports },
+                                { label: 'Invalid', value: emailStats.invalid },
+                            ]} />
                         ) : (
                             <p className="text-xs text-gray-500">No data.</p>
                         )}

@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { XMarkIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
 import { inputClass } from '@/components/TextInput';
-import { useEscapeKey } from '@/lib/useEscapeKey';
+import Modal from '@/components/Modal';
 import { SensorShare, SharePermission } from '@/services/sensorService';
 
 interface ShareDeviceModalProps {
@@ -27,8 +27,6 @@ const ShareDeviceModal: React.FC<ShareDeviceModalProps> = ({
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [revokingId, setRevokingId] = useState<string | null>(null);
-
-    useEscapeKey(!submitting, onClose);
 
     const load = useCallback(async () => {
         try {
@@ -75,9 +73,16 @@ const ShareDeviceModal: React.FC<ShareDeviceModalProps> = ({
     };
 
     return (
-        <div role="dialog" aria-modal="true" aria-labelledby="share-modal-title" className="fixed inset-0 z-[200] flex items-center justify-center px-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { if (!submitting) onClose(); }} />
-            <div className="relative bg-gray-800 border border-gray-700/60 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+        <Modal
+            open
+            onClose={onClose}
+            closable={!submitting}
+            labelledBy="share-modal-title"
+            containerClassName="fixed inset-0 z-[200] flex items-center justify-center px-4"
+            withBackdropElement
+            backdropClassName="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            panelClassName="relative bg-gray-800 border border-gray-700/60 rounded-2xl p-6 max-w-md w-full shadow-2xl"
+        >
                 <div className="flex items-start justify-between gap-3 mb-4">
                     <div>
                         <h3 id="share-modal-title" className="text-sm font-semibold text-gray-100">Share {deviceName}</h3>
@@ -156,8 +161,7 @@ const ShareDeviceModal: React.FC<ShareDeviceModalProps> = ({
                         </ul>
                     )}
                 </div>
-            </div>
-        </div>
+        </Modal>
     );
 };
 

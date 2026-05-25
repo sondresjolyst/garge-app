@@ -2,7 +2,9 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { XMarkIcon, PencilIcon, CheckIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PencilIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { useOutsideClick } from '@/hooks/useOutsideClick';
+import InlineEditField from '@/components/InlineEditField';
 import { TYPE_CONFIG as typeConfig, DEFAULT_TYPE as defaultType, BATTERY_STATUS_CONFIG as statusConfig } from '@/lib/typeConfig';
 import { unitForType, typeLabel } from '@/lib/typeUtils';
 import { RANGE_OPTIONS, type RangeIndex } from '@/lib/constants';
@@ -30,18 +32,7 @@ function InfoLabel({ children, tooltip }: { children: React.ReactNode; tooltip: 
     const [open, setOpen] = useState(false);
     const ref = React.useRef<HTMLSpanElement>(null);
 
-    useEffect(() => {
-        if (!open) return;
-        const handler = (e: MouseEvent | TouchEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-        };
-        document.addEventListener('mousedown', handler);
-        document.addEventListener('touchstart', handler);
-        return () => {
-            document.removeEventListener('mousedown', handler);
-            document.removeEventListener('touchstart', handler);
-        };
-    }, [open]);
+    useOutsideClick(ref, () => setOpen(false), open);
 
     return (
         <span ref={ref} className="relative text-gray-500 inline-flex items-center gap-1">
@@ -296,31 +287,16 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename }
                     </div>
                     <div className="flex-1 min-w-0">
                         {(device.kind === 'socket' || device.kind === 'sensor') && editingName ? (
-                            <div className="flex items-center gap-2">
-                                <div className="relative flex-1 min-w-0">
-                                    <input
-                                        autoFocus
-                                        type="text"
-                                        value={editName}
-                                        onChange={e => setEditName(e.target.value)}
-                                        onKeyDown={e => {
-                                            if (e.key === 'Enter') handleSaveName();
-                                            if (e.key === 'Escape') setEditingName(false);
-                                        }}
-                                        maxLength={50}
-                                        className="w-full bg-gray-800/80 border border-gray-600/50 rounded-lg px-2 py-1 pr-10 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60"
-                                    />
-                                    <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] tabular-nums pointer-events-none ${editName.length >= 45 ? 'text-amber-400' : 'text-gray-600'}`}>{editName.length}/50</span>
-                                </div>
-                                <button
-                                    onClick={handleSaveName}
-                                    disabled={savingName}
-                                    aria-label="Save name"
-                                    className="p-1 rounded-lg text-sky-400 hover:text-sky-300 hover:bg-sky-500/10 transition-colors flex-shrink-0"
-                                >
-                                    <CheckIcon className="h-4 w-4" />
-                                </button>
-                            </div>
+                            <InlineEditField
+                                compact
+                                value={editName}
+                                onChange={setEditName}
+                                onSave={handleSaveName}
+                                onCancel={() => setEditingName(false)}
+                                saving={savingName}
+                                maxLength={50}
+                                autoFocus
+                            />
                         ) : (
                             <div className="flex items-center gap-1.5 min-w-0">
                                 <h2 className="font-semibold text-gray-100 truncate">{device.displayName}</h2>

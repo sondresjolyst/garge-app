@@ -12,12 +12,70 @@ vi.mock('next-auth/react', () => ({ getSession: vi.fn() }))
 
 import UserService from '@/services/userService'
 import axiosInstance from '@/services/axiosInstance'
+import { FieldValidationError } from '@/lib/errors'
+import { AxiosError } from 'axios'
 
 const mockGet = axiosInstance.get as ReturnType<typeof vi.fn>
 const mockPut = axiosInstance.put as ReturnType<typeof vi.fn>
+const mockPost = axiosInstance.post as ReturnType<typeof vi.fn>
+
+const validRegistration = {
+    firstName: 'Ada',
+    lastName: 'Lovelace',
+    userName: 'ada',
+    email: 'ada@example.com',
+    password: 'Sup3r!secret',
+    confirmAge16Plus: true,
+    acceptTerms: true,
+    termsVersion: 'v1',
+}
 
 beforeEach(() => {
     vi.clearAllMocks()
+})
+
+describe('UserService.register', () => {
+    it('throws a FieldValidationError with per-field messages on client-side validation failure', async () => {
+        const promise = UserService.register({ ...validRegistration, email: 'bad', password: 'weak' })
+        await expect(promise).rejects.toBeInstanceOf(FieldValidationError)
+        try {
+            await UserService.register({ ...validRegistration, email: 'bad' })
+        } catch (e) {
+            expect(e).toBeInstanceOf(FieldValidationError)
+            if (e instanceof FieldValidationError) {
+                expect(e.fieldErrors.email).toContain('Please enter a valid email.')
+            }
+        }
+        expect(mockPost).not.toHaveBeenCalled()
+    })
+
+    it('posts to /auth/register when validation passes', async () => {
+        mockPost.mockResolvedValueOnce({ data: { message: 'ok' } })
+        const result = await UserService.register(validRegistration)
+        expect(mockPost).toHaveBeenCalledWith('/auth/register', validRegistration)
+        expect(result).toEqual({ message: 'ok' })
+    })
+
+    it('maps server-side validation errors into a FieldValidationError', async () => {
+        const axiosErr = new AxiosError('Bad Request')
+        axiosErr.response = {
+            data: { errors: { Email: ['Email already taken.'] } },
+            status: 400,
+            statusText: 'Bad Request',
+            headers: {},
+            config: { headers: {} } as never,
+        }
+        mockPost.mockRejectedValueOnce(axiosErr)
+        try {
+            await UserService.register(validRegistration)
+            throw new Error('should have thrown')
+        } catch (e) {
+            expect(e).toBeInstanceOf(FieldValidationError)
+            if (e instanceof FieldValidationError) {
+                expect(e.fieldErrors.email).toContain('Email already taken.')
+            }
+        }
+    })
 })
 
 describe('UserService.getDataRetention', () => {

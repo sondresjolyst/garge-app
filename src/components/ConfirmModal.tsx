@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useEscapeKey } from '@/lib/useEscapeKey';
+import Modal from '@/components/Modal';
 
 interface ConfirmModalProps {
     title: string;
@@ -25,8 +25,6 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 }) => {
     const [loading, setLoading] = useState(false);
 
-    useEscapeKey(!loading, onCancel);
-
     const handleConfirm = async () => {
         setLoading(true);
         try {
@@ -37,14 +35,17 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     };
 
     return (
-        <div
+        <Modal
+            open
+            onClose={onCancel}
+            closable={!loading}
             role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="confirm-modal-title"
-            className="fixed inset-0 z-[200] flex items-center justify-center px-4"
+            labelledBy="confirm-modal-title"
+            containerClassName="fixed inset-0 z-[200] flex items-center justify-center px-4"
+            withBackdropElement
+            backdropClassName="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            panelClassName="relative bg-gray-800 border border-gray-700/60 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
         >
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { if (!loading) onCancel(); }} />
-            <div className="relative bg-gray-800 border border-gray-700/60 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center flex-shrink-0">
                         <ExclamationTriangleIcon className="h-5 w-5 text-red-400" aria-hidden />
@@ -76,8 +77,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         {confirmLabel}
                     </button>
                 </div>
-            </div>
-        </div>
+        </Modal>
     );
 };
 
