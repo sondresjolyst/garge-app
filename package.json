@@ -18,7 +18,7 @@
     "apexcharts": "^5.13.0",
     "axios": "^1.16.1",
     "date-fns": "^4.3.0",
-    "js-cookie": "^3.0.7",
+    "js-cookie": "^3.0.8",
     "jsonwebtoken": "^9.0.2",
     "next": "^16.2.6",
     "next-auth": "^4.24.12",
