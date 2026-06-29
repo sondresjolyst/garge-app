@@ -112,3 +112,8 @@ body {
     background-color: #0284c7 !important;
     color: #fff !important;
 }
+
+/* ApexCharts toolbar background */
+.apexcharts-toolbar {
+    background: #131b29 !important;
+}

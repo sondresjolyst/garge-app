@@ -408,7 +408,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
             >
 
                 {/* Sticky header */}
-                <div className="sticky top-0 bg-gray-950/95 backdrop-blur-xl border-b border-gray-800/60 px-5 py-4 flex items-center gap-3 z-10">
+                <div className="sticky top-0 bg-gray-950/95 backdrop-blur-xl border-b border-gray-800/60 px-5 py-4 flex items-center gap-3 z-20">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
                         <Icon className={`h-5 w-5 ${iconColor}`} />
                     </div>
