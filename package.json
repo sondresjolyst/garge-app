@@ -23,7 +23,7 @@
     "next": "^16.2.9",
     "next-auth": "^4.24.12",
     "react": "^19.2.6",
-    "react-apexcharts": "^2.1.0",
+    "react-apexcharts": "^2.1.1",
     "react-datepicker": "^9.1.0",
     "react-dom": "^19.2.7",
     "react-markdown": "^10.1.0",
