@@ -33,8 +33,15 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
     const xMax = data.length > 0 ? Math.max(...data.map(d => d.x)) : undefined;
 
     const options: ApexOptions = useMemo(() => ({
+        // Dark mode so the toolbar icons (zoom/pan/reset) render light against the dark UI.
+        theme: {
+            mode: 'dark'
+        },
+        // Pin the series color; dark mode otherwise swaps in a different default palette.
+        colors: ['#008ffb'],
         chart: {
             type: effectiveType,
+            background: 'transparent',
             height: 350,
             animations: {
                 enabled: false
