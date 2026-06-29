@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.1](https://github.com/sondresjolyst/garge-app/compare/v1.19.0...v1.19.1) (2026-06-29)
+
+
+### Bug Fixes
+
+* make chart toolbar visible on dark UI ([#393](https://github.com/sondresjolyst/garge-app/issues/393)) ([f163b95](https://github.com/sondresjolyst/garge-app/commit/f163b9505139097d0d2d8082e6aa1c91d7696266))
+
 ## [1.19.0](https://github.com/sondresjolyst/garge-app/compare/v1.18.3...v1.19.0) (2026-06-29)
 
 
