@@ -15,6 +15,18 @@ export interface Sensor {
     suspended?: boolean;
     /** The caller's relationship to this sensor. When absent, as returned by older API builds, it is treated as 'owner'. */
     access?: SensorAccess;
+    /** Voltage color thresholds the caller set for this sensor. Both null when unset — the reading is then left uncolored. */
+    warningVoltage?: number | null;
+    criticalVoltage?: number | null;
+}
+
+/** Stored voltage color thresholds returned by the thresholds endpoint. */
+export interface VoltageThreshold {
+    userId: string;
+    sensorId: number;
+    warningVoltage: number;
+    criticalVoltage: number;
+    createdAt: string;
 }
 
 /** What the caller may do with a sensor: full owner, editor, or read-only viewer. */
@@ -206,6 +218,23 @@ const SensorService = {
             return response.data;
         } catch (error: unknown) {
             throw new Error(formatApiError(error, 'Failed to update custom name'));
+        }
+    },
+
+    async updateVoltageThresholds(id: number, warningVoltage: number, criticalVoltage: number): Promise<VoltageThreshold> {
+        try {
+            const response = await axiosInstance.patch<VoltageThreshold>(`/sensors/${id}/voltage-thresholds`, { warningVoltage, criticalVoltage });
+            return response.data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to save voltage thresholds'));
+        }
+    },
+
+    async clearVoltageThresholds(id: number): Promise<void> {
+        try {
+            await axiosInstance.delete(`/sensors/${id}/voltage-thresholds`);
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to clear voltage thresholds'));
         }
     },
 

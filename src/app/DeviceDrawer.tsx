@@ -26,6 +26,8 @@ interface DeviceDrawerProps {
     onClose: () => void;
     /** Notifies the parent that the device was renamed so it can update its state. */
     onRename: (id: number, name: string) => void;
+    /** Notifies the parent that the sensor's voltage color thresholds changed (null when cleared). */
+    onThresholdsChange?: (sensorId: number, warning: number | null, critical: number | null) => void;
 }
 
 function InfoLabel({ children, tooltip }: { children: React.ReactNode; tooltip: string }) {
@@ -130,9 +132,132 @@ const TimelineBar: React.FC<{ segments: Segment[]; rangeStart: number; rangeEnd:
     );
 };
 
+// ── Voltage color thresholds ──────────────────────────────────────────────────
+
+const inputClass = 'w-full px-3 py-2 bg-gray-900/60 border border-gray-700/40 rounded-xl text-sm text-gray-200 tabular-nums focus:outline-none focus:border-sky-600/50 transition-colors';
+
+const VoltageThresholdConfig: React.FC<{
+    sensorId: number;
+    warning: number | null;
+    critical: number | null;
+    onChange: (sensorId: number, warning: number | null, critical: number | null) => void;
+}> = ({ sensorId, warning, critical, onChange }) => {
+    const [warnInput, setWarnInput] = useState(warning !== null ? String(warning) : '');
+    const [critInput, setCritInput] = useState(critical !== null ? String(critical) : '');
+    const [saving, setSaving] = useState(false);
+
+    const isSet = warning !== null && critical !== null;
+    const warnNum = parseFloat(warnInput);
+    const critNum = parseFloat(critInput);
+    const filled = warnInput.trim() !== '' && critInput.trim() !== '';
+    const valid = Number.isFinite(warnNum) && Number.isFinite(critNum)
+        && critNum >= 0 && warnNum <= 100 && warnNum > critNum;
+    const dirty = warnInput !== (warning !== null ? String(warning) : '')
+        || critInput !== (critical !== null ? String(critical) : '');
+
+    const save = async () => {
+        if (!valid || saving) return;
+        setSaving(true);
+        try {
+            await SensorService.updateVoltageThresholds(sensorId, warnNum, critNum);
+            onChange(sensorId, warnNum, critNum);
+            toast.success('Voltage thresholds saved');
+        } catch {
+            toast.error('Failed to save voltage thresholds');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const clear = async () => {
+        if (saving) return;
+        setSaving(true);
+        try {
+            await SensorService.clearVoltageThresholds(sensorId);
+            onChange(sensorId, null, null);
+            setWarnInput('');
+            setCritInput('');
+            toast.success('Voltage coloring turned off');
+        } catch {
+            toast.error('Failed to clear voltage thresholds');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="bg-gray-800/60 border border-gray-700/40 rounded-2xl p-4 space-y-4">
+            <div>
+                <h3 className="text-sm font-semibold text-gray-300">Voltage color thresholds</h3>
+                <p className="text-xs text-gray-500 mt-1 leading-snug">
+                    Color this reading by voltage. Leave off to show it plain.
+                </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+                <label className="space-y-1.5">
+                    <span className="text-xs text-gray-500 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-yellow-400" /> Warning below (V)
+                    </span>
+                    <input
+                        type="number"
+                        inputMode="decimal"
+                        step="0.1"
+                        value={warnInput}
+                        onChange={e => setWarnInput(e.target.value)}
+                        placeholder="12.4"
+                        aria-label="Warning voltage"
+                        className={inputClass}
+                    />
+                </label>
+                <label className="space-y-1.5">
+                    <span className="text-xs text-gray-500 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-red-400" /> Critical below (V)
+                    </span>
+                    <input
+                        type="number"
+                        inputMode="decimal"
+                        step="0.1"
+                        value={critInput}
+                        onChange={e => setCritInput(e.target.value)}
+                        placeholder="12.0"
+                        aria-label="Critical voltage"
+                        className={inputClass}
+                    />
+                </label>
+            </div>
+
+            {filled && !valid && (
+                <p className="text-xs text-red-400">Warning must be higher than critical, between 0 and 100 V.</p>
+            )}
+
+            <div className="flex items-center gap-2">
+                <button
+                    type="button"
+                    onClick={save}
+                    disabled={!valid || !dirty || saving}
+                    className="flex-1 py-2 rounded-xl text-sm font-medium bg-sky-600 text-white hover:bg-sky-500 active:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                    {saving ? 'Saving…' : 'Save'}
+                </button>
+                {isSet && (
+                    <button
+                        type="button"
+                        onClick={clear}
+                        disabled={saving}
+                        className="px-3 py-2 rounded-xl text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-700/60 disabled:opacity-40 transition-colors"
+                    >
+                        Turn off
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename }) => {
+const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, onThresholdsChange }) => {
     const [chartData, setChartData] = useState<{ x: number; y: number }[]>([]);
     const [loadingChart, setLoadingChart] = useState(false);
     const [activeRange, setActiveRange] = useState<RangeIndex>(0);
@@ -234,6 +359,8 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename }
     const latestValueStr = device.kind === 'sensor' && device.latestValue !== undefined
         ? `${Number(device.latestValue).toFixed(device.type === 'voltage' ? 2 : 1)} ${unitForType(device.type)}`
         : null;
+
+    const isVoltage = device.kind === 'sensor' && device.type === 'voltage';
 
     // Socket computed values
     const now = Date.now();
@@ -562,6 +689,17 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename }
                                 )}
                             </div>
                         </div>
+                    )}
+
+                    {/* Voltage color thresholds (voltage sensors only) */}
+                    {isVoltage && (
+                        <VoltageThresholdConfig
+                            key={device.id}
+                            sensorId={device.id}
+                            warning={device.rawSensor?.warningVoltage ?? null}
+                            critical={device.rawSensor?.criticalVoltage ?? null}
+                            onChange={(id, warning, critical) => onThresholdsChange?.(id, warning, critical)}
+                        />
                     )}
 
                     {/* Activities (sensors only — e.g. log motorcycle activities for a voltmeter) */}
