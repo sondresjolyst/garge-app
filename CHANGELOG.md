@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.19.0](https://github.com/sondresjolyst/garge-app/compare/v1.18.3...v1.19.0) (2026-06-29)
+
+
+### Features
+
+* color voltage readings by configurable thresholds ([#392](https://github.com/sondresjolyst/garge-app/issues/392)) ([7ce4c9f](https://github.com/sondresjolyst/garge-app/commit/7ce4c9f3974155d3d4a06b9af60cb8d54db01dd5))
+
+
+### Dependencies
+
+* bump `actions/checkout` from 6.0.3 to 7.0.0 ([#384](https://github.com/sondresjolyst/garge-app/issues/384)) ([226921f](https://github.com/sondresjolyst/garge-app/commit/226921f7cd41aa7d8bf05b02d3f42dab7ba98d48))
+* bump `equinor/ops-actions/.github/workflows/docker.yml` from 9.38.2 to 9.38.3 ([#385](https://github.com/sondresjolyst/garge-app/issues/385)) ([2632d34](https://github.com/sondresjolyst/garge-app/commit/2632d34eed7878e3d7eb8e4689aac371d94f5a6c))
+* bump `equinor/ops-actions/.github/workflows/release-please-manifest.yml` from 9.38.2 to 9.38.3 ([#383](https://github.com/sondresjolyst/garge-app/issues/383)) ([84392d6](https://github.com/sondresjolyst/garge-app/commit/84392d60dc334fd3e7e15fe100ca005b4b7df644))
+* bump `eslint-config-next` from 16.2.7 to 16.2.9 ([#390](https://github.com/sondresjolyst/garge-app/issues/390)) ([a662e35](https://github.com/sondresjolyst/garge-app/commit/a662e351afcbab592546adbaaa275f2fdfd029f1))
+* bump `react-apexcharts` from 2.1.0 to 2.1.1 ([#386](https://github.com/sondresjolyst/garge-app/issues/386)) ([9e70458](https://github.com/sondresjolyst/garge-app/commit/9e704581c4d967ba85209dc29b1b3d8543b845d9))
+* bump `vitest` from 4.1.8 to 4.1.9 ([#389](https://github.com/sondresjolyst/garge-app/issues/389)) ([adbee88](https://github.com/sondresjolyst/garge-app/commit/adbee88eae258126d7b049098338a66bcd7b3ac0))
+
 ## [1.18.3](https://github.com/sondresjolyst/garge-app/compare/v1.18.2...v1.18.3) (2026-06-22)
 
 
