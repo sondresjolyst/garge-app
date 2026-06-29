@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MagnifyingGlassIcon, ChevronDownIcon, PlusIcon, PencilIcon, TrashIcon, XMarkIcon, SignalIcon } from '@heroicons/react/24/outline';
 import { TYPE_CONFIG, DEFAULT_TYPE } from '@/lib/typeConfig';
 import { formatSensorValue, typeEmoji } from '@/lib/typeUtils';
+import { voltageColorClass, thresholdsOrNull } from '@/lib/voltageThresholds';
 import LoadingDots from '@/components/LoadingDots';
 import SensorService, { Sensor, BatteryHealthData } from '@/services/sensorService';
 import SwitchService, { Switch } from '@/services/switchService';
@@ -98,12 +99,19 @@ function formatValue(device: UnifiedDevice): string {
     return formatSensorValue(device.type, device.latestValue);
 }
 
+/** The caller's voltage color thresholds for a device, or null when unset / not a voltage sensor. */
+function deviceVoltageThresholds(device: UnifiedDevice) {
+    if (device.kind !== 'sensor' || device.type !== 'voltage') return null;
+    return thresholdsOrNull(device.rawSensor?.warningVoltage, device.rawSensor?.criticalVoltage);
+}
+
 const DeviceCard: React.FC<{ device: UnifiedDevice; onClick: () => void }> = ({ device, onClick }) => {
     const cfg = TYPE_CONFIG[device.type.toLowerCase()] ?? DEFAULT_TYPE;
     const value = formatValue(device);
     const socketOn  = device.kind === 'socket' && device.latestState === 'ON';
     const socketOff = device.kind === 'socket' && device.latestState === 'OFF';
     const accent = CARD_ACCENT[device.type.toLowerCase()] ?? 'border-t-sky-500/20';
+    const voltageColor = voltageColorClass(device.latestValue, deviceVoltageThresholds(device));
 
     return (
         <button
@@ -141,7 +149,7 @@ const DeviceCard: React.FC<{ device: UnifiedDevice; onClick: () => void }> = ({ 
             {/* Value */}
             <p className={`text-2xl font-bold tabular-nums ${
                 socketOn  ? 'text-green-400' :
-                socketOff ? 'text-red-400'   : 'text-white'
+                socketOff ? 'text-red-400'   : voltageColor
             }`}>
                 {value}
             </p>
@@ -349,6 +357,15 @@ const DeviceDashboard: React.FC = () => {
         setSelected(prev => (prev && prev.id === id ? { ...prev, displayName: name } : prev));
     }, []);
 
+    const handleThresholdsChange = useCallback((id: number, warning: number | null, critical: number | null) => {
+        const apply = (d: UnifiedDevice): UnifiedDevice =>
+            d.kind === 'sensor' && d.id === id && d.rawSensor
+                ? { ...d, rawSensor: { ...d.rawSensor, warningVoltage: warning, criticalVoltage: critical } }
+                : d;
+        setDevices(prev => prev.map(apply));
+        setSelected(prev => (prev ? apply(prev) : prev));
+    }, []);
+
     const filterPills = useMemo(() => {
         const types = [...new Set(devices.map(d => d.type))].sort();
         const labels: Record<string, string> = {
@@ -528,7 +545,11 @@ const DeviceDashboard: React.FC = () => {
                                                     >
                                                         <div className="flex items-center gap-1 leading-tight">
                                                             <span className="text-xs">{typeEmoji(d.type)}</span>
-                                                            <span className="text-sm font-bold text-gray-100 tabular-nums">{formatValue(d)}</span>
+                                                            <span className={`text-sm font-bold tabular-nums ${
+                                                                deviceVoltageThresholds(d)
+                                                                    ? voltageColorClass(d.latestValue, deviceVoltageThresholds(d))
+                                                                    : 'text-gray-100'
+                                                            }`}>{formatValue(d)}</span>
                                                         </div>
                                                         <span className="text-[10px] text-gray-500 leading-tight mt-0.5 truncate max-w-[80px]">{d.displayName}</span>
                                                     </button>
@@ -647,6 +668,7 @@ const DeviceDashboard: React.FC = () => {
                     device={selected}
                     onClose={() => setSelected(null)}
                     onRename={handleRename}
+                    onThresholdsChange={handleThresholdsChange}
                 />
             )}
 
