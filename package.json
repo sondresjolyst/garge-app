@@ -15,7 +15,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@microsoft/signalr": "^10.0.0",
-    "apexcharts": "^5.15.2",
+    "apexcharts": "^5.16.0",
     "axios": "^1.18.1",
     "date-fns": "^4.4.0",
     "js-cookie": "^3.0.8",
@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@playwright/test": "^1.61.0",
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4.3.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
