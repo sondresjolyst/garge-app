@@ -20,7 +20,7 @@
     "date-fns": "^4.4.0",
     "js-cookie": "^3.0.8",
     "jsonwebtoken": "^9.0.2",
-    "next": "^16.2.9",
+    "next": "^16.2.10",
     "next-auth": "^4.24.12",
     "react": "^19.2.6",
     "react-apexcharts": "^2.1.1",
