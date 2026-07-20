@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.19.2](https://github.com/sondresjolyst/garge-app/compare/v1.19.1...v1.19.2) (2026-07-20)
+
+
+### Dependencies
+
+* bump `@eslint/eslintrc` from 3.3.5 to 3.3.6 ([#411](https://github.com/sondresjolyst/garge-app/issues/411)) ([d54cf71](https://github.com/sondresjolyst/garge-app/commit/d54cf71c705fedc3776f0bc21da8aac71adae098))
+* bump `@tailwindcss/postcss` from 4.3.1 to 4.3.2 ([#405](https://github.com/sondresjolyst/garge-app/issues/405)) ([7f5eb3e](https://github.com/sondresjolyst/garge-app/commit/7f5eb3ed997122ac8e1e8236d4fe7ce93b79681b))
+* bump `@types/node` from 25.9.3 to 26.0.1 ([#399](https://github.com/sondresjolyst/garge-app/issues/399)) ([f2e1589](https://github.com/sondresjolyst/garge-app/commit/f2e15899d28cbd1133a771f5b5dba192b5fcd520))
+* bump `@types/node` from 26.0.1 to 26.1.0 ([#406](https://github.com/sondresjolyst/garge-app/issues/406)) ([98d36e7](https://github.com/sondresjolyst/garge-app/commit/98d36e738e89a27267b0e2d5f581a466ec89f3f0))
+* bump `@vitejs/plugin-react` from 6.0.2 to 6.0.3 ([#400](https://github.com/sondresjolyst/garge-app/issues/400)) ([6705b24](https://github.com/sondresjolyst/garge-app/commit/6705b24b9773fb21c52fd1074df07514f700b422))
+* bump `apexcharts` from 5.14.0 to 5.15.2 ([#397](https://github.com/sondresjolyst/garge-app/issues/397)) ([c8a960a](https://github.com/sondresjolyst/garge-app/commit/c8a960a3f1011d2db15bd98c26e6fa1100c926e0))
+* bump `apexcharts` from 5.15.2 to 5.16.0 ([#409](https://github.com/sondresjolyst/garge-app/issues/409)) ([31e7323](https://github.com/sondresjolyst/garge-app/commit/31e7323f0f659cf9b5f2f5b40d082bb5eb19e661))
+* bump `axios` from 1.18.0 to 1.18.1 ([#398](https://github.com/sondresjolyst/garge-app/issues/398)) ([d899926](https://github.com/sondresjolyst/garge-app/commit/d899926d6fbf81378b34ea7fdc4933ef72b6f41e))
+* bump `equinor/ops-actions/.github/workflows/docker.yml` from 9.38.3 to 9.38.4 ([#395](https://github.com/sondresjolyst/garge-app/issues/395)) ([d8dccee](https://github.com/sondresjolyst/garge-app/commit/d8dccee7d934c71e529fba60a1eb84315a82f015))
+* bump `equinor/ops-actions/.github/workflows/docker.yml` from 9.38.4 to 9.39.1 ([#403](https://github.com/sondresjolyst/garge-app/issues/403)) ([ab0a6cc](https://github.com/sondresjolyst/garge-app/commit/ab0a6cc621e1d815ef97a7be0db7499172472378))
+* bump `equinor/ops-actions/.github/workflows/release-please-manifest.yml` from 9.38.3 to 9.38.4 ([#396](https://github.com/sondresjolyst/garge-app/issues/396)) ([0eda845](https://github.com/sondresjolyst/garge-app/commit/0eda845484bd9b9db64714deea08fcd31633f3e1))
+* bump `equinor/ops-actions/.github/workflows/release-please-manifest.yml` from 9.38.4 to 9.39.1 ([#404](https://github.com/sondresjolyst/garge-app/issues/404)) ([ee37400](https://github.com/sondresjolyst/garge-app/commit/ee374005b07c74f20f327eb9fd5290644a5a660d))
+* bump `eslint-config-next` from 16.2.9 to 16.2.10 ([#413](https://github.com/sondresjolyst/garge-app/issues/413)) ([cbd7b15](https://github.com/sondresjolyst/garge-app/commit/cbd7b152ea9f8ca7c6f986065a6475cacae6ada8))
+* bump `eslint` from 10.5.0 to 10.6.0 ([#407](https://github.com/sondresjolyst/garge-app/issues/407)) ([c404424](https://github.com/sondresjolyst/garge-app/commit/c404424ca5ecda30370fe3d52b9ab1caed0dd11e))
+* bump `eslint` from 10.6.0 to 10.7.0 ([#410](https://github.com/sondresjolyst/garge-app/issues/410)) ([55cf67a](https://github.com/sondresjolyst/garge-app/commit/55cf67a868a49d300dcae1aa6e96d797b7515e8e))
+* bump `next` from 16.2.9 to 16.2.10 ([#414](https://github.com/sondresjolyst/garge-app/issues/414)) ([061d89f](https://github.com/sondresjolyst/garge-app/commit/061d89f08194f8f029f93d707779559a821695c1))
+* bump `postcss` from 8.5.15 to 8.5.16 ([#401](https://github.com/sondresjolyst/garge-app/issues/401)) ([b2c0899](https://github.com/sondresjolyst/garge-app/commit/b2c0899c1d4a41c345d9c5bef1170ae18164821b))
+* bump `vitest` from 4.1.9 to 4.1.10 ([#412](https://github.com/sondresjolyst/garge-app/issues/412)) ([744b038](https://github.com/sondresjolyst/garge-app/commit/744b03815e07129235cdc27271f4870a9c08b31f))
+
 ## [1.19.1](https://github.com/sondresjolyst/garge-app/compare/v1.19.0...v1.19.1) (2026-06-29)
 
 
