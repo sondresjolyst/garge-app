@@ -1,14 +1,17 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { XMarkIcon, ChevronRightIcon, CheckIcon } from '@heroicons/react/24/outline';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { XMarkIcon, ChevronRightIcon, CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
+import { toast } from 'sonner';
 import Modal from '@/components/Modal';
 import SensorService, { Sensor } from '@/services/sensorService';
 import SwitchService, { Switch } from '@/services/switchService';
 import GroupService, { Group } from '@/services/groupService';
+import PairingService, { PairingToken } from '@/services/pairingService';
 import { GROUP_ICONS as ICONS, groupEmoji } from '@/lib/groupIcons';
 import { typeEmoji } from '@/lib/typeUtils';
 import { useCanClaimDevice } from '@/hooks/useCanClaimDevice';
+import { useDeviceStream, DeviceCreatedEvent } from '@/hooks/useDeviceStream';
 import Link from 'next/link';
 
 // ── Types & constants ──────────────────────────────────────────────────────────
@@ -72,12 +75,18 @@ const Btn: React.FC<{
 
 const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialStep, prefillGroupId, onComplete }) => {
     const [step, setStep]               = useState(initialStep ?? (prefillSensor ? 1 : 0));
+    const [claimMode, setClaimMode]     = useState<'pair' | 'code'>('pair');
     const [claimType, setClaimType]     = useState<'sensor' | 'socket'>('sensor');
     const [regCode, setRegCode]         = useState('');
     const [claimError, setClaimError]   = useState('');
     const [claiming, setClaiming]       = useState(false);
     const [claimedSensor, setClaimedSensor] = useState<Sensor | null>(prefillSensor ?? null);
     const [claimedSwitch, setClaimedSwitch] = useState<Switch | null>(null);
+
+    const [pairingToken, setPairingToken] = useState<PairingToken | null>(null);
+    const [minting, setMinting]         = useState(false);
+    const [pairError, setPairError]     = useState('');
+    const [now, setNow]                 = useState(() => Date.now());
 
     const [customName, setCustomName]   = useState(prefillSensor?.customName ?? prefillSensor?.defaultName ?? '');
     const [saving, setSaving]           = useState(false);
@@ -100,6 +109,79 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
     const { canClaim, loading: eligibilityLoading, refresh: refreshEligibility } = useCanClaimDevice();
 
     const TOTAL_STEPS = 4; // 0: claim, 1: name, 2: group, 3: done
+
+    // ── Pairing mode ──────────────────────────────────────────────────────────
+
+    // Tick once a second while a pairing code is displayed, driving the countdown.
+    useEffect(() => {
+        if (!pairingToken) return;
+        const id = setInterval(() => setNow(Date.now()), 1000);
+        return () => clearInterval(id);
+    }, [pairingToken]);
+
+    const pairingSecondsLeft = pairingToken
+        ? Math.max(0, Math.floor((new Date(pairingToken.expiresAt).getTime() - now) / 1000))
+        : 0;
+    const pairingExpired = pairingToken !== null && pairingSecondsLeft <= 0;
+    const pairingCountdown = `${Math.floor(pairingSecondsLeft / 60)}:${String(pairingSecondsLeft % 60).padStart(2, '0')}`;
+
+    // useDeviceStream captures its handlers once on mount, so the SignalR
+    // callback must only reach into refs and stable callbacks. This ref mirrors
+    // whether the pairing step is currently active (updated every render).
+    const pairingActiveRef = useRef(false);
+    pairingActiveRef.current = step === 0 && claimMode === 'pair' && pairingToken !== null && !pairingExpired;
+
+    // The backend auto-claims the device after the user enters the pairing code
+    // in the device's captive portal, then raises `device-created` for this
+    // user. Select the new device and advance to the naming step — mirroring
+    // what handleClaim does after a manual code claim.
+    const handlePairedDevice = useCallback(async (e: DeviceCreatedEvent) => {
+        try {
+            if (e.kind === 'sensor') {
+                const all = await SensorService.getAllSensors();
+                const found = all.find(s => s.id === e.id) ?? null;
+                setClaimedSensor(found);
+                setCustomName(found?.customName ?? found?.defaultName ?? found?.name ?? '');
+                if (found) setSelectedSensorIds(new Set([found.id]));
+            } else {
+                const all = await SwitchService.getAllSwitches();
+                const found = all.find(sw => sw.id === e.id) ?? null;
+                setClaimedSwitch(found);
+                setCustomName(found?.customName ?? found?.name ?? '');
+                if (found) setSelectedSwitchIds(new Set([found.id]));
+            }
+            await refreshEligibility();
+        } finally {
+            setStep(1);
+        }
+    }, [refreshEligibility]);
+
+    useDeviceStream({
+        onDeviceCreated: (e) => {
+            if (!pairingActiveRef.current) return;
+            // Consume the event once — a burst of events must not re-advance.
+            pairingActiveRef.current = false;
+            handlePairedDevice(e);
+        },
+    });
+
+    const handleMintToken = async () => {
+        setMinting(true);
+        setPairError('');
+        try {
+            const token = await PairingService.mintToken();
+            setNow(Date.now());
+            setPairingToken(token);
+        } catch (e: unknown) {
+            setPairError(e instanceof Error ? e.message : 'Failed to get pairing code.');
+        } finally {
+            setMinting(false);
+        }
+    };
+
+    const copyPairingCode = (text: string) => {
+        navigator.clipboard.writeText(text).then(() => toast.success('Copied')).catch(() => toast.error('Failed to copy'));
+    };
 
     // Load groups + all sensors + all switches when reaching step 2
     useEffect(() => {
@@ -247,34 +329,38 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                     <div className="space-y-5">
                         <div>
                             <h2 className="text-xl font-display font-bold text-gray-100 mb-1">
-                                Add a {claimType === 'sensor' ? 'sensor' : 'socket'}
+                                Add a device
                             </h2>
-                            <p className="text-sm text-gray-400">Enter the device code found on your device.</p>
+                            <p className="text-sm text-gray-400">
+                                {claimMode === 'pair'
+                                    ? 'Pair a new device with a one-time code.'
+                                    : 'Enter the device code found on your device.'}
+                            </p>
                         </div>
 
-                        {/* Type toggle */}
+                        {/* Mode tabs */}
                         <div className="flex gap-2 p-1 bg-gray-800/60 rounded-xl">
                             <button
                                 type="button"
-                                onClick={() => { setClaimType('sensor'); setRegCode(''); setClaimError(''); }}
+                                onClick={() => { setClaimMode('pair'); setClaimError(''); }}
                                 className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                                    claimType === 'sensor'
+                                    claimMode === 'pair'
                                         ? 'bg-sky-600 text-white shadow'
                                         : 'text-gray-400 hover:text-gray-200'
                                 }`}
                             >
-                                🌡️ Sensor
+                                Pair new device
                             </button>
                             <button
                                 type="button"
-                                onClick={() => { setClaimType('socket'); setRegCode(''); setClaimError(''); }}
+                                onClick={() => { setClaimMode('code'); setPairError(''); }}
                                 className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                                    claimType === 'socket'
+                                    claimMode === 'code'
                                         ? 'bg-sky-600 text-white shadow'
                                         : 'text-gray-400 hover:text-gray-200'
                                 }`}
                             >
-                                🔌 Socket
+                                Have a device code?
                             </button>
                         </div>
 
@@ -285,24 +371,101 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                             </div>
                         )}
 
-                        <div className="space-y-3">
-                            <input
-                                type="text"
-                                autoFocus
-                                value={regCode}
-                                onChange={e => { setRegCode(e.target.value.toUpperCase()); setClaimError(''); }}
-                                onKeyDown={e => e.key === 'Enter' && handleClaim()}
-                                placeholder="e.g. A1B2C3D4E5"
-                                maxLength={10}
-                                disabled={!canClaim || eligibilityLoading}
-                                className="w-full px-4 py-3 bg-gray-800/60 border border-gray-700/40 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-600/50 font-mono tracking-widest text-sm transition-all uppercase disabled:opacity-50 disabled:cursor-not-allowed"
-                            />
-                            {claimError && <p className="text-red-400 text-xs">{claimError}</p>}
-                        </div>
-                        <Btn onClick={handleClaim} loading={claiming} disabled={!regCode.trim() || !canClaim || eligibilityLoading}>
-                            Claim {claimType === 'sensor' ? 'sensor' : 'socket'}
-                            <ChevronRightIcon className="h-4 w-4" />
-                        </Btn>
+                        {claimMode === 'pair' ? (
+                            <>
+                                {pairingToken && !pairingExpired ? (
+                                    <div className="p-4 bg-gray-800/60 border border-gray-700/40 rounded-xl text-center space-y-2">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <span className="font-mono text-3xl tracking-[0.3em] text-gray-100 select-all">
+                                                {pairingToken.token}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => copyPairingCode(pairingToken.token)}
+                                                aria-label="Copy pairing code"
+                                                className="p-0.5 rounded text-gray-600 hover:text-gray-400 transition-colors flex-shrink-0"
+                                            >
+                                                <ClipboardDocumentIcon className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                        <p className="text-xs text-gray-400">
+                                            expires in <span className="font-mono text-gray-300">{pairingCountdown}</span>
+                                        </p>
+                                        <p className="text-xs text-gray-500 flex items-center justify-center gap-2">
+                                            <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                            Waiting for your device…
+                                        </p>
+                                    </div>
+                                ) : pairingExpired ? (
+                                    <div className="space-y-3">
+                                        <p className="text-sm text-amber-300 text-center">This pairing code has expired.</p>
+                                        <Btn onClick={handleMintToken} loading={minting} disabled={!canClaim || eligibilityLoading}>
+                                            Get new code
+                                        </Btn>
+                                    </div>
+                                ) : (
+                                    <Btn onClick={handleMintToken} loading={minting} disabled={!canClaim || eligibilityLoading}>
+                                        Get pairing code
+                                    </Btn>
+                                )}
+                                {pairError && <p className="text-red-400 text-xs">{pairError}</p>}
+
+                                <ol className="space-y-1.5 text-sm text-gray-400 list-decimal list-inside">
+                                    <li>Power on your Garge device.</li>
+                                    <li>On your phone, join the Wi-Fi network named &quot;Garge …&quot;.</li>
+                                    <li>The setup page opens — choose your home Wi-Fi and enter this pairing code.</li>
+                                    <li>Come back here — the device appears automatically.</li>
+                                </ol>
+                            </>
+                        ) : (
+                            <>
+                                {/* Type toggle */}
+                                <div className="flex gap-2 p-1 bg-gray-800/60 rounded-xl">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setClaimType('sensor'); setRegCode(''); setClaimError(''); }}
+                                        className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                                            claimType === 'sensor'
+                                                ? 'bg-sky-600 text-white shadow'
+                                                : 'text-gray-400 hover:text-gray-200'
+                                        }`}
+                                    >
+                                        🌡️ Sensor
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setClaimType('socket'); setRegCode(''); setClaimError(''); }}
+                                        className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                                            claimType === 'socket'
+                                                ? 'bg-sky-600 text-white shadow'
+                                                : 'text-gray-400 hover:text-gray-200'
+                                        }`}
+                                    >
+                                        🔌 Socket
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <input
+                                        type="text"
+                                        autoFocus
+                                        value={regCode}
+                                        onChange={e => { setRegCode(e.target.value.toUpperCase()); setClaimError(''); }}
+                                        onKeyDown={e => e.key === 'Enter' && handleClaim()}
+                                        placeholder="e.g. A1B2C3D4E5"
+                                        maxLength={10}
+                                        disabled={!canClaim || eligibilityLoading}
+                                        className="w-full px-4 py-3 bg-gray-800/60 border border-gray-700/40 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-600/50 font-mono tracking-widest text-sm transition-all uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+                                    />
+                                    {claimError && <p className="text-red-400 text-xs">{claimError}</p>}
+                                </div>
+                                <Btn onClick={handleClaim} loading={claiming} disabled={!regCode.trim() || !canClaim || eligibilityLoading}>
+                                    Claim {claimType === 'sensor' ? 'sensor' : 'socket'}
+                                    <ChevronRightIcon className="h-4 w-4" />
+                                </Btn>
+                            </>
+                        )}
+
                         <Btn variant="ghost" onClick={() => setStep(2)}>
                             Skip — just create a group
                         </Btn>
