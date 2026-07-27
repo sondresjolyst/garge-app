@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.19.3](https://github.com/sondresjolyst/garge-app/compare/v1.19.2...v1.19.3) (2026-07-27)
+
+
+### Dependencies
+
+* **github-actions:** bump `actions/checkout` from 7.0.0 to 7.0.1 ([#421](https://github.com/sondresjolyst/garge-app/issues/421)) ([9527545](https://github.com/sondresjolyst/garge-app/commit/952754571a63785fe7064ee140d3b34edea59799))
+* **github-actions:** bump `equinor/ops-actions/.github/workflows/docker.yml` from 9.39.1 to 9.39.2 ([#416](https://github.com/sondresjolyst/garge-app/issues/416)) ([7e6b3c8](https://github.com/sondresjolyst/garge-app/commit/7e6b3c8e577b84aedb4f280fe71d722fb2f74263))
+* **github-actions:** bump `equinor/ops-actions/.github/workflows/release-please-manifest.yml` from 9.39.1 to 9.39.2 ([#420](https://github.com/sondresjolyst/garge-app/issues/420)) ([c105d70](https://github.com/sondresjolyst/garge-app/commit/c105d70b297a6d96067b6e7c222230d8e374ef1d))
+* **npm:** bump `@tailwindcss/postcss` from 4.3.2 to 4.3.3 ([#428](https://github.com/sondresjolyst/garge-app/issues/428)) ([ffe5ad8](https://github.com/sondresjolyst/garge-app/commit/ffe5ad8a00d3e046e24d0352082b07bcf23eebb2))
+* **npm:** bump `@types/node` from 26.1.0 to 26.1.1 ([#417](https://github.com/sondresjolyst/garge-app/issues/417)) ([322436f](https://github.com/sondresjolyst/garge-app/commit/322436f1ec0ea8fb0e0f7a7714bd372177882336))
+* **npm:** bump `apexcharts` from 5.16.0 to 6.3.0 ([#427](https://github.com/sondresjolyst/garge-app/issues/427)) ([3b8399d](https://github.com/sondresjolyst/garge-app/commit/3b8399d463bddaa0d3b332578e998f7e55e2f87f))
+* **npm:** bump `next` from 16.2.10 to 16.2.12 ([#425](https://github.com/sondresjolyst/garge-app/issues/425)) ([3dad415](https://github.com/sondresjolyst/garge-app/commit/3dad4158b95a2caf7c1e86d12e1665ac48f7e42a))
+* **npm:** bump `postcss` from 8.5.16 to 8.5.20 ([#424](https://github.com/sondresjolyst/garge-app/issues/424)) ([4cf877e](https://github.com/sondresjolyst/garge-app/commit/4cf877ee20ae280d9c70d88fef1c54a9b6bac078))
+* **npm:** bump `tailwindcss` from 4.3.2 to 4.3.3 ([#419](https://github.com/sondresjolyst/garge-app/issues/419)) ([30aee67](https://github.com/sondresjolyst/garge-app/commit/30aee6757d7440e7882fc822cddbfd6005828253))
+
 ## [1.19.2](https://github.com/sondresjolyst/garge-app/compare/v1.19.1...v1.19.2) (2026-07-20)
 
 
