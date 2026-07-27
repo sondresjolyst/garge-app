@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.20.0](https://github.com/sondresjolyst/garge-app/compare/v1.19.3...v1.20.0) (2026-07-27)
+
+
+### Features
+
+* pairing code flow in setup wizard ([#430](https://github.com/sondresjolyst/garge-app/issues/430)) ([6891e56](https://github.com/sondresjolyst/garge-app/commit/6891e562d540259bac1cd56abd49bddd8f4aae2f))
+
+
+### Dependencies
+
+* **github-actions:** bump `actions/setup-node` from 6.4.0 to 7.0.0 ([#418](https://github.com/sondresjolyst/garge-app/issues/418)) ([65eae84](https://github.com/sondresjolyst/garge-app/commit/65eae84f5ef7c0cc89889374e1b3deeeef60c71b))
+
 ## [1.19.3](https://github.com/sondresjolyst/garge-app/compare/v1.19.2...v1.19.3) (2026-07-27)
 
 
