@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.20.1](https://github.com/sondresjolyst/garge-app/compare/v1.20.0...v1.20.1) (2026-08-02)
+
+
+### Dependencies
+
+* **github-actions:** bump `equinor/ops-actions/.github/workflows/docker.yml` from 9.39.2 to 9.39.3 ([#431](https://github.com/sondresjolyst/garge-app/issues/431)) ([61131ad](https://github.com/sondresjolyst/garge-app/commit/61131adfc1cf13a8d7aee8b1a09c5e3e7f6eec56))
+* **github-actions:** bump `equinor/ops-actions/.github/workflows/release-please-manifest.yml` from 9.39.2 to 9.39.3 ([#432](https://github.com/sondresjolyst/garge-app/issues/432)) ([3666210](https://github.com/sondresjolyst/garge-app/commit/36662100f3b40951f3ee3ea949fd965ae18ae63b))
+* **npm:** bump `@testing-library/jest-dom` from 6.9.1 to 7.0.0 ([#437](https://github.com/sondresjolyst/garge-app/issues/437)) ([f37a1cb](https://github.com/sondresjolyst/garge-app/commit/f37a1cb2450384e0699642128c57cdc151b5905c))
+* **npm:** bump `@vitejs/plugin-react` from 6.0.3 to 6.0.4 ([#436](https://github.com/sondresjolyst/garge-app/issues/436)) ([30d7f77](https://github.com/sondresjolyst/garge-app/commit/30d7f77042b9da7cad2bb081d18d18fa62d25113))
+* **npm:** bump `eslint-config-next` from 16.2.10 to 16.2.12 ([#433](https://github.com/sondresjolyst/garge-app/issues/433)) ([40c04b4](https://github.com/sondresjolyst/garge-app/commit/40c04b4d1cb3947d736202ffeb1ed55740b4ee16))
+* **npm:** bump `postcss` from 8.5.20 to 8.5.23 ([#434](https://github.com/sondresjolyst/garge-app/issues/434)) ([8de5c8e](https://github.com/sondresjolyst/garge-app/commit/8de5c8ea1946e0988e890527b754eadf5de8c1b5))
+
 ## [1.20.0](https://github.com/sondresjolyst/garge-app/compare/v1.19.3...v1.20.0) (2026-07-27)
 
 
