@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.20.2](https://github.com/sondresjolyst/garge-app/compare/v1.20.1...v1.20.2) (2026-08-10)
+
+
+### Dependencies
+
+* **github-actions:** bump `equinor/ops-actions/.github/workflows/docker.yml` from 9.39.3 to 9.39.4 ([#444](https://github.com/sondresjolyst/garge-app/issues/444)) ([94d3475](https://github.com/sondresjolyst/garge-app/commit/94d3475fd9705bc01ef81fb3a8e7c0db384e4155))
+* **github-actions:** bump `equinor/ops-actions/.github/workflows/release-please-manifest.yml` from 9.39.3 to 9.39.4 ([#443](https://github.com/sondresjolyst/garge-app/issues/443)) ([f9a556e](https://github.com/sondresjolyst/garge-app/commit/f9a556ec1832037c75e7d12fb94976a3a183627e))
+* **npm:** bump `@vitejs/plugin-react` from 6.0.4 to 6.0.5 ([#446](https://github.com/sondresjolyst/garge-app/issues/446)) ([cc8d19a](https://github.com/sondresjolyst/garge-app/commit/cc8d19a5c9c5be5c948c7023d5ae6051622948fe))
+* **npm:** bump `apexcharts` from 6.3.0 to 6.7.0 ([#449](https://github.com/sondresjolyst/garge-app/issues/449)) ([c632e81](https://github.com/sondresjolyst/garge-app/commit/c632e81d22b2aafa49e36c500c4870b2688bb50d))
+* **npm:** bump `js-yaml` from 4.3.0 to 4.3.1 ([#442](https://github.com/sondresjolyst/garge-app/issues/442)) ([9b26e84](https://github.com/sondresjolyst/garge-app/commit/9b26e841ed9f74578cc8e071f49e1b0e7adfdda4))
+* **npm:** bump react-dom and @types/react-dom ([#447](https://github.com/sondresjolyst/garge-app/issues/447)) ([5868f3e](https://github.com/sondresjolyst/garge-app/commit/5868f3ee6aa2ab6bf125ea896185d0dafe63b38a))
+* **npm:** bump the npm_and_yarn group across 1 directory with 4 updates ([#439](https://github.com/sondresjolyst/garge-app/issues/439)) ([00e7bf0](https://github.com/sondresjolyst/garge-app/commit/00e7bf033a707c12fa4f555e29a7155f5536a9d5))
+
 ## [1.20.1](https://github.com/sondresjolyst/garge-app/compare/v1.20.0...v1.20.1) (2026-08-02)
 
 
