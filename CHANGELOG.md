@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.20.3](https://github.com/sondresjolyst/garge-app/compare/v1.20.2...v1.20.3) (2026-08-17)
+
+
+### Dependencies
+
+* **github-actions:** bump `equinor/ops-actions/.github/workflows/docker.yml` from 9.39.4 to 9.39.6 ([#451](https://github.com/sondresjolyst/garge-app/issues/451)) ([e33893a](https://github.com/sondresjolyst/garge-app/commit/e33893a79eb96ccb4aff6d72c01d582c1caf4a10))
+* **github-actions:** bump `equinor/ops-actions/.github/workflows/release-please-manifest.yml` from 9.39.4 to 9.39.6 ([#452](https://github.com/sondresjolyst/garge-app/issues/452)) ([28fc554](https://github.com/sondresjolyst/garge-app/commit/28fc554529eec37ba4f14a553e72c1a014d5e36b))
+* **npm:** bump `@testing-library/user-event` from 14.6.1 to 14.6.3 ([#453](https://github.com/sondresjolyst/garge-app/issues/453)) ([c4f3202](https://github.com/sondresjolyst/garge-app/commit/c4f32027cf545d65f875ddbab677317cf0f74a45))
+* **npm:** bump `apexcharts` from 6.7.0 to 6.8.0 ([#454](https://github.com/sondresjolyst/garge-app/issues/454)) ([a53360f](https://github.com/sondresjolyst/garge-app/commit/a53360f03393591fec46a71facdb683a60fbc5ca))
+* **npm:** bump `axios` from 1.18.1 to 1.19.0 ([#445](https://github.com/sondresjolyst/garge-app/issues/445)) ([d2a4412](https://github.com/sondresjolyst/garge-app/commit/d2a4412cfb06606486c184a6dbc0e3de57a22ee1))
+* **npm:** bump `eslint-config-next` from 16.2.12 to 16.3.0 ([#455](https://github.com/sondresjolyst/garge-app/issues/455)) ([72790c6](https://github.com/sondresjolyst/garge-app/commit/72790c663f6b1e21882b11d9b9149b7d53b3ed64))
+* **npm:** bump `postcss` from 8.5.23 to 8.5.26 ([#456](https://github.com/sondresjolyst/garge-app/issues/456)) ([0cac98f](https://github.com/sondresjolyst/garge-app/commit/0cac98ffa08afde0ff41fd541eb1648fed31b11a))
+* **npm:** bump `sonner` from 2.0.7 to 2.0.8 ([#457](https://github.com/sondresjolyst/garge-app/issues/457)) ([6cd71d2](https://github.com/sondresjolyst/garge-app/commit/6cd71d258b0be31038793f35c9f974c98a07c982))
+
 ## [1.20.2](https://github.com/sondresjolyst/garge-app/compare/v1.20.1...v1.20.2) (2026-08-10)
 
 
