@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.20.4](https://github.com/sondresjolyst/garge-app/compare/v1.20.3...v1.20.4) (2026-08-24)
+
+
+### Dependencies
+
+* **github-actions:** bump `equinor/ops-actions/.github/workflows/docker.yml` from 9.39.6 to 9.40.0 ([#458](https://github.com/sondresjolyst/garge-app/issues/458)) ([90cb5c7](https://github.com/sondresjolyst/garge-app/commit/90cb5c7314c903c61e75f38527dc349edb8e80e8))
+* **github-actions:** bump `equinor/ops-actions/.github/workflows/release-please-manifest.yml` from 9.39.6 to 9.40.0 ([#459](https://github.com/sondresjolyst/garge-app/issues/459)) ([8a32ed8](https://github.com/sondresjolyst/garge-app/commit/8a32ed8bb69e00e74ed37b289dffd3616927ca72))
+* **npm:** bump `@microsoft/signalr` from 10.0.0 to 10.0.11 ([#461](https://github.com/sondresjolyst/garge-app/issues/461)) ([b2f2f3a](https://github.com/sondresjolyst/garge-app/commit/b2f2f3adf76a8179f1161c39c6096e53622dd87d))
+* **npm:** bump `@testing-library/jest-dom` from 7.0.0 to 7.0.1 ([#462](https://github.com/sondresjolyst/garge-app/issues/462)) ([7d22252](https://github.com/sondresjolyst/garge-app/commit/7d22252b1625813458d056d7b4ed08a0440b7cbd))
+* **npm:** bump `@types/node` from 26.1.1 to 26.2.0 ([#464](https://github.com/sondresjolyst/garge-app/issues/464)) ([978b3fe](https://github.com/sondresjolyst/garge-app/commit/978b3fe363130813916869de024723aba5f6fbd1))
+* **npm:** bump `apexcharts` from 6.8.0 to 6.9.0 ([#460](https://github.com/sondresjolyst/garge-app/issues/460)) ([96771de](https://github.com/sondresjolyst/garge-app/commit/96771def382829a3437e90353a714168afddd3ce))
+* **npm:** bump `eslint-config-next` from 16.3.0 to 16.3.1 ([#463](https://github.com/sondresjolyst/garge-app/issues/463)) ([2aa4dc2](https://github.com/sondresjolyst/garge-app/commit/2aa4dc2e69ba84351f81509b56a62cd72a13450d))
+
 ## [1.20.3](https://github.com/sondresjolyst/garge-app/compare/v1.20.2...v1.20.3) (2026-08-17)
 
 
