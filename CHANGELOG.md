@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.20.5](https://github.com/sondresjolyst/garge-app/compare/v1.20.4...v1.20.5) (2026-08-30)
+
+
+### Dependencies
+
+* **npm:** bump @types/react from 19.2.17 to 19.2.18 in the react group ([#468](https://github.com/sondresjolyst/garge-app/issues/468)) ([b558bd4](https://github.com/sondresjolyst/garge-app/commit/b558bd4bab4dc288277c0bfe6bf174b666778313))
+* **npm:** bump `apexcharts` from 6.9.0 to 6.10.0 ([#477](https://github.com/sondresjolyst/garge-app/issues/477)) ([0fd88f8](https://github.com/sondresjolyst/garge-app/commit/0fd88f8265d670f57ea6ef493913303f984524ca))
+* **npm:** bump `eslint` from 10.8.1 to 10.9.0 ([#475](https://github.com/sondresjolyst/garge-app/issues/475)) ([08794ad](https://github.com/sondresjolyst/garge-app/commit/08794ad8abc67b2e8ab526ade4245765b11a16aa))
+* **npm:** bump eslint from 10.7.0 to 10.8.1 in the eslint group ([#470](https://github.com/sondresjolyst/garge-app/issues/470)) ([e8bd1bf](https://github.com/sondresjolyst/garge-app/commit/e8bd1bf2e65d621078f1bb99c37302df8260ab6f))
+* **npm:** bump next from 16.3.0 to 16.3.1 in the next group ([#469](https://github.com/sondresjolyst/garge-app/issues/469)) ([ca74003](https://github.com/sondresjolyst/garge-app/commit/ca74003bb545876227e206f67760f8a50f668f94))
+* **npm:** bump the next group across 1 directory with 2 updates ([#474](https://github.com/sondresjolyst/garge-app/issues/474)) ([b56bfc8](https://github.com/sondresjolyst/garge-app/commit/b56bfc8aaf137d9b5c60e45a98106ec076ff9d88))
+* **npm:** bump the testing group with 2 updates ([#471](https://github.com/sondresjolyst/garge-app/issues/471)) ([939cb04](https://github.com/sondresjolyst/garge-app/commit/939cb04567cf1b018c53c4aeab7b510817092133))
+* **npm:** bump the testing group with 3 updates ([#476](https://github.com/sondresjolyst/garge-app/issues/476)) ([4346e28](https://github.com/sondresjolyst/garge-app/commit/4346e28b73dfc1a9086d4c70e96d11ad3b3faa81))
+
 ## [1.20.4](https://github.com/sondresjolyst/garge-app/compare/v1.20.3...v1.20.4) (2026-08-24)
 
 
