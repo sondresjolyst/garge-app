@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.20.6](https://github.com/sondresjolyst/garge-app/compare/v1.20.5...v1.20.6) (2026-09-06)
+
+
+### Dependencies
+
+* **npm:** bump @types/node from 26.2.0 to 26.4.0 in the types group ([#483](https://github.com/sondresjolyst/garge-app/issues/483)) ([690c869](https://github.com/sondresjolyst/garge-app/commit/690c86932ea213a3fe7dc47764a66b5c148bb540))
+* **npm:** bump `@babel/core` from 7.29.0 to 7.29.7 ([#485](https://github.com/sondresjolyst/garge-app/issues/485)) ([8be78bf](https://github.com/sondresjolyst/garge-app/commit/8be78bf4e7e9377153079703cb6bdfa962a2fa14))
+* **npm:** bump `@types/react-dom` from 19.2.4 to 19.2.5 ([#479](https://github.com/sondresjolyst/garge-app/issues/479)) ([e6a3647](https://github.com/sondresjolyst/garge-app/commit/e6a364745348abeaa6bb21fb76b0baa5e781aaa9))
+* **npm:** bump `browserslist` from 4.28.2 to 4.28.9 ([#486](https://github.com/sondresjolyst/garge-app/issues/486)) ([b3d6f53](https://github.com/sondresjolyst/garge-app/commit/b3d6f538ae6f222d6444a4d53564fd262792daa2))
+* **npm:** bump eslint from 10.9.0 to 10.9.1 in the eslint group ([#481](https://github.com/sondresjolyst/garge-app/issues/481)) ([d0cf13d](https://github.com/sondresjolyst/garge-app/commit/d0cf13dc43b75bc8d588c4f50d34d80304a6fc52))
+* **npm:** bump the next group across 1 directory with 2 updates ([#480](https://github.com/sondresjolyst/garge-app/issues/480)) ([6900be7](https://github.com/sondresjolyst/garge-app/commit/6900be7f5b8a11154a6a90f05aa1dc89e9ff98e2))
+* **npm:** bump the testing group with 2 updates ([#482](https://github.com/sondresjolyst/garge-app/issues/482)) ([fe8a82a](https://github.com/sondresjolyst/garge-app/commit/fe8a82ad36e5eb233e988239625192be30d33304))
+
 ## [1.20.5](https://github.com/sondresjolyst/garge-app/compare/v1.20.4...v1.20.5) (2026-08-30)
 
 
