@@ -10,6 +10,7 @@ import { ChevronRightIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/r
 import { normalizeNoPhone } from '@/lib/phone';
 import { isPushSupported, isPushSubscribed, subscribeToPush, unsubscribeFromPush, sendTestNotification } from '@/services/pushNotificationService';
 import { useCanClaimDevice } from '@/hooks/useCanClaimDevice';
+import { useFeature } from '@/hooks/useFeature';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
 import Section from '@/components/Section';
@@ -48,6 +49,8 @@ const Profile: React.FC = () => {
     const [pushEnabled, setPushEnabled] = useState(false);
     const [pushLoading, setPushLoading] = useState(false);
     const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
+    const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
+    const [emailNotificationsSaving, setEmailNotificationsSaving] = useState(false);
     const [offlineThreshold, setOfflineThreshold] = useState(4);
     const [thresholdSaving, setThresholdSaving] = useState(false);
     const [testNotifLoading, setTestNotifLoading] = useState(false);
@@ -57,12 +60,14 @@ const Profile: React.FC = () => {
     const [profileSaving, setProfileSaving] = useState(false);
     const [editingField, setEditingField] = useState<'name' | 'phone' | null>(null);
     const { canClaim, loading: eligibilityLoading, refresh: refreshEligibility, capacity, used, bypass } = useCanClaimDevice();
+    const gargeSecurity = useFeature('GargeSecurity');
 
     useEffect(() => {
         UserService.getUserProfile().then(u => {
             setUser(u);
             setPriceZone(u.priceZone ?? 'NO2');
             setOfflineThreshold(u.offlineAlertThresholdHours > 0 ? u.offlineAlertThresholdHours : 4);
+            setEmailNotificationsEnabled(u.emailNotificationsEnabled);
             if (u.id) UserService.getDataRetention(u.id).then(r => setRetentionKeep(!r.optOut)).catch(() => { });
         }).catch((err: unknown) => {
             toast.error(err instanceof Error ? err.message : 'Failed to load your profile.');
@@ -199,6 +204,21 @@ const Profile: React.FC = () => {
             setPushPermission(Notification.permission);
         } finally {
             setPushLoading(false);
+        }
+    };
+
+    const handleToggleEmailNotifications = async () => {
+        if (!user?.id || emailNotificationsSaving) return;
+        const next = !emailNotificationsEnabled;
+        setEmailNotificationsSaving(true);
+        try {
+            await UserService.updatePreferences(user.id, { priceZone, emailNotificationsEnabled: next });
+            setEmailNotificationsEnabled(next);
+            toast.success(next ? 'Email notifications turned on' : 'Email notifications turned off');
+        } catch (e: unknown) {
+            toast.error(e instanceof Error ? e.message : 'Failed to update email notifications');
+        } finally {
+            setEmailNotificationsSaving(false);
         }
     };
 
@@ -656,6 +676,20 @@ const Profile: React.FC = () => {
                             {pushPermission === 'denied' && (
                                 <Alert variant="error">Notifications blocked in browser settings. Enable them to use offline alerts.</Alert>
                             )}
+                        </div>
+                    )}
+                    {gargeSecurity && (
+                        <div className="border-t border-gray-700/40 pt-4 mt-4 flex items-center justify-between gap-4">
+                            <div className="min-w-0 flex-1">
+                                <p className="text-sm text-gray-100 font-medium">Email notifications</p>
+                                <p className="text-xs text-gray-500 mt-0.5">Receive Garge Security alerts by email.</p>
+                            </div>
+                            <ToggleSwitch
+                                checked={emailNotificationsEnabled}
+                                onChange={handleToggleEmailNotifications}
+                                disabled={emailNotificationsSaving || profileLoading || !user?.id}
+                                ariaLabel={emailNotificationsEnabled ? 'Turn off email notifications' : 'Turn on email notifications'}
+                            />
                         </div>
                     )}
                 </Section>

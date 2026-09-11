@@ -1,17 +1,23 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { XMarkIcon, PencilIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
+import { useFeature } from '@/hooks/useFeature';
 import InlineEditField from '@/components/InlineEditField';
+import ToggleSwitch from '@/components/ToggleSwitch';
 import { TYPE_CONFIG as typeConfig, DEFAULT_TYPE as defaultType, BATTERY_STATUS_CONFIG as statusConfig } from '@/lib/typeConfig';
 import { unitForType, typeLabel } from '@/lib/typeUtils';
 import { RANGE_OPTIONS, type RangeIndex } from '@/lib/constants';
+import { ApiError } from '@/lib/errors';
 import LoadingDots from '@/components/LoadingDots';
 import PhotoUploader from '@/components/PhotoUploader';
-import SensorService, { SensorData, BatteryHealthData } from '@/services/sensorService';
+import SensorService, { SensorData, BatteryHealthData, SensorSecurity } from '@/services/sensorService';
 import SwitchService, { SwitchData } from '@/services/switchService';
+import AutomationService from '@/services/automationService';
+import type { AutomationRuleDto } from '@/dto/Automation/AutomationRuleDto';
 import { formatDateTime, formatRelative } from '@/lib/dateUtils';
 import SensorPhotoService from '@/services/sensorPhotoService';
 import type { Photo } from '@/services/photoServiceFactory';
@@ -28,6 +34,8 @@ interface DeviceDrawerProps {
     onRename: (id: number, name: string) => void;
     /** Notifies the parent that the sensor's voltage color thresholds changed (null when cleared). */
     onThresholdsChange?: (sensorId: number, warning: number | null, critical: number | null) => void;
+    /** Notifies the parent that the sensor's Garge Security was turned on or off. */
+    onSecurityChange?: (sensorId: number, security: { enabled: boolean; state: string }) => void;
 }
 
 function InfoLabel({ children, tooltip }: { children: React.ReactNode; tooltip: string }) {
@@ -255,9 +263,220 @@ const VoltageThresholdConfig: React.FC<{
     );
 };
 
+// ── Garge Security ────────────────────────────────────────────────────────────
+
+const MIN_ALERT_MINUTES = 25;
+const MAX_ALERT_MINUTES = 180;
+const SECURITY_POLL_MS = 60_000;
+
+const isChargingRule = (rule: AutomationRuleDto, sensorId: number): boolean =>
+    rule.sensorId === sensorId
+    && rule.isEnabled
+    && (rule.condition === '<' || rule.condition === '<=')
+    && rule.action.toLowerCase() === 'on';
+
+function securityBanner(security: SensorSecurity): { text: string; className: string } | null {
+    switch (security.state) {
+        case 'pending':
+            return security.reason === 'firmware_too_old'
+                ? { text: 'This sensor needs a firmware update before Garge Security can turn on.', className: 'bg-amber-500/10 border-amber-500/20 text-amber-400' }
+                : { text: 'Turns on at the sensor\'s next check-in, within about an hour.', className: 'bg-sky-500/10 border-sky-500/20 text-sky-300' };
+        case 'armed':
+            return { text: 'Watching. The sensor checks in every 10 minutes.', className: 'bg-green-500/10 border-green-500/20 text-green-400' };
+        case 'paused_low_battery':
+            return { text: 'Paused because the battery is below its charging level. Resumes once it\'s charged.', className: 'bg-amber-500/10 border-amber-500/20 text-amber-400' };
+        case 'offline':
+            return { text: 'The sensor has been offline for over a week. Garge Security resumes when it reconnects.', className: 'bg-gray-900/60 border-gray-700/40 text-gray-400' };
+        default:
+            return null;
+    }
+}
+
+function securityErrorMessage(code: string | null): string {
+    switch (code) {
+        case 'charging_automation_required': return 'Create a charging automation for this sensor first';
+        case 'no_alert_channel':             return 'Turn on push or email notifications in your profile first';
+        case 'invalid_threshold':            return `Alert time must be between ${MIN_ALERT_MINUTES} and ${MAX_ALERT_MINUTES} minutes`;
+        default:                             return 'Failed to save Garge Security';
+    }
+}
+
+const GargeSecurityConfig: React.FC<{
+    sensorId: number;
+    onChange: (sensorId: number, security: { enabled: boolean; state: string }) => void;
+}> = ({ sensorId, onChange }) => {
+    const [security, setSecurity] = useState<SensorSecurity | null>(null);
+    const [hasChargingRule, setHasChargingRule] = useState<boolean | null>(null);
+    const [thresholdInput, setThresholdInput] = useState(String(MIN_ALERT_MINUTES));
+    const [saving, setSaving] = useState(false);
+    const generation = useRef(0);
+    const onChangeRef = useRef(onChange);
+
+    useEffect(() => {
+        onChangeRef.current = onChange;
+    });
+
+    useEffect(() => {
+        let active = true;
+        Promise.all([
+            SensorService.getSensorSecurity(sensorId),
+            AutomationService.getRules().catch((): null => null),
+        ])
+            .then(([loaded, rules]) => {
+                if (!active) return;
+                setSecurity(loaded);
+                setThresholdInput(String(loaded.thresholdMinutes));
+                setHasChargingRule(rules ? rules.some(rule => isChargingRule(rule, sensorId)) : null);
+            })
+            .catch(() => {});
+        return () => { active = false; };
+    }, [sensorId]);
+
+    const pending = security?.state === 'pending';
+
+    useEffect(() => {
+        if (!pending) return;
+        const timer = setInterval(() => {
+            const requested = generation.current;
+            SensorService.getSensorSecurity(sensorId)
+                .then(next => {
+                    if (requested !== generation.current) return;
+                    setSecurity(next);
+                    onChangeRef.current(sensorId, { enabled: next.enabled, state: next.state });
+                })
+                .catch(() => {});
+        }, SECURITY_POLL_MS);
+        return () => clearInterval(timer);
+    }, [pending, sensorId]);
+
+    if (!security) return null;
+
+    const thresholdNum = Number(thresholdInput);
+    const validThreshold = Number.isInteger(thresholdNum)
+        && thresholdNum >= MIN_ALERT_MINUTES && thresholdNum <= MAX_ALERT_MINUTES;
+    const dirty = thresholdInput !== String(security.thresholdMinutes);
+    const needsChargingRule = !security.enabled && hasChargingRule === false;
+    const banner = securityBanner(security);
+
+    const save = async (successMessage: string) => {
+        if (!validThreshold || saving) return;
+        setSaving(true);
+        generation.current += 1;
+        try {
+            const next = await SensorService.updateSensorSecurity(sensorId, { enabled: true, thresholdMinutes: thresholdNum });
+            setSecurity(next);
+            setThresholdInput(String(next.thresholdMinutes));
+            onChange(sensorId, { enabled: next.enabled, state: next.state });
+            toast.success(successMessage);
+        } catch (err) {
+            const code = err instanceof ApiError ? err.code : null;
+            if (code === 'charging_automation_required') setHasChargingRule(false);
+            toast.error(securityErrorMessage(code));
+        } finally {
+            generation.current += 1;
+            setSaving(false);
+        }
+    };
+
+    const disable = async () => {
+        if (saving) return;
+        setSaving(true);
+        generation.current += 1;
+        try {
+            await SensorService.disableSensorSecurity(sensorId);
+            setSecurity({ ...security, enabled: false, state: 'off', reason: null });
+            onChange(sensorId, { enabled: false, state: 'off' });
+            toast.success('Garge Security turned off');
+        } catch {
+            toast.error('Failed to turn off Garge Security');
+        } finally {
+            generation.current += 1;
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="bg-gray-800/60 border border-gray-700/40 rounded-2xl p-4 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+                <div>
+                    <h3 className="text-sm font-semibold text-gray-300">Garge Security</h3>
+                    <p className="text-xs text-gray-500 mt-1 leading-snug">
+                        Checks in every 10 minutes instead of every hour and alerts you if the sensor goes quiet. The battery will need charging more often.
+                    </p>
+                </div>
+                {security.isOwner ? (
+                    <ToggleSwitch
+                        checked={security.enabled}
+                        onChange={security.enabled ? disable : () => save('Garge Security turned on')}
+                        disabled={saving || (!security.enabled && (needsChargingRule || !validThreshold))}
+                        ariaLabel={security.enabled ? 'Turn off Garge Security' : 'Turn on Garge Security'}
+                    />
+                ) : (
+                    <span className="text-xs font-medium text-gray-400 flex-shrink-0">{security.enabled ? 'On' : 'Off'}</span>
+                )}
+            </div>
+
+            {banner && (
+                <p className={`px-3 py-2 rounded-xl border text-xs leading-snug ${banner.className}`}>{banner.text}</p>
+            )}
+
+            {security.isOwner && needsChargingRule && (
+                <div className="space-y-1.5">
+                    <p className="text-xs text-gray-400 leading-snug">
+                        Needs an automation that turns on a charger when this battery gets low.
+                    </p>
+                    <Link
+                        href={`/automations?sensorId=${sensorId}&preset=charging`}
+                        className="inline-block text-xs font-medium text-sky-400 hover:text-sky-300 transition-colors"
+                    >
+                        Create charging automation
+                    </Link>
+                </div>
+            )}
+
+            {security.isOwner && !needsChargingRule && (
+                <>
+                    <label className="block space-y-1.5">
+                        <span className="block text-xs text-gray-500">Alert after (minutes) without a check-in</span>
+                        <input
+                            type="number"
+                            inputMode="numeric"
+                            step="1"
+                            min={MIN_ALERT_MINUTES}
+                            max={MAX_ALERT_MINUTES}
+                            value={thresholdInput}
+                            onChange={e => setThresholdInput(e.target.value)}
+                            placeholder={String(MIN_ALERT_MINUTES)}
+                            className={inputClass}
+                        />
+                    </label>
+
+                    {thresholdInput.trim() !== '' && !validThreshold && (
+                        <p className="text-xs text-red-400">Enter a whole number from {MIN_ALERT_MINUTES} to {MAX_ALERT_MINUTES}.</p>
+                    )}
+
+                    {security.enabled && (
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => save('Alert time saved')}
+                                disabled={!validThreshold || !dirty || saving}
+                                className="flex-1 py-2 rounded-xl text-sm font-medium bg-sky-600 text-white hover:bg-sky-500 active:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            >
+                                {saving ? 'Saving…' : 'Save'}
+                            </button>
+                        </div>
+                    )}
+                </>
+            )}
+        </div>
+    );
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, onThresholdsChange }) => {
+const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, onThresholdsChange, onSecurityChange }) => {
+    const gargeSecurity = useFeature('GargeSecurity');
     const [chartData, setChartData] = useState<{ x: number; y: number }[]>([]);
     const [loadingChart, setLoadingChart] = useState(false);
     const [activeRange, setActiveRange] = useState<RangeIndex>(0);
@@ -699,6 +918,14 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
                             warning={device.rawSensor?.warningVoltage ?? null}
                             critical={device.rawSensor?.criticalVoltage ?? null}
                             onChange={(id, warning, critical) => onThresholdsChange?.(id, warning, critical)}
+                        />
+                    )}
+
+                    {isVoltage && gargeSecurity && (
+                        <GargeSecurityConfig
+                            key={device.id}
+                            sensorId={device.id}
+                            onChange={(id, security) => onSecurityChange?.(id, security)}
                         />
                     )}
 

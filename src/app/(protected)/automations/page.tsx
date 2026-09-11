@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AutomationService from '@/services/automationService';
 import SwitchService, { Switch } from '@/services/switchService';
 import SensorService, { Sensor } from '@/services/sensorService';
@@ -65,11 +66,14 @@ const formatTimerRemaining = (activatedAt: string, durationHours: number): strin
 // ── AutomationsPage ───────────────────────────────────────────────────────────
 
 const AutomationsPage: React.FC = () => {
+    const searchParams = useSearchParams();
+    const presetSensorId = searchParams.get('preset') === 'charging' ? Number(searchParams.get('sensorId')) : 0;
     const [rules, setRules]                   = useState<AutomationRuleDto[]>([]);
     const [loading, setLoading]               = useState(true);
     const [error, setError]                   = useState<string>('');
     const [form, setForm]                     = useState<CreateAutomationRuleDto>(initialForm);
     const [formOpen, setFormOpen]             = useState(false);
+    const [sensorLocked, setSensorLocked]     = useState(false);
     const [submitting, setSubmitting]         = useState(false);
     const [editingId, setEditingId]           = useState<number | null>(null);
     const [editForm, setEditForm]             = useState<UpdateAutomationRuleDto | null>(null);
@@ -123,8 +127,18 @@ const AutomationsPage: React.FC = () => {
         catch (e) { handleError(e, 'Failed to fetch sockets'); }
     };
     const fetchSensors  = async () => {
-        try { setSensors(await SensorService.getAllSensors()); }
+        try {
+            const all = await SensorService.getAllSensors();
+            setSensors(all);
+            const presetSensor = all.find(s => s.id === presetSensorId);
+            if (presetSensor) openChargingPreset(presetSensor);
+        }
         catch (e) { handleError(e, 'Failed to fetch sensors'); }
+    };
+    const openChargingPreset = (sensor: Sensor) => {
+        setForm({ ...initialForm, sensorId: sensor.id, sensorType: sensor.type, condition: '<', threshold: NaN, action: 'on' });
+        setSensorLocked(true);
+        setFormOpen(true);
     };
     const fetchUserPriceZone = async () => {
         try {
@@ -144,6 +158,7 @@ const AutomationsPage: React.FC = () => {
         try {
             await AutomationService.createRule(form);
             setForm(initialForm);
+            setSensorLocked(false);
             setFormOpen(false);
             fetchRules();
             toast.success('Automation created');
@@ -216,7 +231,7 @@ const AutomationsPage: React.FC = () => {
     // ── Derived values ─────────────────────────────────────────────────────────
     const isEditMode     = editingId !== null && editForm !== null;
 
-    const openCreateDrawer = () => { setEditingId(null); setEditForm(null); setFormOpen(true); };
+    const openCreateDrawer = () => { setEditingId(null); setEditForm(null); setSensorLocked(false); setFormOpen(true); };
     const closeDrawer      = () => { setFormOpen(false); setEditingId(null); setEditForm(null); };
 
     // ── Form contents (shared between drawer modes) ────────────────────────────
@@ -235,6 +250,7 @@ const AutomationsPage: React.FC = () => {
             latestValueMap={latestValueMap}
             defaultPriceArea={defaultPriceArea}
             priceFormKey="create"
+            lockSensor={sensorLocked}
         />
     );
 

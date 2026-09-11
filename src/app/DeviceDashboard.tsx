@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MagnifyingGlassIcon, ChevronDownIcon, PlusIcon, PencilIcon, TrashIcon, XMarkIcon, SignalIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ChevronDownIcon, PlusIcon, PencilIcon, TrashIcon, XMarkIcon, SignalIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import { TYPE_CONFIG, DEFAULT_TYPE } from '@/lib/typeConfig';
 import { formatSensorValue, typeEmoji } from '@/lib/typeUtils';
 import { voltageColorClass, thresholdsOrNull } from '@/lib/voltageThresholds';
@@ -17,6 +17,7 @@ import { useLocalStorage } from '@/lib/useLocalStorage';
 import CollapsibleSection from '@/components/CollapsibleSection';
 import { useDeviceStream } from '@/hooks/useDeviceStream';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
+import { useFeature } from '@/hooks/useFeature';
 
 // ── Type sort order for group cards ───────────────────────────────────────────
 const TYPE_ORDER: Record<string, number> = { voltage: 0, temperature: 1, humidity: 2, socket: 3 };
@@ -87,6 +88,7 @@ export interface UnifiedDevice {
     latestState?: string;
     latestTimestamp?: string;
     batteryHealth?: BatteryHealthData;
+    security?: { enabled: boolean; state: string };
     isActive: boolean;
 }
 
@@ -105,13 +107,14 @@ function deviceVoltageThresholds(device: UnifiedDevice) {
     return thresholdsOrNull(device.rawSensor?.warningVoltage, device.rawSensor?.criticalVoltage);
 }
 
-const DeviceCard: React.FC<{ device: UnifiedDevice; onClick: () => void }> = ({ device, onClick }) => {
+const DeviceCard: React.FC<{ device: UnifiedDevice; gargeSecurity: boolean; onClick: () => void }> = ({ device, gargeSecurity, onClick }) => {
     const cfg = TYPE_CONFIG[device.type.toLowerCase()] ?? DEFAULT_TYPE;
     const value = formatValue(device);
     const socketOn  = device.kind === 'socket' && device.latestState === 'ON';
     const socketOff = device.kind === 'socket' && device.latestState === 'OFF';
     const accent = CARD_ACCENT[device.type.toLowerCase()] ?? 'border-t-sky-500/20';
     const voltageColor = voltageColorClass(device.latestValue, deviceVoltageThresholds(device));
+    const securityArmed = gargeSecurity && device.security?.state === 'armed';
 
     return (
         <button
@@ -124,6 +127,16 @@ const DeviceCard: React.FC<{ device: UnifiedDevice; onClick: () => void }> = ({ 
                     <cfg.Icon className={`h-5 w-5 ${cfg.iconColor}`} />
                 </div>
                 <div className="flex items-center gap-1 mt-1.5 flex-shrink-0">
+                    {securityArmed && (
+                        <span
+                            role="img"
+                            aria-label="Garge Security is watching"
+                            title="Garge Security is watching"
+                            className="mr-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-sky-500/15"
+                        >
+                            <ShieldCheckIcon className="h-3 w-3 text-sky-400" />
+                        </span>
+                    )}
                     <span className="relative flex w-2 h-2">
                         {device.isActive && (
                             <span className="absolute inset-0 rounded-full bg-green-400 opacity-75 animate-ping" />
@@ -167,6 +180,7 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
 ];
 
 const DeviceDashboard: React.FC = () => {
+    const gargeSecurity = useFeature('GargeSecurity');
     const [devices, setDevices]       = useState<UnifiedDevice[]>([]);
     const [groups, setGroups]         = useState<Group[]>([]);
     const [loading, setLoading]       = useState(true);
@@ -285,6 +299,7 @@ const DeviceDashboard: React.FC = () => {
                 latestValue: latestMap[s.id]?.value,
                 latestTimestamp: latestMap[s.id]?.timestamp ?? staleMap[s.id],
                 batteryHealth: healthMap[s.name],
+                security: s.security,
                 isActive: activeSensorIds.has(s.id),
             }));
 
@@ -362,6 +377,13 @@ const DeviceDashboard: React.FC = () => {
             d.kind === 'sensor' && d.id === id && d.rawSensor
                 ? { ...d, rawSensor: { ...d.rawSensor, warningVoltage: warning, criticalVoltage: critical } }
                 : d;
+        setDevices(prev => prev.map(apply));
+        setSelected(prev => (prev ? apply(prev) : prev));
+    }, []);
+
+    const handleSecurityChange = useCallback((id: number, security: { enabled: boolean; state: string }) => {
+        const apply = (d: UnifiedDevice): UnifiedDevice =>
+            d.kind === 'sensor' && d.id === id ? { ...d, security } : d;
         setDevices(prev => prev.map(apply));
         setSelected(prev => (prev ? apply(prev) : prev));
     }, []);
@@ -634,6 +656,7 @@ const DeviceDashboard: React.FC = () => {
                                                 <DeviceCard
                                                     key={`${device.kind}-${device.id}`}
                                                     device={device}
+                                                    gargeSecurity={gargeSecurity}
                                                     onClick={() => setSelected(device)}
                                                 />
                                             ))}
@@ -649,6 +672,7 @@ const DeviceDashboard: React.FC = () => {
                                                         <DeviceCard
                                                             key={`${device.kind}-${device.id}`}
                                                             device={device}
+                                                            gargeSecurity={gargeSecurity}
                                                             onClick={() => setSelected(device)}
                                                         />
                                                     ))}
@@ -669,6 +693,7 @@ const DeviceDashboard: React.FC = () => {
                     onClose={() => setSelected(null)}
                     onRename={handleRename}
                     onThresholdsChange={handleThresholdsChange}
+                    onSecurityChange={handleSecurityChange}
                 />
             )}
 

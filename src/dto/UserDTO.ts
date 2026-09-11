@@ -7,5 +7,7 @@ export interface UserDTO {
     emailConfirmed: boolean;
     priceZone: string;
     pushNotificationsEnabled: boolean;
+    emailNotificationsEnabled: boolean;
     offlineAlertThresholdHours: number;
+    features: string[];
 }
