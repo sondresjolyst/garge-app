@@ -27,6 +27,7 @@ vi.mock('@/services/sensorService', () => ({
 vi.mock('@/services/sensorPhotoService', () => ({
     default: { get: vi.fn(() => Promise.resolve(null)) },
 }))
+vi.mock('@/hooks/useFeature', () => ({ useFeature: () => false }))
 
 vi.mock('sonner', () => ({ toast: { success: toastSuccess, error: toastError } }))
 

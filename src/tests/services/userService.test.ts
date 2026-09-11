@@ -78,6 +78,30 @@ describe('UserService.register', () => {
     })
 })
 
+describe('UserService.updatePreferences', () => {
+    it('PUTs emailNotificationsEnabled with the price zone', async () => {
+        mockPut.mockResolvedValueOnce({ data: {} })
+        await UserService.updatePreferences('u1', { priceZone: 'NO2', emailNotificationsEnabled: false })
+        expect(mockPut).toHaveBeenCalledWith('/users/u1/preferences', { priceZone: 'NO2', emailNotificationsEnabled: false })
+    })
+
+    it('surfaces the API message when Garge Security still needs an alert channel', async () => {
+        const message = 'Garge Security is on for one of your sensors and needs push or email notifications. Turn Garge Security off first.'
+        const axiosErr = new AxiosError('Conflict')
+        axiosErr.response = {
+            data: { code: 'security_needs_alert_channel', message },
+            status: 409,
+            statusText: 'Conflict',
+            headers: {},
+            config: { headers: {} } as never,
+        }
+        mockPut.mockRejectedValueOnce(axiosErr)
+
+        await expect(UserService.updatePreferences('u1', { priceZone: 'NO2', emailNotificationsEnabled: false }))
+            .rejects.toThrow(message)
+    })
+})
+
 describe('UserService.getDataRetention', () => {
     it('GETs the data-retention endpoint and returns the preference', async () => {
         mockGet.mockResolvedValueOnce({ data: { optOut: true, optedOutAt: '2026-01-01T00:00:00Z' } })

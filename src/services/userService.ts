@@ -122,6 +122,7 @@ const UserService = {
     async updatePreferences(userId: string, data: {
         priceZone: string;
         pushNotificationsEnabled?: boolean;
+        emailNotificationsEnabled?: boolean;
         offlineAlertThresholdHours?: number;
     }): Promise<UserDTO> {
         try {
