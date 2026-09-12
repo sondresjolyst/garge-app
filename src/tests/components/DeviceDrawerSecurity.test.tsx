@@ -132,7 +132,7 @@ describe('DeviceDrawer Garge Security', () => {
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
 
         expect(await screen.findByRole('switch', { name: 'Turn on Garge Security' })).toBeDisabled()
-        expect(screen.getByText('Needs an automation that turns on a charger when this battery gets low.')).toBeInTheDocument()
+        expect(screen.getByText('Requires a charging automation.')).toBeInTheDocument()
         expect(screen.getByRole('link', { name: 'Create charging automation' }))
             .toHaveAttribute('href', '/automations?sensorId=7&preset=charging')
     })
@@ -255,7 +255,7 @@ describe('DeviceDrawer Garge Security', () => {
 
         const toggle = await screen.findByRole('switch', { name: 'Turn on Garge Security' })
         expect(toggle).toBeEnabled()
-        expect(screen.queryByText('Needs an automation that turns on a charger when this battery gets low.')).not.toBeInTheDocument()
+        expect(screen.queryByText('Requires a charging automation.')).not.toBeInTheDocument()
         expect(screen.queryByRole('link', { name: 'Create charging automation' })).not.toBeInTheDocument()
 
         fireEvent.click(toggle)
