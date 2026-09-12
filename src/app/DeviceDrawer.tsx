@@ -265,8 +265,6 @@ const VoltageThresholdConfig: React.FC<{
 
 // ── Garge Security ────────────────────────────────────────────────────────────
 
-const MIN_ALERT_MINUTES = 25;
-const MAX_ALERT_MINUTES = 180;
 const SECURITY_POLL_MS = 60_000;
 
 const isChargingRule = (rule: AutomationRuleDto, sensorId: number): boolean =>
@@ -281,8 +279,6 @@ function securityBanner(security: SensorSecurity): { text: string; className: st
             return security.reason === 'firmware_too_old'
                 ? { text: 'This sensor needs a firmware update before Garge Security can turn on.', className: 'bg-amber-500/10 border-amber-500/20 text-amber-400' }
                 : { text: 'Turns on at the sensor\'s next check-in, within about an hour.', className: 'bg-sky-500/10 border-sky-500/20 text-sky-300' };
-        case 'armed':
-            return { text: 'Watching. The sensor checks in every 10 minutes.', className: 'bg-green-500/10 border-green-500/20 text-green-400' };
         case 'paused_low_battery':
             return { text: 'Paused because the battery is below its charging level. Resumes once it\'s charged.', className: 'bg-amber-500/10 border-amber-500/20 text-amber-400' };
         case 'offline':
@@ -296,7 +292,6 @@ function securityErrorMessage(code: string | null): string {
     switch (code) {
         case 'charging_automation_required': return 'Create a charging automation for this sensor first';
         case 'no_alert_channel':             return 'Turn on push or email notifications in your profile first';
-        case 'invalid_threshold':            return `Alert time must be between ${MIN_ALERT_MINUTES} and ${MAX_ALERT_MINUTES} minutes`;
         default:                             return 'Failed to save Garge Security';
     }
 }
@@ -307,7 +302,6 @@ const GargeSecurityConfig: React.FC<{
 }> = ({ sensorId, onChange }) => {
     const [security, setSecurity] = useState<SensorSecurity | null>(null);
     const [hasChargingRule, setHasChargingRule] = useState<boolean | null>(null);
-    const [thresholdInput, setThresholdInput] = useState(String(MIN_ALERT_MINUTES));
     const [saving, setSaving] = useState(false);
     const generation = useRef(0);
     const onChangeRef = useRef(onChange);
@@ -325,7 +319,6 @@ const GargeSecurityConfig: React.FC<{
             .then(([loaded, rules]) => {
                 if (!active) return;
                 setSecurity(loaded);
-                setThresholdInput(String(loaded.thresholdMinutes));
                 setHasChargingRule(rules ? rules.some(rule => isChargingRule(rule, sensorId)) : null);
             })
             .catch(() => {});
@@ -351,21 +344,16 @@ const GargeSecurityConfig: React.FC<{
 
     if (!security) return null;
 
-    const thresholdNum = Number(thresholdInput);
-    const validThreshold = Number.isInteger(thresholdNum)
-        && thresholdNum >= MIN_ALERT_MINUTES && thresholdNum <= MAX_ALERT_MINUTES;
-    const dirty = thresholdInput !== String(security.thresholdMinutes);
     const needsChargingRule = !security.enabled && hasChargingRule === false;
     const banner = securityBanner(security);
 
     const save = async (successMessage: string) => {
-        if (!validThreshold || saving) return;
+        if (saving) return;
         setSaving(true);
         generation.current += 1;
         try {
-            const next = await SensorService.updateSensorSecurity(sensorId, { enabled: true, thresholdMinutes: thresholdNum });
+            const next = await SensorService.updateSensorSecurity(sensorId, { enabled: true });
             setSecurity(next);
-            setThresholdInput(String(next.thresholdMinutes));
             onChange(sensorId, { enabled: next.enabled, state: next.state });
             toast.success(successMessage);
         } catch (err) {
@@ -401,17 +389,17 @@ const GargeSecurityConfig: React.FC<{
                 <div>
                     <div className="flex items-center gap-1">
                         <h3 className="text-sm font-semibold text-gray-300">Garge Security</h3>
-                        <InfoLabel tooltip="Uses more battery, so it will need charging more often." />
+                        <InfoLabel tooltip="Wakes the sensor every 10 minutes. This feature uses more battery and will charge more often." />
                     </div>
                     <p className="text-xs text-gray-500 mt-1 leading-snug">
-                        Checks in every 10 minutes and alerts you if the sensor goes quiet.
+                        Alerts you if this sensor stops checking in.
                     </p>
                 </div>
                 {security.isOwner ? (
                     <ToggleSwitch
                         checked={security.enabled}
                         onChange={security.enabled ? disable : () => save('Garge Security turned on')}
-                        disabled={saving || (!security.enabled && (needsChargingRule || !validThreshold))}
+                        disabled={saving || (!security.enabled && needsChargingRule)}
                         ariaLabel={security.enabled ? 'Turn off Garge Security' : 'Turn on Garge Security'}
                     />
                 ) : (
@@ -437,41 +425,6 @@ const GargeSecurityConfig: React.FC<{
                 </div>
             )}
 
-            {security.isOwner && !needsChargingRule && (
-                <>
-                    <label className="block space-y-1.5">
-                        <span className="block text-xs text-gray-500">Alert after (minutes) without a check-in</span>
-                        <input
-                            type="number"
-                            inputMode="numeric"
-                            step="1"
-                            min={MIN_ALERT_MINUTES}
-                            max={MAX_ALERT_MINUTES}
-                            value={thresholdInput}
-                            onChange={e => setThresholdInput(e.target.value)}
-                            placeholder={String(MIN_ALERT_MINUTES)}
-                            className={inputClass}
-                        />
-                    </label>
-
-                    {thresholdInput.trim() !== '' && !validThreshold && (
-                        <p className="text-xs text-red-400">Enter a whole number from {MIN_ALERT_MINUTES} to {MAX_ALERT_MINUTES}.</p>
-                    )}
-
-                    {security.enabled && (
-                        <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={() => save('Alert time saved')}
-                                disabled={!validThreshold || !dirty || saving}
-                                className="flex-1 py-2 rounded-xl text-sm font-medium bg-sky-600 text-white hover:bg-sky-500 active:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                            >
-                                {saving ? 'Saving…' : 'Save'}
-                            </button>
-                        </div>
-                    )}
-                </>
-            )}
         </div>
     );
 };
