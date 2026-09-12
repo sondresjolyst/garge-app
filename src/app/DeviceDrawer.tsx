@@ -426,7 +426,7 @@ const GargeSecurityConfig: React.FC<{
             {security.isOwner && needsChargingRule && (
                 <div className="space-y-1.5">
                     <p className="text-xs text-gray-400 leading-snug">
-                        Needs an automation that turns on a charger when this battery gets low.
+                        Requires a charging automation.
                     </p>
                     <Link
                         href={`/automations?sensorId=${sensorId}&preset=charging`}
