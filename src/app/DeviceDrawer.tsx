@@ -923,7 +923,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
 
                     {isVoltage && gargeSecurity && (
                         <GargeSecurityConfig
-                            key={device.id}
+                            key={'security-' + device.id}
                             sensorId={device.id}
                             onChange={(id, security) => onSecurityChange?.(id, security)}
                         />
