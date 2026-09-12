@@ -32,6 +32,7 @@ export type SensorSecurityReason = 'firmware_too_old' | 'awaiting_wake' | 'low_b
 export interface SensorSecurity {
     sensorId: number;
     enabled: boolean;
+    /** Global alert threshold, set by an admin. */
     thresholdMinutes: number;
     requestedSleepSeconds: number;
     appliedSleepSeconds: number | null;
@@ -270,7 +271,7 @@ const SensorService = {
         }
     },
 
-    async updateSensorSecurity(id: number, settings: { enabled: boolean; thresholdMinutes?: number }): Promise<SensorSecurity> {
+    async updateSensorSecurity(id: number, settings: { enabled: boolean }): Promise<SensorSecurity> {
         try {
             const response = await axiosInstance.patch<SensorSecurity>(`/sensors/${id}/security`, settings);
             return response.data;

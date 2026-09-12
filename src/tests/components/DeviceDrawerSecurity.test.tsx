@@ -147,45 +147,19 @@ describe('DeviceDrawer Garge Security', () => {
         await waitFor(() => expect(toggle).toBeEnabled())
         fireEvent.click(toggle)
 
-        await waitFor(() => expect(updateSensorSecurity).toHaveBeenCalledWith(7, { enabled: true, thresholdMinutes: 25 }))
+        await waitFor(() => expect(updateSensorSecurity).toHaveBeenCalledWith(7, { enabled: true }))
         await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Garge Security turned on'))
         expect(onSecurityChange).toHaveBeenCalledWith(7, { enabled: true, state: 'pending' })
         expect(screen.getByRole('switch', { name: 'Turn off Garge Security' })).toHaveAttribute('aria-checked', 'true')
     })
 
-    it('sends the chosen alert time when turning on', async () => {
-        updateSensorSecurity.mockResolvedValue(makeSecurity({ enabled: true, thresholdMinutes: 45, state: 'pending' }))
-        render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
-
-        const toggle = await screen.findByRole('switch', { name: 'Turn on Garge Security' })
-        fireEvent.change(screen.getByLabelText('Alert after (minutes) without a check-in'), { target: { value: '45' } })
-        await waitFor(() => expect(toggle).toBeEnabled())
-        fireEvent.click(toggle)
-
-        await waitFor(() => expect(updateSensorSecurity).toHaveBeenCalledWith(7, { enabled: true, thresholdMinutes: 45 }))
-    })
-
-    it('blocks turning on with an alert time outside 25-180 minutes', async () => {
-        render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
-
-        const toggle = await screen.findByRole('switch', { name: 'Turn on Garge Security' })
-        fireEvent.change(screen.getByLabelText('Alert after (minutes) without a check-in'), { target: { value: '20' } })
-
-        expect(toggle).toBeDisabled()
-        expect(screen.getByText('Enter a whole number from 25 to 180.')).toBeInTheDocument()
-    })
-
-    it('saves a new alert time while on', async () => {
-        getSensorSecurity.mockResolvedValue(makeSecurity({ enabled: true, state: 'armed' }))
-        updateSensorSecurity.mockResolvedValue(makeSecurity({ enabled: true, thresholdMinutes: 60, state: 'armed' }))
+    it('offers no way to change the alert threshold', async () => {
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
 
         const card = await findCard()
-        fireEvent.change(within(card).getByLabelText('Alert after (minutes) without a check-in'), { target: { value: '60' } })
-        fireEvent.click(within(card).getByRole('button', { name: 'Save' }))
 
-        await waitFor(() => expect(updateSensorSecurity).toHaveBeenCalledWith(7, { enabled: true, thresholdMinutes: 60 }))
-        await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Alert time saved'))
+        expect(within(card).getByText('Alerts you if this sensor stops checking in.')).toBeInTheDocument()
+        expect(within(card).queryByRole('spinbutton')).not.toBeInTheDocument()
     })
 
     it('turns off via the toggle', async () => {
@@ -204,7 +178,6 @@ describe('DeviceDrawer Garge Security', () => {
     it.each<[Partial<SensorSecurity>, string]>([
         [{ state: 'pending', reason: 'awaiting_wake' }, 'Turns on at the sensor\'s next check-in, within about an hour.'],
         [{ state: 'pending', reason: 'firmware_too_old' }, 'This sensor needs a firmware update before Garge Security can turn on.'],
-        [{ state: 'armed' }, 'Watching. The sensor checks in every 10 minutes.'],
         [{ state: 'paused_low_battery', reason: 'low_battery' }, 'Paused because the battery is below its charging level. Resumes once it\'s charged.'],
         [{ state: 'offline' }, 'The sensor has been offline for over a week. Garge Security resumes when it reconnects.'],
     ])('shows the copy for %o', async (overrides, copy) => {
@@ -242,9 +215,11 @@ describe('DeviceDrawer Garge Security', () => {
         getSensorSecurity.mockResolvedValue(makeSecurity({ enabled: true, state: 'armed', isOwner: false }))
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
 
-        expect(await screen.findByText('Watching. The sensor checks in every 10 minutes.')).toBeInTheDocument()
+        const card = await findCard()
+
+        expect(within(card).getByText('On')).toBeInTheDocument()
         expect(screen.queryByRole('switch')).not.toBeInTheDocument()
-        expect(screen.queryByLabelText('Alert after (minutes) without a check-in')).not.toBeInTheDocument()
+        expect(within(card).queryByRole('spinbutton')).not.toBeInTheDocument()
         expect(screen.queryByRole('link', { name: 'Create charging automation' })).not.toBeInTheDocument()
     })
 
@@ -277,7 +252,7 @@ describe('DeviceDrawer Garge Security', () => {
         await act(async () => { vi.advanceTimersByTime(60_000) })
 
         await waitFor(() => expect(getSensorSecurity).toHaveBeenCalledTimes(2))
-        expect(await screen.findByText('Watching. The sensor checks in every 10 minutes.', {}, { timeout: 5000 })).toBeInTheDocument()
+        await waitFor(() => expect(screen.queryByText('Turns on at the sensor\'s next check-in, within about an hour.')).not.toBeInTheDocument(), { timeout: 5000 })
         expect(onSecurityChange).toHaveBeenCalledWith(7, { enabled: true, state: 'armed' })
 
         await act(async () => { vi.advanceTimersByTime(120_000) })
@@ -326,16 +301,14 @@ describe('DeviceDrawer Garge Security', () => {
         await act(async () => { vi.advanceTimersByTime(60_000) })
         await waitFor(() => expect(getSensorSecurity).toHaveBeenCalledTimes(2))
 
-        fireEvent.change(within(card).getByLabelText('Alert after (minutes) without a check-in'), { target: { value: '40' } })
-        fireEvent.click(within(card).getByRole('button', { name: 'Save', hidden: true }))
-        await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Alert time saved'))
+        fireEvent.click(within(card).getByRole('switch', { name: 'Turn off Garge Security', hidden: true }))
+        await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Garge Security turned off'))
 
         await act(async () => { resolvePoll(makeSecurity({ enabled: true, state: 'pending', reason: 'awaiting_wake' })) })
 
-        expect(screen.getByText('Watching. The sensor checks in every 10 minutes.')).toBeInTheDocument()
-        expect(within(card).getByLabelText('Alert after (minutes) without a check-in')).toHaveValue(40)
+        expect(within(card).getByRole('switch', { name: 'Turn on Garge Security', hidden: true })).toHaveAttribute('aria-checked', 'false')
         expect(onSecurityChange).toHaveBeenCalledTimes(1)
-        expect(onSecurityChange).toHaveBeenCalledWith(7, { enabled: true, state: 'armed' })
+        expect(onSecurityChange).toHaveBeenCalledWith(7, { enabled: false, state: 'off' })
     })
 
     it('stops polling when the drawer closes while pending', async () => {
@@ -370,10 +343,10 @@ describe('DeviceDrawer Garge Security', () => {
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
         const card = await findCard()
 
-        const info = within(card).getByRole('button', { name: 'Uses more battery, so it will need charging more often.' })
+        const info = within(card).getByRole('button', { name: 'Wakes the sensor every 10 minutes. This feature uses more battery and will charge more often.' })
         fireEvent.click(info)
 
-        expect(await within(card).findByRole('tooltip')).toHaveTextContent('Uses more battery, so it will need charging more often.')
+        expect(await within(card).findByRole('tooltip')).toHaveTextContent('Wakes the sensor every 10 minutes. This feature uses more battery and will charge more often.')
     })
 
 })
