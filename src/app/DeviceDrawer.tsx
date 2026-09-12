@@ -401,7 +401,10 @@ const GargeSecurityConfig: React.FC<{
                 <div>
                     <h3 className="text-sm font-semibold text-gray-300">Garge Security</h3>
                     <p className="text-xs text-gray-500 mt-1 leading-snug">
-                        Checks in every 10 minutes instead of every hour and alerts you if the sensor goes quiet. The battery will need charging more often.
+                        Checks in every 10 minutes and alerts you if the sensor goes quiet.
+                    </p>
+                    <p className="text-xs text-gray-600 mt-1 leading-snug">
+                        Uses more battery, so it will need charging more often.
                     </p>
                 </div>
                 {security.isOwner ? (
@@ -427,7 +430,7 @@ const GargeSecurityConfig: React.FC<{
                     </p>
                     <Link
                         href={`/automations?sensorId=${sensorId}&preset=charging`}
-                        className="inline-block text-xs font-medium text-sky-400 hover:text-sky-300 transition-colors"
+                        className="block w-full py-2 rounded-xl text-center text-sm font-medium bg-sky-600/20 hover:bg-sky-600/30 border border-sky-600/30 text-sky-300 hover:text-sky-200 transition-all"
                     >
                         Create charging automation
                     </Link>
