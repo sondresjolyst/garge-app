@@ -349,4 +349,20 @@ describe('DeviceDrawer Garge Security', () => {
 
         expect(getSensorSecurity).toHaveBeenCalledTimes(1)
     })
+
+    it('renders one of each card after repeated re-renders', async () => {
+        getSensorSecurity.mockResolvedValue(makeSecurity({ enabled: true, state: 'armed' }))
+        const { rerender } = render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
+        await findCard()
+
+        for (let i = 0; i < 4; i++) {
+            await act(async () => {
+                rerender(<DeviceDrawer device={{ ...makeVoltage(), latestValue: 12 + i }} onClose={() => {}} onRename={() => {}} />)
+            })
+        }
+
+        expect(screen.queryAllByRole('heading', { name: 'Garge Security' })).toHaveLength(1)
+        expect(screen.queryAllByRole('heading', { name: 'Voltage color thresholds' })).toHaveLength(1)
+    })
+
 })
