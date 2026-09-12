@@ -72,6 +72,13 @@ export interface AppSettings {
     vippsTestMode: boolean;
 }
 
+export interface SecuritySettings {
+    alertThresholdMinutes: number;
+    minAlertThresholdMinutes: number;
+    maxAlertThresholdMinutes: number;
+    wakeIntervalSeconds: number;
+}
+
 const AdminService = {
     async getStats(opts?: { test?: boolean }): Promise<AdminStats> {
         const res = await axiosInstance.get<AdminStats>('/admin/stats', {
@@ -135,6 +142,16 @@ const AdminService = {
 
     async updateAppSettings(patch: Partial<AppSettings>): Promise<AppSettings> {
         const res = await axiosInstance.put<AppSettings>('/admin/settings', patch);
+        return res.data;
+    },
+
+    async getSecuritySettings(): Promise<SecuritySettings> {
+        const res = await axiosInstance.get<SecuritySettings>('/admin/security-settings');
+        return res.data;
+    },
+
+    async updateSecuritySettings(alertThresholdMinutes: number): Promise<SecuritySettings> {
+        const res = await axiosInstance.put<SecuritySettings>('/admin/security-settings', { alertThresholdMinutes });
         return res.data;
     },
 };

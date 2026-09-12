@@ -37,7 +37,8 @@ const Harness: React.FC<{
     mode: 'create' | 'edit'
     onSubmitCapture: (v: CreateAutomationRuleDto) => void
     onDelete?: () => void
-}> = ({ initial, mode, onSubmitCapture, onDelete }) => {
+    lockSensor?: boolean
+}> = ({ initial, mode, onSubmitCapture, onDelete, lockSensor }) => {
     const [value, setValue] = useState<CreateAutomationRuleDto>(initial)
     return (
         <AutomationRuleForm
@@ -54,6 +55,7 @@ const Harness: React.FC<{
             defaultPriceArea="NO1"
             priceFormKey={mode}
             onDelete={onDelete}
+            lockSensor={lockSensor}
         />
     )
 }
@@ -155,6 +157,50 @@ describe('AutomationRuleForm — create', () => {
         const initial = { ...emptyRule(), sensorId: 20, sensorType: 'voltage', condition: '<', threshold: 13 }
         render(<Harness initial={initial} mode="create" onSubmitCapture={() => {}} />)
         expect(screen.getByText(/Would trigger now/)).toBeInTheDocument()
+    })
+})
+
+describe('AutomationRuleForm — charging preset', () => {
+    const chargingPreset = (): CreateAutomationRuleDto => ({
+        ...emptyRule(),
+        sensorId: 20,
+        sensorType: 'voltage',
+        condition: '<',
+        threshold: NaN,
+        action: 'on',
+    })
+
+    it('locks the sensor and leaves the threshold empty', () => {
+        render(<Harness initial={chargingPreset()} mode="create" onSubmitCapture={() => {}} lockSensor />)
+
+        const sensorSelect = screen.getByDisplayValue('Battery voltage') as HTMLSelectElement
+        expect(sensorSelect.value).toBe('20')
+        expect(sensorSelect).toBeDisabled()
+        expect((screen.getByDisplayValue('Less than') as HTMLSelectElement).value).toBe('<')
+        expect((screen.getByDisplayValue('Turn On') as HTMLSelectElement).value).toBe('on')
+        expect(screen.getByPlaceholderText('0')).toHaveValue(null)
+    })
+
+    it('captures the threshold the user types', () => {
+        const onSubmit = vi.fn()
+        render(<Harness initial={chargingPreset()} mode="create" onSubmitCapture={onSubmit} lockSensor />)
+
+        fireEvent.change(screen.getByDisplayValue('Select a socket'), { target: { value: '10' } })
+        fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '12.3' } })
+        fireEvent.click(screen.getByRole('button', { name: 'Create Rule' }))
+
+        expect(onSubmit.mock.calls[0][0]).toMatchObject({
+            targetId: 10,
+            sensorId: 20,
+            condition: '<',
+            threshold: 12.3,
+            action: 'on',
+        })
+    })
+
+    it('leaves the sensor selectable without lockSensor', () => {
+        render(<Harness initial={chargingPreset()} mode="create" onSubmitCapture={() => {}} />)
+        expect(screen.getByDisplayValue('Battery voltage')).toBeEnabled()
     })
 })
 
