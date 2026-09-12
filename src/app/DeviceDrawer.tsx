@@ -38,7 +38,7 @@ interface DeviceDrawerProps {
     onSecurityChange?: (sensorId: number, security: { enabled: boolean; state: string }) => void;
 }
 
-function InfoLabel({ children, tooltip }: { children: React.ReactNode; tooltip: string }) {
+function InfoLabel({ children, tooltip }: { children?: React.ReactNode; tooltip: string }) {
     const [open, setOpen] = useState(false);
     const ref = React.useRef<HTMLSpanElement>(null);
 
@@ -399,12 +399,12 @@ const GargeSecurityConfig: React.FC<{
         <div className="bg-gray-800/60 border border-gray-700/40 rounded-2xl p-4 space-y-4">
             <div className="flex items-start justify-between gap-3">
                 <div>
-                    <h3 className="text-sm font-semibold text-gray-300">Garge Security</h3>
+                    <div className="flex items-center gap-1">
+                        <h3 className="text-sm font-semibold text-gray-300">Garge Security</h3>
+                        <InfoLabel tooltip="Uses more battery, so it will need charging more often." />
+                    </div>
                     <p className="text-xs text-gray-500 mt-1 leading-snug">
                         Checks in every 10 minutes and alerts you if the sensor goes quiet.
-                    </p>
-                    <p className="text-xs text-gray-600 mt-1 leading-snug">
-                        Uses more battery, so it will need charging more often.
                     </p>
                 </div>
                 {security.isOwner ? (

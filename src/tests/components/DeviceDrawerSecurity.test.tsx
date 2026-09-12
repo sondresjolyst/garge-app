@@ -365,4 +365,15 @@ describe('DeviceDrawer Garge Security', () => {
         expect(screen.queryAllByRole('heading', { name: 'Voltage color thresholds' })).toHaveLength(1)
     })
 
+
+    it('explains the battery cost in a tooltip', async () => {
+        render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
+        const card = await findCard()
+
+        const info = within(card).getByRole('button', { name: 'Uses more battery, so it will need charging more often.' })
+        fireEvent.click(info)
+
+        expect(await within(card).findByRole('tooltip')).toHaveTextContent('Uses more battery, so it will need charging more often.')
+    })
+
 })
