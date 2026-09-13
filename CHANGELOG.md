@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.20.7](https://github.com/sondresjolyst/garge-app/compare/v1.20.6...v1.20.7) (2026-09-13)
+
+
+### Dependencies
+
+* **npm:** bump `@types/react-dom` from 19.2.5 to 19.2.7 ([#492](https://github.com/sondresjolyst/garge-app/issues/492)) ([860cae8](https://github.com/sondresjolyst/garge-app/commit/860cae8b9ab8693ed573ee50e3cb3c65070657bb))
+* **npm:** bump `eslint` from 10.9.1 to 10.10.0 ([#494](https://github.com/sondresjolyst/garge-app/issues/494)) ([3017000](https://github.com/sondresjolyst/garge-app/commit/301700032a71db5867d3b16db69c852d41abd59d))
+* **npm:** bump `js-yaml` from 4.3.1 to 4.3.2 ([#489](https://github.com/sondresjolyst/garge-app/issues/489)) ([365d557](https://github.com/sondresjolyst/garge-app/commit/365d557198a731cfcb501a1542f539d2f4af2dff))
+* **npm:** bump `sharp` from 0.35.3 to 0.35.4 ([#487](https://github.com/sondresjolyst/garge-app/issues/487)) ([843ded7](https://github.com/sondresjolyst/garge-app/commit/843ded7dd86b140599a05d3508708e39f3b4b742))
+* **npm:** bump postcss from 8.5.26 to 8.5.28 in the tailwind group ([#496](https://github.com/sondresjolyst/garge-app/issues/496)) ([ed963a2](https://github.com/sondresjolyst/garge-app/commit/ed963a2369ab59cd4746d94a5322d748ca4af383))
+* **npm:** bump the next group across 1 directory with 2 updates ([#493](https://github.com/sondresjolyst/garge-app/issues/493)) ([6b4f837](https://github.com/sondresjolyst/garge-app/commit/6b4f83716325e4e23f98de5aad743c0867073c0e))
+* **npm:** bump the testing group with 2 updates ([#495](https://github.com/sondresjolyst/garge-app/issues/495)) ([7ee50bb](https://github.com/sondresjolyst/garge-app/commit/7ee50bb04aa677aa2d859cf5ecb779dee5a4f1ea))
+
 ## [1.20.6](https://github.com/sondresjolyst/garge-app/compare/v1.20.5...v1.20.6) (2026-09-06)
 
 
