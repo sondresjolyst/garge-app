@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.20.8](https://github.com/sondresjolyst/garge-app/compare/v1.20.7...v1.20.8) (2026-09-21)
+
+
+### Dependencies
+
+* **docker:** bump `node` from 23.10.0-slim to 26.8-slim ([#503](https://github.com/sondresjolyst/garge-app/issues/503)) ([9f83a6f](https://github.com/sondresjolyst/garge-app/commit/9f83a6f8fba2a2517b970abd2ec47058bd7dc13c))
+* **npm:** bump @types/node from 26.4.0 to 26.5.0 in the types group ([#498](https://github.com/sondresjolyst/garge-app/issues/498)) ([9d9f994](https://github.com/sondresjolyst/garge-app/commit/9d9f994642047b45235577d1f1dad64a42510873))
+* **npm:** bump `@eslint/eslintrc` from 3.3.6 to 3.3.7 ([#500](https://github.com/sondresjolyst/garge-app/issues/500)) ([1c676b2](https://github.com/sondresjolyst/garge-app/commit/1c676b2a07b796222d79bb5fe73c7302be5069f3))
+* **npm:** bump `@types/node` from 26.5.0 to 26.5.1 ([#507](https://github.com/sondresjolyst/garge-app/issues/507)) ([0d6b034](https://github.com/sondresjolyst/garge-app/commit/0d6b0348905bc9c7512759da63d5dd8d3ab30d26))
+* **npm:** bump `apexcharts` from 6.10.0 to 7.1.0 ([#502](https://github.com/sondresjolyst/garge-app/issues/502)) ([d5aad4e](https://github.com/sondresjolyst/garge-app/commit/d5aad4e8a176a421a008f2d38660727a1e9c80b2))
+* **npm:** bump `apexcharts` from 6.10.0 to 7.1.0 ([#502](https://github.com/sondresjolyst/garge-app/issues/502)) ([df9e761](https://github.com/sondresjolyst/garge-app/commit/df9e761d5776fbba1369242e9d2271b6e5879fd1))
+* **npm:** bump `apexcharts` from 7.1.0 to 7.3.0 ([#508](https://github.com/sondresjolyst/garge-app/issues/508)) ([6f874d2](https://github.com/sondresjolyst/garge-app/commit/6f874d20dfc9523f942362122cb0a0a932d272a5))
+* **npm:** bump `axios` from 1.19.0 to 1.20.0 ([#499](https://github.com/sondresjolyst/garge-app/issues/499)) ([082c967](https://github.com/sondresjolyst/garge-app/commit/082c96724e6385987a4df4fdbf81fae821a00b67))
+* **npm:** bump the next group across 1 directory with 2 updates ([#506](https://github.com/sondresjolyst/garge-app/issues/506)) ([bb1c532](https://github.com/sondresjolyst/garge-app/commit/bb1c532eb9c82ecc5cd132b6c805b2e5d79dbf45))
+* **npm:** bump the react group across 1 directory with 4 updates ([#505](https://github.com/sondresjolyst/garge-app/issues/505)) ([1ac092c](https://github.com/sondresjolyst/garge-app/commit/1ac092cb2be15092d9622744bbce69b12cb625b6))
+
 ## [1.20.7](https://github.com/sondresjolyst/garge-app/compare/v1.20.6...v1.20.7) (2026-09-13)
 
 
