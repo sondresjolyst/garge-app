@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.9](https://github.com/sondresjolyst/garge-app/compare/v1.20.8...v1.20.9) (2026-09-25)
+
+
+### Bug Fixes
+
+* harden the image and the response headers ([#512](https://github.com/sondresjolyst/garge-app/issues/512)) ([088b751](https://github.com/sondresjolyst/garge-app/commit/088b751b669a374cfb0b69dc612a200e931e7161))
+
 ## [1.20.8](https://github.com/sondresjolyst/garge-app/compare/v1.20.7...v1.20.8) (2026-09-21)
 
 
