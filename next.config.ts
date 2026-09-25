@@ -13,6 +13,7 @@ function getApiOrigin(): string {
 
 const nextConfig: NextConfig = {
     output: 'standalone',
+    poweredByHeader: false,
     images: {
         qualities: [75, 100],
     },
@@ -38,7 +39,10 @@ const nextConfig: NextConfig = {
             "img-src 'self' data: blob:",
             `connect-src ${connectSrc}`,
             "font-src 'self'",
+            "base-uri 'self'",
+            "form-action 'self'",
             "frame-ancestors 'none'",
+            "upgrade-insecure-requests",
         ].join('; ');
 
         const headers = [
@@ -46,6 +50,8 @@ const nextConfig: NextConfig = {
             { key: 'X-Frame-Options', value: 'DENY' },
             { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
             { key: 'X-DNS-Prefetch-Control', value: 'on' },
+            { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+            { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
             { key: 'Content-Security-Policy', value: csp },
         ];
 
