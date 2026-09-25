@@ -1,3 +1,10 @@
 node_modules
+.next
+.git
+.github
 npm-debug.log
 .env
+.env.local
+coverage
+playwright-report
+test-results
