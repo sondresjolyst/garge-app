@@ -82,7 +82,7 @@ describe('AdminService.getUsers', () => {
 })
 
 describe('AdminService.getAppSettings', () => {
-    const mockSettings: AppSettings = { cookieBannerEnabled: true }
+    const mockSettings: AppSettings = { cookieBannerEnabled: true, vatEnabled: true, vippsTestMode: false }
 
     it('returns app settings from API', async () => {
         mockGet.mockResolvedValueOnce({ data: mockSettings })
@@ -99,7 +99,7 @@ describe('AdminService.getAppSettings', () => {
 
 describe('AdminService.updateAppSettings', () => {
     it('calls PUT with correct endpoint and body', async () => {
-        const updated: AppSettings = { cookieBannerEnabled: false }
+        const updated: AppSettings = { cookieBannerEnabled: false, vatEnabled: true, vippsTestMode: false }
         mockPut.mockResolvedValueOnce({ data: updated })
         const result = await AdminService.updateAppSettings({ cookieBannerEnabled: false })
         expect(mockPut).toHaveBeenCalledWith('/admin/settings', { cookieBannerEnabled: false })
