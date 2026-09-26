@@ -5,6 +5,7 @@ import { COMPANY, fetchVatEnabled, formatOrgNumber } from '@/lib/company';
 
 export default async function Footer() {
     const vatEnabled = await fetchVatEnabled();
+    const year = new Date().getFullYear();
     return (
         <footer className="border-t border-gray-800/60 bg-gray-900/80 backdrop-blur-xl pb-32">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6 flex flex-col items-center text-center">
@@ -31,7 +32,7 @@ export default async function Footer() {
 
                 {/* Bottom */}
                 <p className="text-xs text-gray-600">
-                    © 2026{' '}
+                    © {year}{' '}
                     <a
                         href="https://www.sjolystinnovation.no/"
                         target="_blank"
