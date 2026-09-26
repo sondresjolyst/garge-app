@@ -14,11 +14,17 @@ import { StatGrid } from '@/components/StatCard';
 import { toast } from 'sonner';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
-import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats, AppSettings } from '@/services/adminService';
+import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats, AppSettings, SecuritySettings } from '@/services/adminService';
 import SensorService from '@/services/sensorService';
 import { formatNok } from '@/lib/formatUtils';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
+
+const isValidThreshold = (value: string, limits: SecuritySettings): boolean => {
+    const minutes = Number(value);
+    return value.trim() !== '' && Number.isInteger(minutes)
+        && minutes >= limits.minAlertThresholdMinutes && minutes <= limits.maxAlertThresholdMinutes;
+};
 
 
 export default function AdminPage() {
@@ -63,6 +69,9 @@ export default function AdminPage() {
 
     const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
     const [appSettingsLoading, setAppSettingsLoading] = useState(false);
+    const [securitySettings, setSecuritySettings] = useState<SecuritySettings | null>(null);
+    const [securityThresholdInput, setSecurityThresholdInput] = useState('');
+    const [securitySaving, setSecuritySaving] = useState(false);
     const [reanalyzingBattery, setReanalyzingBattery] = useState(false);
 
     const load = useCallback(async () => {
@@ -147,6 +156,16 @@ export default function AdminPage() {
             .catch(() => toast.error('Failed to load app settings'));
     }, [isAdmin]);
 
+    useEffect(() => {
+        if (!isAdmin) return;
+        AdminService.getSecuritySettings()
+            .then(loaded => {
+                setSecuritySettings(loaded);
+                setSecurityThresholdInput(String(loaded.alertThresholdMinutes));
+            })
+            .catch(() => toast.error('Failed to load Garge Security settings'));
+    }, [isAdmin]);
+
     const handleToggleAppSetting = async <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
         setAppSettingsLoading(true);
         try {
@@ -157,6 +176,20 @@ export default function AdminPage() {
             toast.error('Failed to update setting');
         } finally {
             setAppSettingsLoading(false);
+        }
+    };
+
+    const handleSaveSecurityThreshold = async () => {
+        setSecuritySaving(true);
+        try {
+            const updated = await AdminService.updateSecuritySettings(Number(securityThresholdInput));
+            setSecuritySettings(updated);
+            setSecurityThresholdInput(String(updated.alertThresholdMinutes));
+            toast.success('Alert threshold updated');
+        } catch {
+            toast.error('Failed to update alert threshold');
+        } finally {
+            setSecuritySaving(false);
         }
     };
 
@@ -438,6 +471,49 @@ export default function AdminPage() {
                                 )}
                             </div>
                         </div>
+                    </Section>
+
+                    {/* Garge Security */}
+                    <Section title="Garge Security">
+                        <div className="flex items-center justify-between gap-4 bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
+                            <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium text-gray-200">Alert threshold</p>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                    Minutes without a check-in before a sensor alerts its owner. Applies to all users.
+                                </p>
+                            </div>
+                            {securitySettings === null ? (
+                                <div className="w-32 h-9 bg-gray-700 rounded-lg animate-pulse shrink-0" />
+                            ) : (
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <input
+                                        type="number"
+                                        inputMode="numeric"
+                                        step="1"
+                                        min={securitySettings.minAlertThresholdMinutes}
+                                        max={securitySettings.maxAlertThresholdMinutes}
+                                        value={securityThresholdInput}
+                                        onChange={e => setSecurityThresholdInput(e.target.value)}
+                                        aria-label="Alert threshold in minutes"
+                                        className="w-20 px-3 py-1.5 bg-gray-900/60 border border-gray-700/40 rounded-lg text-sm text-gray-200 tabular-nums focus:outline-none focus:border-sky-600/50 transition-colors"
+                                    />
+                                    <button
+                                        onClick={handleSaveSecurityThreshold}
+                                        disabled={securitySaving
+                                            || !isValidThreshold(securityThresholdInput, securitySettings)
+                                            || securityThresholdInput === String(securitySettings.alertThresholdMinutes)}
+                                        className="px-3 py-1.5 text-sm font-medium text-gray-100 bg-sky-600 hover:bg-sky-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {securitySaving ? 'Saving...' : 'Save'}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                        {securitySettings !== null && !isValidThreshold(securityThresholdInput, securitySettings) && (
+                            <p className="text-xs text-red-400 mt-2">
+                                Enter a whole number from {securitySettings.minAlertThresholdMinutes} to {securitySettings.maxAlertThresholdMinutes}.
+                            </p>
+                        )}
                     </Section>
 
                     {/* Battery health */}

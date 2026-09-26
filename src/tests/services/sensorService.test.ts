@@ -1,14 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { AxiosError } from 'axios'
 import SensorService from '@/services/sensorService'
+import { ApiError } from '@/lib/errors'
 
 vi.mock('@/services/axiosInstance', () => ({
-    default: { get: vi.fn(), post: vi.fn(), delete: vi.fn() },
+    default: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
 }))
 
 import axiosInstance from '@/services/axiosInstance'
 
 const mockGet = axiosInstance.get as ReturnType<typeof vi.fn>
 const mockPost = axiosInstance.post as ReturnType<typeof vi.fn>
+const mockPatch = axiosInstance.patch as ReturnType<typeof vi.fn>
 const mockDelete = axiosInstance.delete as ReturnType<typeof vi.fn>
 
 beforeEach(() => {
@@ -47,5 +50,61 @@ describe('SensorService sharing', () => {
         mockDelete.mockResolvedValueOnce({ data: { message: 'ok' } })
         await SensorService.revokeSensorShare(5, 'u1')
         expect(mockDelete).toHaveBeenCalledWith('/sensors/5/share/u1')
+    })
+})
+
+describe('SensorService Garge Security', () => {
+    const security = {
+        sensorId: 5,
+        enabled: true,
+        thresholdMinutes: 30,
+        requestedSleepSeconds: 600,
+        appliedSleepSeconds: null,
+        armedAt: null,
+        lastReportedAt: null,
+        state: 'pending',
+        reason: 'awaiting_wake',
+        enforcingRule: null,
+        isOwner: true,
+    }
+
+    it('getSensorSecurity GETs the security endpoint', async () => {
+        mockGet.mockResolvedValueOnce({ data: security })
+        const result = await SensorService.getSensorSecurity(5)
+        expect(mockGet).toHaveBeenCalledWith('/sensors/5/security')
+        expect(result).toEqual(security)
+    })
+
+    it('updateSensorSecurity PATCHes enabled and threshold', async () => {
+        mockPatch.mockResolvedValueOnce({ data: security })
+        const result = await SensorService.updateSensorSecurity(5, { enabled: true, thresholdMinutes: 30 })
+        expect(mockPatch).toHaveBeenCalledWith('/sensors/5/security', { enabled: true, thresholdMinutes: 30 })
+        expect(result).toEqual(security)
+    })
+
+    it('disableSensorSecurity DELETEs the security endpoint', async () => {
+        mockDelete.mockResolvedValueOnce({ data: '' })
+        await SensorService.disableSensorSecurity(5)
+        expect(mockDelete).toHaveBeenCalledWith('/sensors/5/security')
+    })
+
+    it('keeps the API error code when the update is rejected', async () => {
+        const axiosErr = new AxiosError('Bad Request')
+        axiosErr.response = {
+            data: { code: 'charging_automation_required', message: 'Add a charging automation first.' },
+            status: 400,
+            statusText: 'Bad Request',
+            headers: {},
+            config: { headers: {} } as never,
+        }
+        mockPatch.mockRejectedValueOnce(axiosErr)
+
+        const promise = SensorService.updateSensorSecurity(5, { enabled: true })
+
+        await expect(promise).rejects.toBeInstanceOf(ApiError)
+        await expect(promise).rejects.toMatchObject({
+            code: 'charging_automation_required',
+            message: 'Add a charging automation first.',
+        })
     })
 })

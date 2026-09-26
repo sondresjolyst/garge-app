@@ -17,3 +17,15 @@ export class FieldValidationError extends Error {
         Object.setPrototypeOf(this, FieldValidationError.prototype);
     }
 }
+
+/** An API failure that keeps the machine-readable `code` from the response body, when the API sent one. */
+export class ApiError extends Error {
+    readonly code: string | null;
+
+    constructor(message: string, code: string | null = null) {
+        super(message);
+        this.name = 'ApiError';
+        this.code = code;
+        Object.setPrototypeOf(this, ApiError.prototype);
+    }
+}

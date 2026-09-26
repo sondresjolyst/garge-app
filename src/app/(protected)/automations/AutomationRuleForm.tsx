@@ -163,6 +163,8 @@ export interface AutomationRuleFormProps {
     priceFormKey: React.Key;
     /** Edit-mode delete action; required when mode === 'edit'. */
     onDelete?: () => void;
+    /** Keeps the trigger sensor fixed to `value.sensorId`. */
+    lockSensor?: boolean;
 }
 
 const AutomationRuleForm: React.FC<AutomationRuleFormProps> = ({
@@ -179,6 +181,7 @@ const AutomationRuleForm: React.FC<AutomationRuleFormProps> = ({
     defaultPriceArea,
     priceFormKey,
     onDelete,
+    lockSensor = false,
 }) => {
     const sensorObj = sensors.find(s => s.id === value.sensorId);
     const unit = sensorObj ? unitForType(sensorObj.type) : '';
@@ -201,7 +204,7 @@ const AutomationRuleForm: React.FC<AutomationRuleFormProps> = ({
             </div>
             <div>
                 <FieldLabel>Trigger sensor</FieldLabel>
-                <Select value={value.sensorId} required onChange={e => handleSensorChange(Number(e.target.value))}>
+                <Select value={value.sensorId} required disabled={lockSensor} onChange={e => handleSensorChange(Number(e.target.value))}>
                     <option value={0}>Select a sensor</option>
                     {sortedSensors.map(s => <option key={s.id} value={s.id}>{s.customName ?? s.defaultName}</option>)}
                 </Select>
@@ -215,7 +218,7 @@ const AutomationRuleForm: React.FC<AutomationRuleFormProps> = ({
                 </div>
                 <div>
                     <FieldLabel>Threshold{unit ? ` (${unit})` : ''}</FieldLabel>
-                    <NumberInput value={value.threshold} step="0.1" placeholder="0" required
+                    <NumberInput value={Number.isNaN(value.threshold) ? '' : value.threshold} step="0.1" placeholder="0" required
                         onChange={e => onChange({ ...value, threshold: Number(e.target.value) })} />
                 </div>
             </div>

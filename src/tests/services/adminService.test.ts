@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import AdminService, { AppSettings, EmailStats } from '@/services/adminService'
+import AdminService, { AppSettings, EmailStats, SecuritySettings } from '@/services/adminService'
 
 vi.mock('@/services/axiosInstance', () => ({
     default: {
@@ -110,5 +110,30 @@ describe('AdminService.updateAppSettings', () => {
         mockPut.mockResolvedValueOnce({ data: { cookieBannerEnabled: true } })
         const result = await AdminService.updateAppSettings({ cookieBannerEnabled: true })
         expect(result.cookieBannerEnabled).toBe(true)
+    })
+})
+
+describe('AdminService security settings', () => {
+    const settings: SecuritySettings = {
+        alertThresholdMinutes: 25,
+        minAlertThresholdMinutes: 25,
+        maxAlertThresholdMinutes: 180,
+        wakeIntervalSeconds: 600,
+    }
+
+    it('reads from the admin-only endpoint', async () => {
+        mockGet.mockResolvedValueOnce({ data: settings })
+
+        expect(await AdminService.getSecuritySettings()).toEqual(settings)
+        expect(mockGet).toHaveBeenCalledWith('/admin/security-settings')
+    })
+
+    it('sends the threshold as a PUT body', async () => {
+        mockPut.mockResolvedValueOnce({ data: { ...settings, alertThresholdMinutes: 45 } })
+
+        const result = await AdminService.updateSecuritySettings(45)
+
+        expect(mockPut).toHaveBeenCalledWith('/admin/security-settings', { alertThresholdMinutes: 45 })
+        expect(result.alertThresholdMinutes).toBe(45)
     })
 })

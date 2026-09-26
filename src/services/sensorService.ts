@@ -1,6 +1,8 @@
 import axiosInstance from '@/services/axiosInstance';
 import { AxiosError } from 'axios';
 import { formatApiError } from '@/lib/errorMessages';
+import { parseErrorCode } from '@/lib/apiErrors';
+import { ApiError } from '@/lib/errors';
 
 export interface Sensor {
     id: number;
@@ -18,6 +20,28 @@ export interface Sensor {
     /** Voltage color thresholds the caller set for this sensor. Both null when unset — the reading is then left uncolored. */
     warningVoltage?: number | null;
     criticalVoltage?: number | null;
+    /** Present only for users with Garge Security, and only on sensors that have it set up. */
+    security?: { enabled: boolean; state: string };
+}
+
+export type SensorSecurityState = 'off' | 'pending' | 'armed' | 'paused_low_battery' | 'offline';
+
+export type SensorSecurityReason = 'firmware_too_old' | 'awaiting_wake' | 'low_battery';
+
+/** Garge Security settings and live state for one sensor (GET /sensors/{id}/security). */
+export interface SensorSecurity {
+    sensorId: number;
+    enabled: boolean;
+    /** Global alert threshold, set by an admin. */
+    thresholdMinutes: number;
+    requestedSleepSeconds: number;
+    appliedSleepSeconds: number | null;
+    armedAt: string | null;
+    lastReportedAt: string | null;
+    state: SensorSecurityState;
+    reason: SensorSecurityReason | null;
+    enforcingRule: { id: number; targetId: number; targetName: string; condition: string; threshold: number } | null;
+    isOwner: boolean;
 }
 
 /** Stored voltage color thresholds returned by the thresholds endpoint. */
@@ -235,6 +259,32 @@ const SensorService = {
             await axiosInstance.delete(`/sensors/${id}/voltage-thresholds`);
         } catch (error: unknown) {
             throw new Error(formatApiError(error, 'Failed to clear voltage thresholds'));
+        }
+    },
+
+    async getSensorSecurity(id: number): Promise<SensorSecurity> {
+        try {
+            const response = await axiosInstance.get<SensorSecurity>(`/sensors/${id}/security`);
+            return response.data;
+        } catch (error: unknown) {
+            throw new ApiError(formatApiError(error, 'Failed to load Garge Security'), parseErrorCode(error));
+        }
+    },
+
+    async updateSensorSecurity(id: number, settings: { enabled: boolean }): Promise<SensorSecurity> {
+        try {
+            const response = await axiosInstance.patch<SensorSecurity>(`/sensors/${id}/security`, settings);
+            return response.data;
+        } catch (error: unknown) {
+            throw new ApiError(formatApiError(error, 'Failed to save Garge Security'), parseErrorCode(error));
+        }
+    },
+
+    async disableSensorSecurity(id: number): Promise<void> {
+        try {
+            await axiosInstance.delete(`/sensors/${id}/security`);
+        } catch (error: unknown) {
+            throw new ApiError(formatApiError(error, 'Failed to turn off Garge Security'), parseErrorCode(error));
         }
     },
 

@@ -34,6 +34,7 @@ vi.mock('@/services/sensorPhotoService', () => ({
 
 // The realtime stream is irrelevant to the rename flow; stub it to a no-op.
 vi.mock('@/hooks/useDeviceStream', () => ({ useDeviceStream: vi.fn() }))
+vi.mock('@/hooks/useFeature', () => ({ useFeature: () => false }))
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('next/dynamic', () => ({ default: () => () => null }))
