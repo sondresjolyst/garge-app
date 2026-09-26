@@ -22,10 +22,17 @@ const formatOdometer = (km: number): string => {
     return km.toLocaleString('nb-NO') + ' km';
 };
 
+const loadErrorMessage = (err: unknown): string =>
+    err instanceof Error ? err.message : 'Failed to load activities';
+
 const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ sensorId }) => {
-    const [activities, setActivities] = useState<SensorActivity[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [loadError, setLoadError] = useState<string | null>(null);
+    // Tagged with the sensor it was fetched for, so switching sensors shows a
+    // spinner rather than the previous sensor's activities or error.
+    const [entry, setEntry] = useState<{ sensorId: number; list: SensorActivity[]; error: string | null } | null>(null);
+    const current = entry?.sensorId === sensorId ? entry : null;
+    const activities = current?.list ?? [];
+    const loading = current === null;
+    const loadError = current?.error ?? null;
 
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -41,22 +48,29 @@ const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ sensorId }) => {
     // or null when the modal is closed.
     const [deleteTarget, setDeleteTarget] = useState<SensorActivity | null>(null);
 
+    /** Re-fetch after a mutation, showing the spinner again. */
     const load = useCallback(async () => {
-        setLoading(true);
-        setLoadError(null);
+        setEntry(null);
         try {
             const list = await SensorActivityService.list(sensorId);
-            setActivities(list);
+            setEntry({ sensorId, list, error: null });
         } catch (err) {
-            setLoadError(err instanceof Error ? err.message : 'Failed to load activities');
-        } finally {
-            setLoading(false);
+            setEntry({ sensorId, list: [], error: loadErrorMessage(err) });
         }
     }, [sensorId]);
 
     useEffect(() => {
-        load();
-    }, [load]);
+        let active = true;
+        (async () => {
+            try {
+                const list = await SensorActivityService.list(sensorId);
+                if (active) setEntry({ sensorId, list, error: null });
+            } catch (err) {
+                if (active) setEntry({ sensorId, list: [], error: loadErrorMessage(err) });
+            }
+        })();
+        return () => { active = false; };
+    }, [sensorId]);
 
     const resetForm = () => {
         setEditingId(null);
@@ -141,7 +155,11 @@ const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ sensorId }) => {
                 setShowForm(false);
             }
         } catch (err) {
-            setLoadError(err instanceof Error ? err.message : 'Failed to delete activity');
+            // Keep the list that is already on screen and surface the error beside it.
+            const message = err instanceof Error ? err.message : 'Failed to delete activity';
+            setEntry(prev => prev && prev.sensorId === sensorId
+                ? { ...prev, error: message }
+                : { sensorId, list: [], error: message });
             // Close the modal even on error so the user sees the inline error message.
             setDeleteTarget(null);
         }

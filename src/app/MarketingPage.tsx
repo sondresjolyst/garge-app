@@ -85,7 +85,7 @@ export default function MarketingPage() {
                         Know what&apos;s happening<br className="hidden sm:block" /> in your space
                     </h1>
                     <p className="text-lg text-gray-400 max-w-xl mx-auto">
-                        Garge monitors temperature, humidity, and voltage in real time — so you're always in the loop, wherever you are.
+                        Garge monitors temperature, humidity, and voltage in real time — so you&apos;re always in the loop, wherever you are.
                     </p>
                 </div>
                 <div className="flex gap-3 flex-wrap justify-center">

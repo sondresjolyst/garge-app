@@ -22,20 +22,31 @@ export function useCanClaimDevice(): CanClaimDeviceResult {
     const [data, setData] = useState<SensorCapacity>({ capacity: 0, used: 0, bypass: false, canClaim: false });
     const [loading, setLoading] = useState(true);
 
-    const refresh = useCallback(async () => {
-        setLoading(true);
+    const fetchCapacity = useCallback(async (): Promise<SensorCapacity> => {
         try {
-            setData(await SensorService.getSensorCapacity());
+            return await SensorService.getSensorCapacity();
         } catch {
-            setData({ capacity: 0, used: 0, bypass: false, canClaim: false });
-        } finally {
-            setLoading(false);
+            return { capacity: 0, used: 0, bypass: false, canClaim: false };
         }
     }, []);
 
+    const refresh = useCallback(async () => {
+        setLoading(true);
+        setData(await fetchCapacity());
+        setLoading(false);
+    }, [fetchCapacity]);
+
+    // `loading` already starts true, so the first load needs no eager flag.
     useEffect(() => {
-        refresh();
-    }, [refresh]);
+        let active = true;
+        (async () => {
+            const next = await fetchCapacity();
+            if (!active) return;
+            setData(next);
+            setLoading(false);
+        })();
+        return () => { active = false; };
+    }, [fetchCapacity]);
 
     return {
         canClaim: data.canClaim,

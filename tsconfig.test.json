@@ -1,0 +1,17 @@
+{
+  "//": "Typechecks the test suites, which tsconfig.json deliberately excludes so that `next build` stays fast. Without this, test code can drift from the production signatures it calls and nothing fails.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": false
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next"
+  ]
+}

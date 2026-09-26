@@ -43,10 +43,21 @@ export default function AdminShopPage() {
         setItems(all);
     }
 
+    // `loading` already starts true and stays true until this runs.
     useEffect(() => {
         if (!isAdmin) return;
-        setLoading(true);
-        refresh().catch(() => toast.error('Failed to load items')).finally(() => setLoading(false));
+        let active = true;
+        (async () => {
+            try {
+                const all = await ShopService.getShopItems();
+                if (active) setItems(all);
+            } catch {
+                if (active) toast.error('Failed to load items');
+            } finally {
+                if (active) setLoading(false);
+            }
+        })();
+        return () => { active = false; };
     }, [isAdmin]);
 
     function openCreate() {

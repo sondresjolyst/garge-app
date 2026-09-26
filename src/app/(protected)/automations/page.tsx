@@ -85,8 +85,31 @@ const AutomationsPage: React.FC = () => {
     );
 
     useEffect(() => {
-        Promise.all([fetchRules(), fetchSwitches(), fetchSensors(), fetchUserPriceZone()])
-            .finally(() => setLoading(false));
+        let active = true;
+        (async () => {
+            const [rulesRes, switchesRes, sensorsRes, profileRes] = await Promise.allSettled([
+                AutomationService.getRules(),
+                SwitchService.getAllSwitches(),
+                SensorService.getAllSensors(),
+                UserService.getUserProfile(),
+            ]);
+            if (!active) return;
+            try {
+                if (rulesRes.status === 'fulfilled') setRules(Array.isArray(rulesRes.value) ? rulesRes.value : []);
+                else setError(formatApiError(rulesRes.reason, 'A network error occurred'));
+                if (switchesRes.status === 'fulfilled') setSwitches(switchesRes.value);
+                else setError(formatApiError(switchesRes.reason, 'Failed to fetch sockets'));
+                if (sensorsRes.status === 'fulfilled') setSensors(sensorsRes.value);
+                else setError(formatApiError(sensorsRes.reason, 'Failed to fetch sensors'));
+                if (profileRes.status === 'fulfilled' && profileRes.value.priceZone) {
+                    setDefaultPriceArea(profileRes.value.priceZone);
+                }
+            } finally {
+                // Never leave the page spinning if mapping an error throws.
+                setLoading(false);
+            }
+        })();
+        return () => { active = false; };
     }, []);
 
     useEffect(() => {
@@ -118,21 +141,6 @@ const AutomationsPage: React.FC = () => {
     const fetchRules    = () => AutomationService.getRules()
         .then(data => setRules(Array.isArray(data) ? data : []))
         .catch(handleError);
-    const fetchSwitches = async () => {
-        try { setSwitches(await SwitchService.getAllSwitches()); }
-        catch (e) { handleError(e, 'Failed to fetch sockets'); }
-    };
-    const fetchSensors  = async () => {
-        try { setSensors(await SensorService.getAllSensors()); }
-        catch (e) { handleError(e, 'Failed to fetch sensors'); }
-    };
-    const fetchUserPriceZone = async () => {
-        try {
-            const profile = await UserService.getUserProfile();
-            if (profile.priceZone) setDefaultPriceArea(profile.priceZone);
-        } catch { /* ignore */ }
-    };
-
     const handleError = (err: unknown, fallbackMsg?: string) => {
         setError(formatApiError(err, fallbackMsg || 'A network error occurred'));
     };

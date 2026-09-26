@@ -97,7 +97,7 @@ export default function BillingPage() {
         try {
             const url = await SubscriptionService.getConfirmationUrl(sub.id);
             setRedirecting(true);
-            window.location.href = url;
+            window.location.assign(url);
         } catch (err) {
             toast.error(formatApiError(err, 'Could not get Vipps URL'));
             setResuming(null);

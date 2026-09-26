@@ -46,9 +46,8 @@ export default function AdminPage() {
     const [roleLoading, setRoleLoading] = useState(false);
     const [allRoles, setAllRoles] = useState<string[]>([]);
 
-    const [emailStats, setEmailStats] = useState<EmailStats | null>(null);
+    const [emailStatsEntry, setEmailStatsEntry] = useState<{ days: number; stats: EmailStats | null } | null>(null);
     const [emailStatsDays, setEmailStatsDays] = useState(30);
-    const [emailStatsLoading, setEmailStatsLoading] = useState(false);
 
     const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
     const [loadedAt, setLoadedAt] = useState<Date | null>(null);
@@ -59,6 +58,9 @@ export default function AdminPage() {
     const [usersLoading, setUsersLoading] = useState(false);
     // Allows the full reload (load) to honor the current toggle without re-creating its callback.
     const showDeletedRef = useRef(false);
+    // Same idea for the test/live stats toggle, so the initial-load effect does
+    // not re-run (and refetch everything) each time the toggle flips.
+    const statsTestRef = useRef(false);
     const PAGE_SIZE = 10;
 
     const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
@@ -87,6 +89,7 @@ export default function AdminPage() {
 
     const reloadStatsForTestToggle = useCallback(async (test: boolean) => {
         setStatsTest(test);
+        statsTestRef.current = test;
         setStatsLoading(true);
         try {
             const s = await AdminService.getStats({ test });
@@ -113,25 +116,52 @@ export default function AdminPage() {
         }
     }, []);
 
-    const loadEmailStats = useCallback(async (days: number) => {
-        setEmailStatsLoading(true);
-        try {
-            const es = await AdminService.getEmailStats(days);
-            setEmailStats(es);
-        } catch {
-            toast.error('Failed to load email stats');
-        } finally {
-            setEmailStatsLoading(false);
-        }
-    }, []);
+    // Derived from the loaded entry, so no spinner flag is set from the effect.
+    const emailStats = emailStatsEntry?.days === emailStatsDays ? emailStatsEntry.stats : null;
+    const emailStatsLoading = isAdmin && emailStatsEntry?.days !== emailStatsDays;
 
     useEffect(() => {
-        if (isAdmin) loadEmailStats(emailStatsDays);
-    }, [isAdmin, loadEmailStats, emailStatsDays]);
+        if (!isAdmin) return;
+        let active = true;
+        (async () => {
+            try {
+                const es = await AdminService.getEmailStats(emailStatsDays);
+                if (active) setEmailStatsEntry({ days: emailStatsDays, stats: es });
+            } catch {
+                if (!active) return;
+                // Record the attempt so the panel stops showing a spinner.
+                setEmailStatsEntry({ days: emailStatsDays, stats: null });
+                toast.error('Failed to load email stats');
+            }
+        })();
+        return () => { active = false; };
+    }, [isAdmin, emailStatsDays]);
 
+    // Initial load only. The test/live and deleted-users toggles refetch through
+    // their own handlers, and mutations call `load` directly.
     useEffect(() => {
-        if (isAdmin) load();
-    }, [isAdmin, load]);
+        if (!isAdmin) return;
+        let active = true;
+        (async () => {
+            try {
+                const [s, u, h] = await Promise.all([
+                    AdminService.getStats({ test: statsTestRef.current }),
+                    AdminService.getUsers({ includeDeleted: showDeletedRef.current }),
+                    AdminService.getStatsHistory(),
+                ]);
+                if (!active) return;
+                setStats(s);
+                setUsers(u);
+                setHistory(h);
+                setLoadedAt(new Date());
+            } catch {
+                if (active) setError('Failed to load admin data');
+            } finally {
+                if (active) setLoading(false);
+            }
+        })();
+        return () => { active = false; };
+    }, [isAdmin]);
 
     useEffect(() => {
         if (!isAdmin) return;

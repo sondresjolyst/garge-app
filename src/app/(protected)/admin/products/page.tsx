@@ -39,10 +39,21 @@ export default function AdminProductsPage() {
         setProducts(all);
     }
 
+    // `loading` already starts true and stays true until this runs.
     useEffect(() => {
         if (!isAdmin) return;
-        setLoading(true);
-        refresh().catch(() => toast.error('Failed to load plans')).finally(() => setLoading(false));
+        let active = true;
+        (async () => {
+            try {
+                const all = await ProductService.getProducts();
+                if (active) setProducts(all);
+            } catch {
+                if (active) toast.error('Failed to load plans');
+            } finally {
+                if (active) setLoading(false);
+            }
+        })();
+        return () => { active = false; };
     }, [isAdmin]);
 
     function openCreate() {

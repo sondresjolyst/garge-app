@@ -63,7 +63,7 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
     const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
     const { canClaim, loading: eligibilityLoading, refresh: refreshEligibility } = useCanClaimDevice();
 
-    const { title, itemLabel, emoji, fetchAll, claim, unclaim, updateName, getDisplayName, getDefaultName, suspend, activate, listShares, share, revokeShare } = config;
+    const { title, itemLabel, fetchAll, claim, unclaim, updateName, getDisplayName, getDefaultName, suspend, activate, listShares, share, revokeShare } = config;
     const label = itemLabel;
     const Label = label.charAt(0).toUpperCase() + label.slice(1);
     const [togglingId, setTogglingId] = useState<number | null>(null);
@@ -71,16 +71,27 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
     const sharingEnabled = Boolean(listShares && share && revokeShare);
     const isOwner = (item: T) => (item.access ?? 'owner') === 'owner';
 
+    const byDisplayName = (all: T[]): T[] =>
+        [...all].sort((a, b) => getDisplayName(a).toLowerCase().localeCompare(getDisplayName(b).toLowerCase()));
+
     const refresh = async () => {
-        const all = await fetchAll();
-        setItems([...all].sort((a, b) => getDisplayName(a).toLowerCase().localeCompare(getDisplayName(b).toLowerCase())));
+        setItems(byDisplayName(await fetchAll()));
     };
 
+    // `loading` already starts true, so the first load needs no eager flag.
     useEffect(() => {
-        setLoading(true);
-        refresh()
-            .catch((err: unknown) => toast.error(err instanceof Error ? err.message : `Failed to load ${title.toLowerCase()}.`))
-            .finally(() => setLoading(false));
+        let active = true;
+        (async () => {
+            try {
+                const all = await fetchAll();
+                if (active) setItems(byDisplayName(all));
+            } catch (err: unknown) {
+                if (active) toast.error(err instanceof Error ? err.message : `Failed to load ${title.toLowerCase()}.`);
+            } finally {
+                if (active) setLoading(false);
+            }
+        })();
+        return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

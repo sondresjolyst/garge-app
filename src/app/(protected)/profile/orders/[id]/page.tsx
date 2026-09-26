@@ -38,17 +38,19 @@ function buildTimeline(order: Order): TimelineEntry[] {
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const orderId = parseInt(id, 10);
+    const validOrderId = !isNaN(orderId);
     const [order, setOrder] = useState<Order | null>(null);
-    const [loading, setLoading] = useState(true);
+    // Nothing is fetched for a non-numeric id, so it is never in a loading state.
+    const [loading, setLoading] = useState(validOrderId);
     const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
-        if (isNaN(orderId)) { setLoading(false); return; }
+        if (!validOrderId) return;
         ShopService.getMyOrders()
             .then(orders => setOrder(orders.find(o => o.id === orderId) ?? null))
             .catch(err => toast.error(formatApiError(err, 'Failed to load order')))
             .finally(() => setLoading(false));
-    }, [orderId]);
+    }, [orderId, validOrderId]);
 
     async function downloadInvoice() {
         if (!order) return;

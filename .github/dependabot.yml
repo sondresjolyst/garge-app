@@ -60,6 +60,14 @@ updates:
     types:
       patterns:
       - '@types/*'
+  ignore:
+  # eslint-config-next pulls eslint-plugin-react, whose newest release (7.37.5)
+  # still peers on eslint ^9.7. On eslint 10 it throws
+  # "contextOrFilename.getFilename is not a function" and no rule runs at all.
+  # Drop this ignore once eslint-plugin-react supports eslint 10.
+  - dependency-name: eslint
+    versions:
+    - '>=10'
   schedule:
     interval: weekly
     day: sunday

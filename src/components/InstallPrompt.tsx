@@ -1,47 +1,70 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
 type State = 'hidden' | 'android' | 'ios';
+type Platform = 'ineligible' | 'ios' | 'other';
 
 interface BeforeInstallPromptEvent extends Event {
     prompt(): Promise<void>;
 }
 
+/** Fixed for the lifetime of the page, so the store never notifies. */
+const subscribe = () => () => { };
+
+/**
+ * Reads the browser once. Returning it through useSyncExternalStore keeps the
+ * browser access out of render and out of an effect, and yields 'ineligible'
+ * on the server so the first client render matches the server markup.
+ */
+function detectPlatform(): Platform {
+    if (localStorage.getItem('install-dismissed')) return 'ineligible';
+    const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        ('standalone' in navigator && (navigator as { standalone?: boolean }).standalone === true);
+    if (isStandalone) return 'ineligible';
+    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !('MSStream' in window);
+    return isIos ? 'ios' : 'other';
+}
+
+const serverPlatform = (): Platform => 'ineligible';
+
 export default function InstallPrompt() {
-    const [state, setState] = useState<State>('hidden');
+    const platform = useSyncExternalStore(subscribe, detectPlatform, serverPlatform);
+    const [dismissed, setDismissed] = useState(false);
     const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
 
+    // Registered on mount rather than once `platform` resolves: the platform read
+    // only arrives on the second commit, and the browser can fire
+    // beforeinstallprompt before that. Eligibility is applied when deriving
+    // `state`, so an ineligible client still shows nothing.
     useEffect(() => {
-        if (localStorage.getItem('install-dismissed')) return;
-
-        const isStandalone =
-            window.matchMedia('(display-mode: standalone)').matches ||
-            ('standalone' in navigator && (navigator as { standalone?: boolean }).standalone === true);
-        if (isStandalone) return;
-
-        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !('MSStream' in window);
-        if (isIos) { setState('ios'); return; }
-
         const handler = (e: Event) => {
             e.preventDefault();
             setDeferred(e as BeforeInstallPromptEvent);
-            setState('android');
         };
         window.addEventListener('beforeinstallprompt', handler);
         return () => window.removeEventListener('beforeinstallprompt', handler);
     }, []);
 
+    const state: State =
+        dismissed || platform === 'ineligible' ? 'hidden'
+            : platform === 'ios' ? 'ios'
+                : deferred ? 'android'
+                    : 'hidden';
+
     function dismiss() {
         localStorage.setItem('install-dismissed', '1');
-        setState('hidden');
+        setDismissed(true);
     }
 
     async function install() {
         if (!deferred) return;
         await deferred.prompt();
-        setState('hidden');
+        // Clearing the event (rather than dismissing) leaves the banner able to
+        // come back if the browser fires beforeinstallprompt again.
+        setDeferred(null);
     }
 
     if (state === 'hidden') return null;

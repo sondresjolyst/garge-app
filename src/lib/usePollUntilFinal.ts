@@ -16,11 +16,9 @@ export function usePollUntilFinal<T>(
     const [loading, setLoading] = useState(true);
     const cancelled = useRef(false);
     const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-    const tickRef = useRef<() => Promise<void>>(async () => {});
 
     const start = useCallback(() => {
         cancelled.current = false;
-        setLoading(true);
         let attempt = 0;
 
         const tick = async () => {
@@ -38,11 +36,11 @@ export function usePollUntilFinal<T>(
                 if (!cancelled.current) setLoading(false);
             }
         };
-        tickRef.current = tick;
         tick();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [retries, delayMs]);
 
+    // `loading` already starts true, so the first poll needs no eager flag.
     useEffect(() => {
         start();
         return () => {
@@ -54,6 +52,7 @@ export function usePollUntilFinal<T>(
     const refresh = useCallback(() => {
         cancelled.current = true;
         if (timer.current) clearTimeout(timer.current);
+        setLoading(true);
         start();
     }, [start]);
 

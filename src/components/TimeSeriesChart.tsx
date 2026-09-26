@@ -123,7 +123,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ title, data, chartTyp
                 format: 'dd.MM.yyyy HH:mm'
             }
         }
-    }), [title, effectiveType, xMin, xMax]);
+    }), [title, effectiveType, xMin, xMax, integerY]);
 
     if (!data || data.length === 0) {
         return null;

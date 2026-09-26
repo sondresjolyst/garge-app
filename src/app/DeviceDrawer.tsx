@@ -21,6 +21,40 @@ import type { UnifiedDevice } from './DeviceDashboard';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
 
+type ChartPoint = { x: number; y: number };
+
+/** Pages through a sensor's readings, de-duplicates them and downsamples to
+ *  at most MAX points. Pure: no component state is touched. */
+async function loadSensorSeries(
+    sensorId: number,
+    timeRange: string,
+    groupBy: string,
+): Promise<ChartPoint[]> {
+    let allData: SensorData[] = [];
+    let page = 1;
+    let total = 0;
+    do {
+        const resp = await SensorService.getMultipleSensorsData(
+            [sensorId], undefined, undefined, timeRange, groupBy, page, 5000
+        );
+        allData = allData.concat(resp.data);
+        total = resp.totalCount;
+        page++;
+        if (resp.data.length === 0) break;
+    } while (allData.length < total);
+
+    const unique = allData.filter(
+        (d, i, self) =>
+            d.timestamp != null && d.value != null &&
+            i === self.findIndex(t => t.timestamp === d.timestamp)
+    );
+    const MAX = 750;
+    const step = unique.length > MAX ? Math.ceil(unique.length / MAX) : 1;
+    return unique
+        .filter((_, i) => i % step === 0)
+        .map(d => ({ x: new Date(d.timestamp).getTime(), y: Number(d.value) }));
+}
+
 interface DeviceDrawerProps {
     device: UnifiedDevice;
     onClose: () => void;
@@ -258,14 +292,13 @@ const VoltageThresholdConfig: React.FC<{
 // ─────────────────────────────────────────────────────────────────────────────
 
 const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, onThresholdsChange }) => {
-    const [chartData, setChartData] = useState<{ x: number; y: number }[]>([]);
-    const [loadingChart, setLoadingChart] = useState(false);
+    const [chartEntry, setChartEntry] = useState<{ key: string; points: ChartPoint[] } | null>(null);
     const [activeRange, setActiveRange] = useState<RangeIndex>(0);
     const [visible, setVisible] = useState(false);
 
     // Socket state
-    const [switchEvents, setSwitchEvents] = useState<SwitchData[]>([]);
-    const [loadingSwitch, setLoadingSwitch] = useState(false);
+    const [switchEntry, setSwitchEntry] = useState<{ key: string; events: SwitchData[]; fetchedAt: number } | null>(null);
+    const [mountedAt] = useState(() => Date.now());
 
     // Photo (sensors only)
     const [photo, setPhoto] = useState<Photo | null | undefined>(undefined);
@@ -291,61 +324,38 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
         return () => document.removeEventListener('keydown', handler);
     }, [handleClose]);
 
-    const fetchChart = useCallback(async (rangeIdx: RangeIndex) => {
-        if (device.kind !== 'sensor') return;
-        setLoadingChart(true);
-        const { timeRange, groupBy } = RANGE_OPTIONS[rangeIdx];
-        try {
-            let allData: SensorData[] = [];
-            let page = 1;
-            let total = 0;
-            do {
-                const resp = await SensorService.getMultipleSensorsData(
-                    [device.id], undefined, undefined, timeRange, groupBy, page, 5000
-                );
-                allData = allData.concat(resp.data);
-                total = resp.totalCount;
-                page++;
-                if (resp.data.length === 0) break;
-            } while (allData.length < total);
-
-            const unique = allData.filter(
-                (d, i, self) =>
-                    d.timestamp != null && d.value != null &&
-                    i === self.findIndex(t => t.timestamp === d.timestamp)
-            );
-            const MAX = 750;
-            const step = unique.length > MAX ? Math.ceil(unique.length / MAX) : 1;
-            setChartData(
-                unique
-                    .filter((_, i) => i % step === 0)
-                    .map(d => ({ x: new Date(d.timestamp).getTime(), y: Number(d.value) }))
-            );
-        } catch {
-            setChartData([]);
-        } finally {
-            setLoadingChart(false);
-        }
-    }, [device.id, device.kind]);
-
-    const fetchSwitchData = useCallback(async (rangeIdx: RangeIndex) => {
-        if (device.kind !== 'socket') return;
-        setLoadingSwitch(true);
-        const { timeRange } = RANGE_OPTIONS[rangeIdx];
-        try {
-            const data = await SwitchService.getSwitchData(device.id, timeRange);
-            setSwitchEvents(data);
-        } catch {
-            setSwitchEvents([]);
-        } finally {
-            setLoadingSwitch(false);
-        }
-    }, [device.id, device.kind]);
+    // One key per (device, range). The loaded entry matching the current key is
+    // the data; any other value means a fetch for this key is still in flight,
+    // so the spinner is derived rather than set from inside the effect.
+    const seriesKey = `${device.kind}:${device.id}:${activeRange}`;
+    const chartData = chartEntry?.key === seriesKey ? chartEntry.points : [];
+    const loadingChart = device.kind === 'sensor' && chartEntry?.key !== seriesKey;
+    const switchEvents = switchEntry?.key === seriesKey ? switchEntry.events : [];
+    const loadingSwitch = device.kind === 'socket' && switchEntry?.key !== seriesKey;
 
     useEffect(() => {
-        if (device.kind === 'sensor') fetchChart(activeRange);
-        if (device.kind === 'socket') fetchSwitchData(activeRange);
-    }, [device, activeRange, fetchChart, fetchSwitchData]);
+        let active = true;
+        (async () => {
+            if (device.kind === 'sensor') {
+                const { timeRange, groupBy } = RANGE_OPTIONS[activeRange];
+                try {
+                    const points = await loadSensorSeries(device.id, timeRange, groupBy);
+                    if (active) setChartEntry({ key: seriesKey, points });
+                } catch {
+                    if (active) setChartEntry({ key: seriesKey, points: [] });
+                }
+            } else if (device.kind === 'socket') {
+                const { timeRange } = RANGE_OPTIONS[activeRange];
+                try {
+                    const events = await SwitchService.getSwitchData(device.id, timeRange);
+                    if (active) setSwitchEntry({ key: seriesKey, events, fetchedAt: Date.now() });
+                } catch {
+                    if (active) setSwitchEntry({ key: seriesKey, events: [], fetchedAt: Date.now() });
+                }
+            }
+        })();
+        return () => { active = false; };
+    }, [device.kind, device.id, activeRange, seriesKey]);
 
     useEffect(() => {
         if (device.kind !== 'sensor') return;
@@ -362,8 +372,9 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
 
     const isVoltage = device.kind === 'sensor' && device.type === 'voltage';
 
-    // Socket computed values
-    const now = Date.now();
+    // Socket computed values. `now` is stamped when the events were fetched, so
+    // the range and the segments stay a pure computation over fixed inputs.
+    const now = switchEntry?.key === seriesKey ? switchEntry.fetchedAt : mountedAt;
     const rangeMs: Record<RangeIndex, number> = { 0: 86_400_000, 1: 7 * 86_400_000, 2: 30 * 86_400_000, 3: 365 * 86_400_000 };
     const rangeStart = now - rangeMs[activeRange];
     const segments = device.kind === 'socket' ? buildSegments(switchEvents, rangeStart, now) : [];

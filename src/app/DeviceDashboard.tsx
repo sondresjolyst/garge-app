@@ -166,6 +166,122 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
     { value: 'value',     label: 'Value ↓'   },
 ];
 
+/**
+ * Fetches everything the dashboard shows and maps it to the unified device
+ * shape. Pure with respect to React: it touches no component state, so both the
+ * mount effect and the imperative reload paths can share it.
+ */
+async function fetchDashboardData(): Promise<{ devices: UnifiedDevice[]; groups: Group[] }> {
+    const [allSensors, allSwitches, allGroups] = await Promise.all([
+        SensorService.getAllSensors(),
+        SwitchService.getAllSwitches().catch((): Switch[] => []),
+        GroupService.getAllGroups().catch((): Group[] => []),
+    ]);
+
+    const displaySensors = allSensors.filter(s => s.type !== 'battery');
+
+    const [latestResp, staleResp, healthResults, switchStates] = await Promise.all([
+        displaySensors.length > 0
+            ? SensorService.getMultipleSensorsData(
+                displaySensors.map(s => s.id),
+                undefined, undefined, '1d', '30m', 1, 5000
+              ).catch(() => ({ data: [], totalCount: 0 }))
+            : Promise.resolve({ data: [], totalCount: 0 }),
+
+        displaySensors.length > 0
+            ? SensorService.getMultipleSensorsData(
+                displaySensors.map(s => s.id),
+                undefined, undefined, '14d', '1d', 1, 5000
+              ).catch(() => ({ data: [], totalCount: 0 }))
+            : Promise.resolve({ data: [], totalCount: 0 }),
+
+        Promise.all(
+            displaySensors
+                .filter(s => s.type === 'voltage')
+                .map(s =>
+                    SensorService.getBatteryHealthLatest(s.name)
+                        .then(h => ({ name: s.name, health: h }))
+                        .catch((): null => null)
+                )
+        ),
+
+        allSwitches.length > 0
+            ? Promise.all(
+                allSwitches.map(sw =>
+                    SwitchService.getSwitchState(sw.id)
+                        .then(result => {
+                            let state = 'UNKNOWN';
+                            if (typeof result === 'string') {
+                                state = result;
+                            } else if (Array.isArray(result) && result.length > 0) {
+                                const latest = result.reduce((a, b) =>
+                                    new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b
+                                );
+                                state = (latest.value || '').trim().toUpperCase() || 'UNKNOWN';
+                            }
+                            return { id: sw.id, state };
+                        })
+                        .catch((): { id: number; state: string } => ({ id: sw.id, state: 'UNKNOWN' }))
+                )
+              )
+            : Promise.resolve([] as { id: number; state: string }[]),
+    ]);
+
+    const latestMap: Record<number, { value: number; timestamp: string }> = {};
+    for (const d of latestResp.data) {
+        const ex = latestMap[d.sensorId];
+        const ts = new Date(d.timestamp).getTime();
+        if (!ex || ts > new Date(ex.timestamp).getTime()) {
+            latestMap[d.sensorId] = { value: Number(d.value), timestamp: d.timestamp };
+        }
+    }
+
+    const staleMap: Record<number, string> = {};
+    for (const d of staleResp.data) {
+        const ex = staleMap[d.sensorId];
+        const ts = new Date(d.timestamp).getTime();
+        if (!ex || ts > new Date(ex).getTime()) {
+            staleMap[d.sensorId] = d.timestamp;
+        }
+    }
+    // Merge: if 1d data exists use that timestamp, otherwise fall back to 14d staleMap
+
+    const activeSensorIds = new Set(Object.keys(latestMap).map(Number));
+
+    const healthMap: Record<string, BatteryHealthData> = {};
+    for (const r of healthResults) {
+        if (r) healthMap[r.name] = r.health;
+    }
+
+    const switchStateMap: Record<number, string> = {};
+    for (const r of switchStates) switchStateMap[r.id] = r.state;
+
+    const sensorDevices: UnifiedDevice[] = displaySensors.map(s => ({
+        kind: 'sensor' as const,
+        id: s.id,
+        displayName: s.customName ?? s.defaultName ?? s.name,
+        sensorName: s.name,
+        type: s.type,
+        rawSensor: s,
+        latestValue: latestMap[s.id]?.value,
+        latestTimestamp: latestMap[s.id]?.timestamp ?? staleMap[s.id],
+        batteryHealth: healthMap[s.name],
+        isActive: activeSensorIds.has(s.id),
+    }));
+
+    const socketDevices: UnifiedDevice[] = allSwitches.map(sw => ({
+        kind: 'socket' as const,
+        id: sw.id,
+        displayName: sw.customName ?? sw.name,
+        type: 'socket',
+        rawSwitch: sw,
+        latestState: switchStateMap[sw.id] ?? 'UNKNOWN',
+        isActive: (switchStateMap[sw.id] ?? 'UNKNOWN') !== 'UNKNOWN',
+    }));
+
+    return { devices: [...sensorDevices, ...socketDevices], groups: allGroups };
+}
+
 const DeviceDashboard: React.FC = () => {
     const [devices, setDevices]       = useState<UnifiedDevice[]>([]);
     const [groups, setGroups]         = useState<Group[]>([]);
@@ -174,131 +290,33 @@ const DeviceDashboard: React.FC = () => {
     const [sort, setSort]             = useLocalStorage<SortKey>('device-sort', 'name-asc');
     const [typeFilter, setTypeFilter] = useLocalStorage<string>('device-type-filter', 'all');
     const [selected, setSelected]     = useState<UnifiedDevice | null>(null);
+    // Mirrors `selected` for the SignalR callbacks, which capture once on mount.
+    // Written after commit, never during render; the callbacks only read it when
+    // an event arrives, which is always after the commit that set it.
     const selectedRef = useRef<UnifiedDevice | null>(null);
-    selectedRef.current = selected;
+    useEffect(() => {
+        selectedRef.current = selected;
+    });
     const [wizardOpen, setWizardOpen]   = useState(false);
     const [wizardStep, setWizardStep]   = useState(0);
     const [wizardGroupId, setWizardGroupId] = useState<number | undefined>(undefined);
     const [deleteGroup, setDeleteGroup] = useState<Group | null>(null);
+    const [loadedAt, setLoadedAt] = useState(() => Date.now());
 
+    // Staleness is measured against the time the device list was fetched, so the
+    // clock is read there rather than during render.
     const isStale = (d: UnifiedDevice): boolean => {
         if (d.kind === 'socket') return d.latestState === 'UNKNOWN';
         if (!d.latestTimestamp) return true;
-        return (Date.now() - new Date(d.latestTimestamp).getTime()) / 86_400_000 > 14;
+        return (loadedAt - new Date(d.latestTimestamp).getTime()) / 86_400_000 > 14;
     };
 
     const loadData = useCallback(async () => {
         try {
-            const [allSensors, allSwitches, allGroups] = await Promise.all([
-                SensorService.getAllSensors(),
-                SwitchService.getAllSwitches().catch((): Switch[] => []),
-                GroupService.getAllGroups().catch((): Group[] => []),
-            ]);
-
-            setGroups(allGroups);
-
-            const displaySensors = allSensors.filter(s => s.type !== 'battery');
-
-            const [latestResp, staleResp, healthResults, switchStates] = await Promise.all([
-                displaySensors.length > 0
-                    ? SensorService.getMultipleSensorsData(
-                        displaySensors.map(s => s.id),
-                        undefined, undefined, '1d', '30m', 1, 5000
-                      ).catch(() => ({ data: [], totalCount: 0 }))
-                    : Promise.resolve({ data: [], totalCount: 0 }),
-
-                displaySensors.length > 0
-                    ? SensorService.getMultipleSensorsData(
-                        displaySensors.map(s => s.id),
-                        undefined, undefined, '14d', '1d', 1, 5000
-                      ).catch(() => ({ data: [], totalCount: 0 }))
-                    : Promise.resolve({ data: [], totalCount: 0 }),
-
-                Promise.all(
-                    displaySensors
-                        .filter(s => s.type === 'voltage')
-                        .map(s =>
-                            SensorService.getBatteryHealthLatest(s.name)
-                                .then(h => ({ name: s.name, health: h }))
-                                .catch((): null => null)
-                        )
-                ),
-
-                allSwitches.length > 0
-                    ? Promise.all(
-                        allSwitches.map(sw =>
-                            SwitchService.getSwitchState(sw.id)
-                                .then(result => {
-                                    let state = 'UNKNOWN';
-                                    if (typeof result === 'string') {
-                                        state = result;
-                                    } else if (Array.isArray(result) && result.length > 0) {
-                                        const latest = result.reduce((a, b) =>
-                                            new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b
-                                        );
-                                        state = (latest.value || '').trim().toUpperCase() || 'UNKNOWN';
-                                    }
-                                    return { id: sw.id, state };
-                                })
-                                .catch((): { id: number; state: string } => ({ id: sw.id, state: 'UNKNOWN' }))
-                        )
-                      )
-                    : Promise.resolve([] as { id: number; state: string }[]),
-            ]);
-
-            const latestMap: Record<number, { value: number; timestamp: string }> = {};
-            for (const d of latestResp.data) {
-                const ex = latestMap[d.sensorId];
-                const ts = new Date(d.timestamp).getTime();
-                if (!ex || ts > new Date(ex.timestamp).getTime()) {
-                    latestMap[d.sensorId] = { value: Number(d.value), timestamp: d.timestamp };
-                }
-            }
-
-            const staleMap: Record<number, string> = {};
-            for (const d of staleResp.data) {
-                const ex = staleMap[d.sensorId];
-                const ts = new Date(d.timestamp).getTime();
-                if (!ex || ts > new Date(ex).getTime()) {
-                    staleMap[d.sensorId] = d.timestamp;
-                }
-            }
-            // Merge: if 1d data exists use that timestamp, otherwise fall back to 14d staleMap
-
-            const activeSensorIds = new Set(Object.keys(latestMap).map(Number));
-
-            const healthMap: Record<string, BatteryHealthData> = {};
-            for (const r of healthResults) {
-                if (r) healthMap[r.name] = r.health;
-            }
-
-            const switchStateMap: Record<number, string> = {};
-            for (const r of switchStates) switchStateMap[r.id] = r.state;
-
-            const sensorDevices: UnifiedDevice[] = displaySensors.map(s => ({
-                kind: 'sensor' as const,
-                id: s.id,
-                displayName: s.customName ?? s.defaultName ?? s.name,
-                sensorName: s.name,
-                type: s.type,
-                rawSensor: s,
-                latestValue: latestMap[s.id]?.value,
-                latestTimestamp: latestMap[s.id]?.timestamp ?? staleMap[s.id],
-                batteryHealth: healthMap[s.name],
-                isActive: activeSensorIds.has(s.id),
-            }));
-
-            const socketDevices: UnifiedDevice[] = allSwitches.map(sw => ({
-                kind: 'socket' as const,
-                id: sw.id,
-                displayName: sw.customName ?? sw.name,
-                type: 'socket',
-                rawSwitch: sw,
-                latestState: switchStateMap[sw.id] ?? 'UNKNOWN',
-                isActive: (switchStateMap[sw.id] ?? 'UNKNOWN') !== 'UNKNOWN',
-            }));
-
-            setDevices([...sensorDevices, ...socketDevices]);
+            const { devices: next, groups: nextGroups } = await fetchDashboardData();
+            setGroups(nextGroups);
+            setDevices(next);
+            setLoadedAt(Date.now());
         } catch (e) {
             console.error(e);
         } finally {
@@ -306,7 +324,24 @@ const DeviceDashboard: React.FC = () => {
         }
     }, []);
 
-    useEffect(() => { loadData(); }, [loadData]);
+    useEffect(() => {
+        let active = true;
+        (async () => {
+            try {
+                const { devices: next, groups: nextGroups } = await fetchDashboardData();
+                if (!active) return;
+                setGroups(nextGroups);
+                setDevices(next);
+                setLoadedAt(Date.now());
+            } catch (e) {
+                if (active) console.error(e);
+            } finally {
+                if (active) setLoading(false);
+            }
+        })();
+        return () => { active = false; };
+    }, []);
+
 
     const refetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const debouncedReload = useCallback(() => {

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ElectricityService, { type ElectricityData } from '@/services/electricityService';
 import UserService from '@/services/userService';
 import { pickCurrentSlot } from '@/lib/electricitySlot';
@@ -64,9 +64,12 @@ const fetchTabData = async (frequency: string, dateType: string, zone: string): 
 const ElectricityPage = () => {
     const [activeTab, setActiveTab] = useState<TabKey>('today');
     const [cache, setCache] = useState<Partial<Record<TabKey, ChartEntry[]>>>({});
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [failedTabs, setFailedTabs] = useState<Partial<Record<TabKey, true>>>({});
     const [priceZone, setPriceZone] = useState<string | null>(null);
+    // Read once, on mount, so picking the current price slot stays a pure
+    // computation. Not refreshed while open: nobody keeps this page up across a
+    // slot boundary, and a reload re-reads the clock.
+    const [now] = useState(() => Date.now());
 
     useEffect(() => {
         UserService.getUserProfile().then(u => {
@@ -74,36 +77,59 @@ const ElectricityPage = () => {
         }).catch(() => { setPriceZone('NO2'); });
     }, []);
 
-    const loadTab = useCallback(async (tab: TabKey) => {
-        if (!priceZone || cache[tab]) return;
-        setLoading(true);
-        setError(null);
-        try {
-            const { frequency, dateType } = TABS.find(t => t.key === tab)!;
-            const data = await fetchTabData(frequency, dateType, priceZone);
-            setCache(prev => ({ ...prev, [tab]: data }));
-        } catch {
-            setError('Failed to fetch electricity data');
-        } finally {
-            setLoading(false);
-        }
-    }, [cache, priceZone]);
-
-    useEffect(() => {
+    // A new price zone invalidates everything fetched for the previous one.
+    const [cachedZone, setCachedZone] = useState(priceZone);
+    if (cachedZone !== priceZone) {
+        setCachedZone(priceZone);
         setCache({});
-    }, [priceZone]);
+        setFailedTabs({});
+    }
+
+    // Only unmount invalidates a write. Results are stored under the tab they
+    // were fetched for, so a fetch that finishes after the user switched tabs
+    // still populates the cache instead of being thrown away and refetched.
+    // Set on every mount, not just cleared on unmount: StrictMode mounts,
+    // unmounts and remounts effects, and a flag only cleared in cleanup would
+    // stay false after the remount and discard every result.
+    const mounted = useRef(true);
+    useEffect(() => {
+        mounted.current = true;
+        return () => { mounted.current = false; };
+    }, []);
 
     useEffect(() => {
-        loadTab(activeTab);
-    }, [activeTab, loadTab]);
+        if (!priceZone || cache[activeTab] || failedTabs[activeTab]) return;
+        const tab = activeTab;
+        (async () => {
+            try {
+                const { frequency, dateType } = TABS.find(t => t.key === tab)!;
+                const fetched = await fetchTabData(frequency, dateType, priceZone);
+                if (mounted.current) setCache(prev => ({ ...prev, [tab]: fetched }));
+            } catch {
+                if (mounted.current) setFailedTabs(prev => ({ ...prev, [tab]: true }));
+            }
+        })();
+    }, [activeTab, priceZone, cache, failedTabs]);
+
+    // Selecting a tab clears any earlier failure for it, so a tab that failed on
+    // a transient error is retried when the user comes back to it.
+    const selectTab = (key: TabKey) => {
+        setActiveTab(key);
+        setFailedTabs(prev => {
+            if (!prev[key]) return prev;
+            const next = { ...prev };
+            delete next[key];
+            return next;
+        });
+    };
 
     const data = cache[activeTab] ?? [];
+    // Derived rather than stored: a tab is loading until it has data or failed.
+    const loading = priceZone !== null && !cache[activeTab] && !failedTabs[activeTab];
+    const error = failedTabs[activeTab] ? 'Failed to fetch electricity data' : null;
 
-    const currentPrice = (() => {
-        if (activeTab !== 'today' || data.length === 0) return null;
-        const slot = pickCurrentSlot(data, Date.now());
-        return slot ? slot.y : null;
-    })();
+    const currentSlot = activeTab === 'today' && data.length > 0 ? pickCurrentSlot(data, now) : null;
+    const currentPrice = currentSlot ? currentSlot.y : null;
 
     const stats = (() => {
         if (data.length === 0) return null;
@@ -189,7 +215,7 @@ const ElectricityPage = () => {
                             {TABS.map(({ label, key }) => (
                                 <button
                                     key={key}
-                                    onClick={() => setActiveTab(key)}
+                                    onClick={() => selectTab(key)}
                                     className={`flex-1 text-sm py-1.5 rounded-lg font-medium transition-all duration-200 ${
                                         activeTab === key
                                             ? 'bg-sky-600 text-white shadow-sm'

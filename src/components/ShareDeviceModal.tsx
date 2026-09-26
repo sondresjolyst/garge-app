@@ -28,6 +28,7 @@ const ShareDeviceModal: React.FC<ShareDeviceModalProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [revokingId, setRevokingId] = useState<string | null>(null);
 
+    /** Re-fetch the share list after adding or revoking one. */
     const load = useCallback(async () => {
         try {
             setShares(await listShares(deviceId));
@@ -38,7 +39,20 @@ const ShareDeviceModal: React.FC<ShareDeviceModalProps> = ({
         }
     }, [deviceId, listShares]);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => {
+        let active = true;
+        (async () => {
+            try {
+                const list = await listShares(deviceId);
+                if (active) setShares(list);
+            } catch (e) {
+                if (active) setError(e instanceof Error ? e.message : 'Failed to load shares');
+            } finally {
+                if (active) setLoading(false);
+            }
+        })();
+        return () => { active = false; };
+    }, [deviceId, listShares]);
 
     const handleShare = async () => {
         const trimmed = email.trim();
