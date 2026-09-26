@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import UserService from '@/services/userService';
 import { UserDTO } from '@/dto/UserDTO';
@@ -10,6 +10,9 @@ import { ChevronRightIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/r
 import { normalizeNoPhone } from '@/lib/phone';
 import { isPushSupported, isPushSubscribed, subscribeToPush, unsubscribeFromPush, sendTestNotification } from '@/services/pushNotificationService';
 import { useCanClaimDevice } from '@/hooks/useCanClaimDevice';
+
+/** The notification permission does not change under us, so never notify. */
+const subscribeNothing = () => () => { };
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
 import Section from '@/components/Section';
@@ -28,8 +31,10 @@ const Profile: React.FC = () => {
     const [priceZone, setPriceZone] = useState<string>('NO2');
     const [priceZoneSaving, setPriceZoneSaving] = useState(false);
     const [profileLoading, setProfileLoading] = useState(true);
-    const [isButtonDisabled, setIsButtonDisabled] = useState(false);
     const [countdown, setCountdown] = useState(0);
+    // Derived rather than stored: the resend button is disabled exactly while
+    // the countdown is running.
+    const isButtonDisabled = countdown > 0;
     const [verificationCode, setVerificationCode] = useState('');
     const [sensorCount, setSensorCount] = useState<number | null>(null);
     const [socketCount, setSocketCount] = useState<number | null>(null);
@@ -47,7 +52,13 @@ const Profile: React.FC = () => {
     const [retentionLoading, setRetentionLoading] = useState(false);
     const [pushEnabled, setPushEnabled] = useState(false);
     const [pushLoading, setPushLoading] = useState(false);
-    const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
+    // Read through a store rather than copied into state: the browser owns this
+    // value, and 'default' on the server keeps the first client render matching.
+    const pushPermission = useSyncExternalStore(
+        subscribeNothing,
+        () => (isPushSupported() ? Notification.permission : 'default'),
+        () => 'default' as NotificationPermission,
+    );
     const [offlineThreshold, setOfflineThreshold] = useState(4);
     const [thresholdSaving, setThresholdSaving] = useState(false);
     const [testNotifLoading, setTestNotifLoading] = useState(false);
@@ -68,7 +79,6 @@ const Profile: React.FC = () => {
             toast.error(err instanceof Error ? err.message : 'Failed to load your profile.');
         }).finally(() => setProfileLoading(false));
         if (isPushSupported()) {
-            setPushPermission(Notification.permission);
             isPushSubscribed()
                 .then(setPushEnabled)
                 .catch(() => setPushEnabled(false));
@@ -78,7 +88,7 @@ const Profile: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (countdown <= 0) { setIsButtonDisabled(false); return; }
+        if (countdown <= 0) return;
         const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
         return () => clearTimeout(timer);
     }, [countdown]);
@@ -154,7 +164,6 @@ const Profile: React.FC = () => {
             const response = await UserService.resendEmailConfirmation(user.email);
             setEmailMessage(response.message);
             setEmailError(false);
-            setIsButtonDisabled(true);
             setCountdown(60);
         } catch {
             setEmailMessage('Failed to resend email confirmation');
@@ -186,7 +195,6 @@ const Profile: React.FC = () => {
                     offlineAlertThresholdHours: offlineThreshold,
                 });
                 setPushEnabled(true);
-                setPushPermission(Notification.permission);
                 toast.success('Offline alerts enabled on this device');
             } else {
                 await unsubscribeFromPush();
@@ -196,7 +204,6 @@ const Profile: React.FC = () => {
         } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : 'Failed to update notification settings';
             toast.error(msg);
-            setPushPermission(Notification.permission);
         } finally {
             setPushLoading(false);
         }

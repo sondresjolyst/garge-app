@@ -127,9 +127,13 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
 
     // useDeviceStream captures its handlers once on mount, so the SignalR
     // callback must only reach into refs and stable callbacks. This ref mirrors
-    // whether the pairing step is currently active (updated every render).
+    // whether the pairing step is currently active. It is written after commit,
+    // never during render; the SignalR callback only reads it when an event
+    // arrives, which is always after the commit that set it.
     const pairingActiveRef = useRef(false);
-    pairingActiveRef.current = step === 0 && claimMode === 'pair' && pairingToken !== null && !pairingExpired;
+    useEffect(() => {
+        pairingActiveRef.current = step === 0 && claimMode === 'pair' && pairingToken !== null && !pairingExpired;
+    });
 
     // The backend auto-claims the device after the user enters the pairing code
     // in the device's captive portal, then raises `device-created` for this
@@ -519,14 +523,14 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                 const toggleSensor = (id: number) => {
                     setSelectedSensorIds(prev => {
                         const next = new Set(prev);
-                        next.has(id) ? next.delete(id) : next.add(id);
+                        if (next.has(id)) next.delete(id); else next.add(id);
                         return next;
                     });
                 };
                 const toggleSwitch = (id: number) => {
                     setSelectedSwitchIds(prev => {
                         const next = new Set(prev);
-                        next.has(id) ? next.delete(id) : next.add(id);
+                        if (next.has(id)) next.delete(id); else next.add(id);
                         return next;
                     });
                 };

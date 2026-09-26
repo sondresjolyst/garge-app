@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { MinusIcon, PlusIcon, TrashIcon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { CartLine, cartTotalInOre, removeLine, setLineQty } from '@/lib/cart';
 import { ShopItem } from '@/services/shopService';
@@ -41,9 +41,14 @@ export default function CartDrawer({
     const [phone, setPhone] = useState(initialPhone);
     const phoneRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
+    // Re-seed the field whenever the drawer opens or the profile phone changes,
+    // adjusting state during render rather than in an effect so the first paint
+    // already shows the new value.
+    const [seed, setSeed] = useState({ open, initialPhone });
+    if (seed.open !== open || seed.initialPhone !== initialPhone) {
+        setSeed({ open, initialPhone });
         if (open) setPhone(initialPhone);
-    }, [open, initialPhone]);
+    }
 
     if (!open) return null;
 
