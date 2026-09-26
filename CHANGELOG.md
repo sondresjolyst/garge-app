@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.10](https://github.com/sondresjolyst/garge-app/compare/v1.20.9...v1.20.10) (2026-09-26)
+
+
+### Bug Fixes
+
+* show the company legal name as Sjølyst Innovation AS ([#517](https://github.com/sondresjolyst/garge-app/issues/517)) ([339429a](https://github.com/sondresjolyst/garge-app/commit/339429a3c59b52c59709d18731fd186a41452e84))
+
 ## [1.20.9](https://github.com/sondresjolyst/garge-app/compare/v1.20.8...v1.20.9) (2026-09-25)
 
 
