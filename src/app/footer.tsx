@@ -30,7 +30,18 @@ export default async function Footer() {
                 </nav>
 
                 {/* Bottom */}
-                <p className="text-xs text-gray-600">© 2026 {COMPANY.legalName} · Org. nr. {formatOrgNumber(COMPANY.orgNumber, vatEnabled)}</p>
+                <p className="text-xs text-gray-600">
+                    © 2026{' '}
+                    <a
+                        href="https://www.sjolystinnovation.no/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-gray-400 hover:underline"
+                    >
+                        {COMPANY.legalName}
+                    </a>
+                    {' '}· Org. nr. {formatOrgNumber(COMPANY.orgNumber, vatEnabled)}
+                </p>
 
             </div>
         </footer>
