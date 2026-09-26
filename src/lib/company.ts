@@ -2,8 +2,8 @@ import { getPublicAppSettings } from '@/services/appSettingsService';
 
 export const COMPANY = {
     name: 'Garge',
-    legalName: 'Sjølyst Innovations',
-    orgNumber: '934 531 035',
+    legalName: 'Sjølyst Innovation AS',
+    orgNumber: '938 517 789',
     address: 'Mårvegen 21a, 4347 Lye',
     email: 'sondresjoelyst@gmail.com',
 } as const;
