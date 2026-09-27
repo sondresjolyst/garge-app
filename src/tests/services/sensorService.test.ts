@@ -75,10 +75,11 @@ describe('SensorService Garge Security', () => {
         expect(result).toEqual(security)
     })
 
-    it('updateSensorSecurity PATCHes enabled and threshold', async () => {
+    // The alert threshold is a global admin setting, not per sensor.
+    it('updateSensorSecurity PATCHes enabled', async () => {
         mockPatch.mockResolvedValueOnce({ data: security })
-        const result = await SensorService.updateSensorSecurity(5, { enabled: true, thresholdMinutes: 30 })
-        expect(mockPatch).toHaveBeenCalledWith('/sensors/5/security', { enabled: true, thresholdMinutes: 30 })
+        const result = await SensorService.updateSensorSecurity(5, { enabled: true })
+        expect(mockPatch).toHaveBeenCalledWith('/sensors/5/security', { enabled: true })
         expect(result).toEqual(security)
     })
 
