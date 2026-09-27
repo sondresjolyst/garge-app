@@ -11,7 +11,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 // - a non-admin is redirected and loads nothing
 
 const {
-    getStats, getUsers, getStatsHistory, getEmailStats, getAllRoles, getAppSettings, push,
+    getStats, getUsers, getStatsHistory, getEmailStats, getAllRoles, getAppSettings,
+    getSecuritySettings, push,
 } = vi.hoisted(() => ({
     getStats: vi.fn(),
     getUsers: vi.fn(),
@@ -19,6 +20,7 @@ const {
     getEmailStats: vi.fn(),
     getAllRoles: vi.fn(),
     getAppSettings: vi.fn(),
+    getSecuritySettings: vi.fn(),
     push: vi.fn(),
 }))
 
@@ -40,6 +42,8 @@ vi.mock('@/services/adminService', () => ({
         getAllRoles: () => getAllRoles(),
         getAppSettings: () => getAppSettings(),
         updateAppSettings: vi.fn(),
+        getSecuritySettings: () => getSecuritySettings(),
+        updateSecuritySettings: vi.fn(),
         assignRole: vi.fn(),
         removeRole: vi.fn(),
         deleteUser: vi.fn(),
@@ -79,6 +83,7 @@ beforeEach(() => {
     getEmailStats.mockResolvedValue(emailStats(100))
     getAllRoles.mockResolvedValue(['Admin', 'Default'])
     getAppSettings.mockResolvedValue({ cookieBannerEnabled: true, vatEnabled: true, vippsTestMode: false })
+    getSecuritySettings.mockResolvedValue({ alertThresholdMinutes: 25 })
 })
 
 describe('AdminPage', () => {

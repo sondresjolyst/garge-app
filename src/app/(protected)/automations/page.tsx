@@ -103,7 +103,20 @@ const AutomationsPage: React.FC = () => {
                 else setError(formatApiError(rulesRes.reason, 'A network error occurred'));
                 if (switchesRes.status === 'fulfilled') setSwitches(switchesRes.value);
                 else setError(formatApiError(switchesRes.reason, 'Failed to fetch sockets'));
-                if (sensorsRes.status === 'fulfilled') setSensors(sensorsRes.value);
+                if (sensorsRes.status === 'fulfilled') {
+                    setSensors(sensorsRes.value);
+                    const presetSensor = presetSensorId
+                        ? sensorsRes.value.find(s => s.id === presetSensorId)
+                        : undefined;
+                    if (presetSensor) {
+                        setForm({
+                            ...initialForm, sensorId: presetSensor.id, sensorType: presetSensor.type,
+                            condition: '<', threshold: NaN, action: 'on',
+                        });
+                        setSensorLocked(true);
+                        setFormOpen(true);
+                    }
+                }
                 else setError(formatApiError(sensorsRes.reason, 'Failed to fetch sensors'));
                 if (profileRes.status === 'fulfilled' && profileRes.value.priceZone) {
                     setDefaultPriceArea(profileRes.value.priceZone);
@@ -114,7 +127,7 @@ const AutomationsPage: React.FC = () => {
             }
         })();
         return () => { active = false; };
-    }, []);
+    }, [presetSensorId]);
 
     useEffect(() => {
         if (sensors.length === 0) return;
@@ -145,31 +158,6 @@ const AutomationsPage: React.FC = () => {
     const fetchRules    = () => AutomationService.getRules()
         .then(data => setRules(Array.isArray(data) ? data : []))
         .catch(handleError);
-    const fetchSwitches = async () => {
-        try { setSwitches(await SwitchService.getAllSwitches()); }
-        catch (e) { handleError(e, 'Failed to fetch sockets'); }
-    };
-    const fetchSensors  = async () => {
-        try {
-            const all = await SensorService.getAllSensors();
-            setSensors(all);
-            const presetSensor = all.find(s => s.id === presetSensorId);
-            if (presetSensor) openChargingPreset(presetSensor);
-        }
-        catch (e) { handleError(e, 'Failed to fetch sensors'); }
-    };
-    const openChargingPreset = (sensor: Sensor) => {
-        setForm({ ...initialForm, sensorId: sensor.id, sensorType: sensor.type, condition: '<', threshold: NaN, action: 'on' });
-        setSensorLocked(true);
-        setFormOpen(true);
-    };
-    const fetchUserPriceZone = async () => {
-        try {
-            const profile = await UserService.getUserProfile();
-            if (profile.priceZone) setDefaultPriceArea(profile.priceZone);
-        } catch { /* ignore */ }
-    };
-
     const handleError = (err: unknown, fallbackMsg?: string) => {
         setError(formatApiError(err, fallbackMsg || 'A network error occurred'));
     };
