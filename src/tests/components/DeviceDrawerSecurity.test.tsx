@@ -203,7 +203,7 @@ describe('DeviceDrawer Garge Security', () => {
     // The API refuses a charging threshold that cannot produce a usable battery floor,
     // so the toggle must say what to change rather than just "failed to save".
     it('tells the user to fix the charging threshold when the API refuses it', async () => {
-        updateSensorSecurity.mockRejectedValue(new ApiError('Out of range.', 'invalid_threshold'))
+        updateSensorSecurity.mockRejectedValue(new ApiError('Out of range.', 'invalid_charging_threshold'))
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
 
         const toggle = await screen.findByRole('switch', { name: 'Turn on Garge Security' })
