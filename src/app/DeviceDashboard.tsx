@@ -6,7 +6,7 @@ import { TYPE_CONFIG, DEFAULT_TYPE } from '@/lib/typeConfig';
 import { formatSensorValue, typeEmoji } from '@/lib/typeUtils';
 import { voltageColorClass, thresholdsOrNull } from '@/lib/voltageThresholds';
 import LoadingDots from '@/components/LoadingDots';
-import SensorService, { Sensor, BatteryHealthData } from '@/services/sensorService';
+import SensorService, { Sensor, BatteryHealthData, SensorSecurityState } from '@/services/sensorService';
 import SwitchService, { Switch } from '@/services/switchService';
 import GroupService, { Group } from '@/services/groupService';
 import DeviceDrawer from './DeviceDrawer';
@@ -88,7 +88,7 @@ export interface UnifiedDevice {
     latestState?: string;
     latestTimestamp?: string;
     batteryHealth?: BatteryHealthData;
-    security?: { enabled: boolean; state: string };
+    security?: { enabled: boolean; state: SensorSecurityState };
     isActive: boolean;
 }
 
@@ -416,7 +416,7 @@ const DeviceDashboard: React.FC = () => {
         setSelected(prev => (prev ? apply(prev) : prev));
     }, []);
 
-    const handleSecurityChange = useCallback((id: number, security: { enabled: boolean; state: string }) => {
+    const handleSecurityChange = useCallback((id: number, security: { enabled: boolean; state: SensorSecurityState }) => {
         const apply = (d: UnifiedDevice): UnifiedDevice =>
             d.kind === 'sensor' && d.id === id ? { ...d, security } : d;
         setDevices(prev => prev.map(apply));

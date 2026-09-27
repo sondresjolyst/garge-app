@@ -14,7 +14,7 @@ import { RANGE_OPTIONS, type RangeIndex } from '@/lib/constants';
 import { ApiError } from '@/lib/errors';
 import LoadingDots from '@/components/LoadingDots';
 import PhotoUploader from '@/components/PhotoUploader';
-import SensorService, { SensorData, BatteryHealthData, SensorSecurity } from '@/services/sensorService';
+import SensorService, { SensorData, BatteryHealthData, SensorSecurity, SensorSecurityState } from '@/services/sensorService';
 import SwitchService, { SwitchData } from '@/services/switchService';
 import AutomationService from '@/services/automationService';
 import type { AutomationRuleDto } from '@/dto/Automation/AutomationRuleDto';
@@ -69,7 +69,7 @@ interface DeviceDrawerProps {
     /** Notifies the parent that the sensor's voltage color thresholds changed (null when cleared). */
     onThresholdsChange?: (sensorId: number, warning: number | null, critical: number | null) => void;
     /** Notifies the parent that the sensor's Garge Security was turned on or off. */
-    onSecurityChange?: (sensorId: number, security: { enabled: boolean; state: string }) => void;
+    onSecurityChange?: (sensorId: number, security: { enabled: boolean; state: SensorSecurityState }) => void;
 }
 
 function InfoLabel({ children, tooltip }: { children?: React.ReactNode; tooltip: string }) {
@@ -334,7 +334,7 @@ function securityErrorMessage(code: string | null): string {
 
 const GargeSecurityConfig: React.FC<{
     sensorId: number;
-    onChange: (sensorId: number, security: { enabled: boolean; state: string }) => void;
+    onChange: (sensorId: number, security: { enabled: boolean; state: SensorSecurityState }) => void;
 }> = ({ sensorId, onChange }) => {
     const [security, setSecurity] = useState<SensorSecurity | null>(null);
     const [hasChargingRule, setHasChargingRule] = useState<boolean | null>(null);

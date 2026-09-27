@@ -21,7 +21,7 @@ export interface Sensor {
     warningVoltage?: number | null;
     criticalVoltage?: number | null;
     /** Present only for users with Garge Security, and only on sensors that have it set up. */
-    security?: { enabled: boolean; state: string };
+    security?: { enabled: boolean; state: SensorSecurityState };
 }
 
 export type SensorSecurityState = 'off' | 'pending' | 'armed' | 'paused_low_battery' | 'offline';
