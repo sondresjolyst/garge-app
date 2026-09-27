@@ -200,6 +200,20 @@ describe('DeviceDrawer Garge Security', () => {
         expect(screen.getByRole('link', { name: 'Create charging automation' })).toBeInTheDocument()
     })
 
+    // The API refuses a charging threshold that cannot produce a usable battery floor,
+    // so the toggle must say what to change rather than just "failed to save".
+    it('tells the user to fix the charging threshold when the API refuses it', async () => {
+        updateSensorSecurity.mockRejectedValue(new ApiError('Out of range.', 'invalid_threshold'))
+        render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
+
+        const toggle = await screen.findByRole('switch', { name: 'Turn on Garge Security' })
+        await waitFor(() => expect(toggle).toBeEnabled())
+        fireEvent.click(toggle)
+
+        await waitFor(() => expect(toastError).toHaveBeenCalledWith('Set your charging automation to a normal battery voltage first'))
+        expect(screen.getByRole('switch', { name: 'Turn on Garge Security' })).toHaveAttribute('aria-checked', 'false')
+    })
+
     it('tells the user to turn on notifications when there is no alert channel', async () => {
         updateSensorSecurity.mockRejectedValue(new ApiError('No alert channel.', 'no_alert_channel'))
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)

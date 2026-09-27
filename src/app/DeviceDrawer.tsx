@@ -326,6 +326,8 @@ function securityErrorMessage(code: string | null): string {
     switch (code) {
         case 'charging_automation_required': return 'Create a charging automation for this sensor first';
         case 'no_alert_channel':             return 'Turn on push or email notifications in your profile first';
+        case 'invalid_threshold':            return 'Set your charging automation to a normal battery voltage first';
+        case 'unsupported_sensor':           return 'Garge Security only works on battery voltage sensors';
         default:                             return 'Failed to save Garge Security';
     }
 }
