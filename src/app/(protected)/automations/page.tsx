@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AutomationService from '@/services/automationService';
 import SwitchService, { Switch } from '@/services/switchService';
 import SensorService, { Sensor } from '@/services/sensorService';
@@ -65,11 +66,14 @@ const formatTimerRemaining = (activatedAt: string, durationHours: number): strin
 // ── AutomationsPage ───────────────────────────────────────────────────────────
 
 const AutomationsPage: React.FC = () => {
+    const searchParams = useSearchParams();
+    const presetSensorId = searchParams.get('preset') === 'charging' ? Number(searchParams.get('sensorId')) : 0;
     const [rules, setRules]                   = useState<AutomationRuleDto[]>([]);
     const [loading, setLoading]               = useState(true);
     const [error, setError]                   = useState<string>('');
     const [form, setForm]                     = useState<CreateAutomationRuleDto>(initialForm);
     const [formOpen, setFormOpen]             = useState(false);
+    const [sensorLocked, setSensorLocked]     = useState(false);
     const [submitting, setSubmitting]         = useState(false);
     const [editingId, setEditingId]           = useState<number | null>(null);
     const [editForm, setEditForm]             = useState<UpdateAutomationRuleDto | null>(null);
@@ -99,7 +103,20 @@ const AutomationsPage: React.FC = () => {
                 else setError(formatApiError(rulesRes.reason, 'A network error occurred'));
                 if (switchesRes.status === 'fulfilled') setSwitches(switchesRes.value);
                 else setError(formatApiError(switchesRes.reason, 'Failed to fetch sockets'));
-                if (sensorsRes.status === 'fulfilled') setSensors(sensorsRes.value);
+                if (sensorsRes.status === 'fulfilled') {
+                    setSensors(sensorsRes.value);
+                    const presetSensor = presetSensorId
+                        ? sensorsRes.value.find(s => s.id === presetSensorId)
+                        : undefined;
+                    if (presetSensor) {
+                        setForm({
+                            ...initialForm, sensorId: presetSensor.id, sensorType: presetSensor.type,
+                            condition: '<', threshold: NaN, action: 'on',
+                        });
+                        setSensorLocked(true);
+                        setFormOpen(true);
+                    }
+                }
                 else setError(formatApiError(sensorsRes.reason, 'Failed to fetch sensors'));
                 if (profileRes.status === 'fulfilled' && profileRes.value.priceZone) {
                     setDefaultPriceArea(profileRes.value.priceZone);
@@ -110,7 +127,7 @@ const AutomationsPage: React.FC = () => {
             }
         })();
         return () => { active = false; };
-    }, []);
+    }, [presetSensorId]);
 
     useEffect(() => {
         if (sensors.length === 0) return;
@@ -152,6 +169,7 @@ const AutomationsPage: React.FC = () => {
         try {
             await AutomationService.createRule(form);
             setForm(initialForm);
+            setSensorLocked(false);
             setFormOpen(false);
             fetchRules();
             toast.success('Automation created');
@@ -224,7 +242,7 @@ const AutomationsPage: React.FC = () => {
     // ── Derived values ─────────────────────────────────────────────────────────
     const isEditMode     = editingId !== null && editForm !== null;
 
-    const openCreateDrawer = () => { setEditingId(null); setEditForm(null); setFormOpen(true); };
+    const openCreateDrawer = () => { setEditingId(null); setEditForm(null); setSensorLocked(false); setFormOpen(true); };
     const closeDrawer      = () => { setFormOpen(false); setEditingId(null); setEditForm(null); };
 
     // ── Form contents (shared between drawer modes) ────────────────────────────
@@ -243,6 +261,7 @@ const AutomationsPage: React.FC = () => {
             latestValueMap={latestValueMap}
             defaultPriceArea={defaultPriceArea}
             priceFormKey="create"
+            lockSensor={sensorLocked}
         />
     );
 
