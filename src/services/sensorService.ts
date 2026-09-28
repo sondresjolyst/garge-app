@@ -34,12 +34,14 @@ export interface SensorSecurity {
     enabled: boolean;
     state: SensorSecurityState;
     reason: SensorSecurityReason | null;
-    /** False when the device's firmware takes no Garge Security settings, so it can never
-     * arm. Null until the bridge has seen one of its config messages. */
-    capable: boolean | null;
+    /** False when the device's hardware cannot do Garge Security, so it can never arm.
+     * Null until the bridge has seen one of its config messages, and absent on older API
+     * builds; both are treated as unknown. */
+    capable?: boolean | null;
     /** The charging automation Garge Security enforces, or null when the sensor has none
-     * that qualifies. The API decides this; the rule's target must be a socket. */
-    enforcingRule: { id: number; targetId: number; targetName: string; condition: string; threshold: number } | null;
+     * that qualifies. The API decides this; the rule's target must be a socket. Absent on
+     * older API builds, which is treated as unknown. */
+    enforcingRule?: { id: number; targetId: number; targetName: string; condition: string; threshold: number } | null;
     isOwner: boolean;
 }
 

@@ -170,6 +170,32 @@ describe('DeviceDrawer Garge Security', () => {
         expect(screen.queryByRole('link', { name: 'Create charging automation' })).not.toBeInTheDocument()
     })
 
+    // Both reasons to withhold the toggle at once: the CTA must not appear, since no
+    // charging automation can make this hardware work.
+    it('offers no charging CTA when the hardware is unsupported and no rule exists', async () => {
+        getSensorSecurity.mockResolvedValue(makeSecurity({ capable: false, enforcingRule: null }))
+        render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
+
+        expect(await screen.findByText("This sensor's hardware does not support Garge Security.")).toBeInTheDocument()
+        expect(screen.queryByRole('link', { name: 'Create charging automation' })).not.toBeInTheDocument()
+        expect(screen.queryByText('Requires a charging automation.')).not.toBeInTheDocument()
+    })
+
+    // The bridge can learn the hardware between the load and the click.
+    it('stops offering the toggle when the API refuses for unsupported hardware', async () => {
+        getSensorSecurity.mockResolvedValue(makeSecurity({ capable: null }))
+        updateSensorSecurity.mockRejectedValue(new ApiError('Not supported.', 'unsupported_hardware'))
+        render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
+
+        const toggle = await screen.findByRole('switch', { name: 'Turn on Garge Security' })
+        await waitFor(() => expect(toggle).toBeEnabled())
+        fireEvent.click(toggle)
+
+        await waitFor(() => expect(toastError).toHaveBeenCalledWith("This sensor's hardware does not support Garge Security"))
+        await waitFor(() => expect(screen.queryByRole('switch')).not.toBeInTheDocument())
+        expect(screen.getByText("This sensor's hardware does not support Garge Security.")).toBeInTheDocument()
+    })
+
     // Unknown is a device the bridge has not heard from, not one known to be incapable.
     it('still offers the toggle when the capability is unknown', async () => {
         getSensorSecurity.mockResolvedValue(makeSecurity({ capable: null }))

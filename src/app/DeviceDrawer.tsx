@@ -390,6 +390,11 @@ const GargeSecurityConfig: React.FC<{
             if (code === 'charging_automation_required') {
                 setSecurity({ ...security, enforcingRule: null });
             }
+            // Learned between the load and the click, so take the API's word for it and
+            // stop offering a toggle that cannot succeed.
+            if (code === 'unsupported_hardware') {
+                setSecurity({ ...security, capable: false });
+            }
             toast.error(securityErrorMessage(code));
         } finally {
             generation.current += 1;
