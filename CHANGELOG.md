@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.21.0](https://github.com/sondresjolyst/garge-app/compare/v1.20.10...v1.21.0) (2026-09-27)
+
+
+### Features
+
+* add garge security to sensor drawer ([#490](https://github.com/sondresjolyst/garge-app/issues/490)) ([0ad9f23](https://github.com/sondresjolyst/garge-app/commit/0ad9f234767a0a13614cec67723142be2f73c523))
+
+
+### Bug Fixes
+
+* type the security state instead of widening it to string ([#525](https://github.com/sondresjolyst/garge-app/issues/525)) ([c152131](https://github.com/sondresjolyst/garge-app/commit/c15213164ea932b16c9fcffa6105a454ad9a1b7e))
+
+
+### Dependencies
+
+* **npm:** bump @types/node from 26.5.1 to 26.6.2 in the types group ([#522](https://github.com/sondresjolyst/garge-app/issues/522)) ([63ce2b8](https://github.com/sondresjolyst/garge-app/commit/63ce2b8e370ce46f02a6e0d7779ceb50d14ac0fc))
+* **npm:** bump `apexcharts` from 7.3.0 to 7.4.0 ([#523](https://github.com/sondresjolyst/garge-app/issues/523)) ([cd50f76](https://github.com/sondresjolyst/garge-app/commit/cd50f768570ea14749f3cc96b8ebc59d8a1662d3))
+* **npm:** bump the testing group with 2 updates ([#521](https://github.com/sondresjolyst/garge-app/issues/521)) ([300a145](https://github.com/sondresjolyst/garge-app/commit/300a145d1eabe5ef327807ee6a1a1c9ab4e3b416))
+
 ## [1.20.10](https://github.com/sondresjolyst/garge-app/compare/v1.20.9...v1.20.10) (2026-09-26)
 
 
