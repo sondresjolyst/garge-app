@@ -322,13 +322,15 @@ function securityBanner(security: SensorSecurity): { text: string; className: st
     }
 }
 
+const UNSUPPORTED_HARDWARE = "This sensor's hardware does not support Garge Security";
+
 function securityErrorMessage(code: string | null): string {
     switch (code) {
         case 'charging_automation_required': return 'Create a charging automation for this sensor first';
         case 'no_alert_channel':             return 'Turn on push or email notifications in your profile first';
         case 'invalid_charging_threshold':   return 'Set your charging automation to a normal battery voltage first';
         case 'unsupported_sensor':           return 'Garge Security only works on battery voltage sensors';
-        case 'unsupported_hardware':         return "This sensor's hardware does not support Garge Security";
+        case 'unsupported_hardware':         return UNSUPPORTED_HARDWARE;
         default:                             return 'Failed to save Garge Security';
     }
 }
@@ -439,17 +441,17 @@ const GargeSecurityConfig: React.FC<{
                     <ToggleSwitch
                         checked={security.enabled}
                         onChange={security.enabled ? disable : () => save('Garge Security turned on')}
-                        disabled={saving || (!security.enabled && (needsChargingRule || unsupportedHardware))}
+                        disabled={saving || (!security.enabled && needsChargingRule)}
                         ariaLabel={security.enabled ? 'Turn off Garge Security' : 'Turn on Garge Security'}
                     />
-                ) : unsupportedHardware ? null : (
+                ) : unsupportedHardware && !security.enabled ? null : (
                     <span className="text-xs font-medium text-gray-400 flex-shrink-0">{security.enabled ? 'On' : 'Off'}</span>
                 )}
             </div>
 
             {unsupportedHardware && (
                 <p className="px-3 py-2 rounded-xl border text-xs leading-snug bg-gray-900/60 border-gray-700/40 text-gray-400">
-                    This sensor&apos;s hardware does not support Garge Security.
+                    {UNSUPPORTED_HARDWARE}.
                 </p>
             )}
 

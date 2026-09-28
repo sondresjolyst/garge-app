@@ -217,6 +217,16 @@ describe('DeviceDrawer Garge Security', () => {
         expect(screen.queryByText('This sensor needs a firmware update before Garge Security can turn on.')).not.toBeInTheDocument()
     })
 
+    // The owner still has it on, so a viewer must not be told the panel is inert.
+    it('shows the On badge to a non-owner when it is on and the hardware is unsupported', async () => {
+        getSensorSecurity.mockResolvedValue(makeSecurity({ enabled: true, capable: false, isOwner: false, state: 'pending', reason: 'firmware_too_old' }))
+        render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
+
+        const card = await findCard()
+        expect(within(card).getByText('On')).toBeInTheDocument()
+        expect(within(card).queryByRole('switch')).not.toBeInTheDocument()
+    })
+
     it('shows a specific toast and stays off when the API requires a charging automation', async () => {
         updateSensorSecurity.mockRejectedValue(new ApiError('Add a charging automation first.', 'charging_automation_required'))
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
