@@ -32,15 +32,16 @@ export type SensorSecurityReason = 'firmware_too_old' | 'awaiting_wake' | 'low_b
 export interface SensorSecurity {
     sensorId: number;
     enabled: boolean;
-    /** Global alert threshold, set by an admin. */
-    thresholdMinutes: number;
-    requestedSleepSeconds: number;
-    appliedSleepSeconds: number | null;
-    armedAt: string | null;
-    lastReportedAt: string | null;
     state: SensorSecurityState;
     reason: SensorSecurityReason | null;
-    enforcingRule: { id: number; targetId: number; targetName: string; condition: string; threshold: number } | null;
+    /** False when the device's hardware cannot do Garge Security, so it can never arm.
+     * Null until the bridge has seen one of its config messages, and absent on older API
+     * builds; both are treated as unknown. */
+    capable?: boolean | null;
+    /** The charging automation Garge Security enforces, or null when the sensor has none
+     * that qualifies. The API decides this; the rule's target must be a socket. Absent on
+     * older API builds, which is treated as unknown. */
+    enforcingRule?: { id: number; targetId: number; targetName: string; condition: string; threshold: number } | null;
     isOwner: boolean;
 }
 

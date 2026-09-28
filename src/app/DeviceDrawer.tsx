@@ -16,8 +16,6 @@ import LoadingDots from '@/components/LoadingDots';
 import PhotoUploader from '@/components/PhotoUploader';
 import SensorService, { SensorData, BatteryHealthData, SensorSecurity, SensorSecurityState } from '@/services/sensorService';
 import SwitchService, { SwitchData } from '@/services/switchService';
-import AutomationService from '@/services/automationService';
-import type { AutomationRuleDto } from '@/dto/Automation/AutomationRuleDto';
 import { formatDateTime, formatRelative } from '@/lib/dateUtils';
 import SensorPhotoService from '@/services/sensorPhotoService';
 import type { Photo } from '@/services/photoServiceFactory';
@@ -301,12 +299,6 @@ const VoltageThresholdConfig: React.FC<{
 
 const SECURITY_POLL_MS = 60_000;
 
-const isChargingRule = (rule: AutomationRuleDto, sensorId: number): boolean =>
-    rule.sensorId === sensorId
-    && rule.isEnabled
-    && (rule.condition === '<' || rule.condition === '<=')
-    && rule.action.toLowerCase() === 'on';
-
 function securityBanner(security: SensorSecurity): { text: string; className: string } | null {
     switch (security.state) {
         case 'pending':
@@ -322,12 +314,15 @@ function securityBanner(security: SensorSecurity): { text: string; className: st
     }
 }
 
+const UNSUPPORTED_HARDWARE = "This sensor's hardware does not support Garge Security";
+
 function securityErrorMessage(code: string | null): string {
     switch (code) {
         case 'charging_automation_required': return 'Create a charging automation for this sensor first';
         case 'no_alert_channel':             return 'Turn on push or email notifications in your profile first';
         case 'invalid_charging_threshold':   return 'Set your charging automation to a normal battery voltage first';
         case 'unsupported_sensor':           return 'Garge Security only works on battery voltage sensors';
+        case 'unsupported_hardware':         return UNSUPPORTED_HARDWARE;
         default:                             return 'Failed to save Garge Security';
     }
 }
@@ -337,7 +332,6 @@ const GargeSecurityConfig: React.FC<{
     onChange: (sensorId: number, security: { enabled: boolean; state: SensorSecurityState }) => void;
 }> = ({ sensorId, onChange }) => {
     const [security, setSecurity] = useState<SensorSecurity | null>(null);
-    const [hasChargingRule, setHasChargingRule] = useState<boolean | null>(null);
     const [saving, setSaving] = useState(false);
     const generation = useRef(0);
     const onChangeRef = useRef(onChange);
@@ -348,14 +342,10 @@ const GargeSecurityConfig: React.FC<{
 
     useEffect(() => {
         let active = true;
-        Promise.all([
-            SensorService.getSensorSecurity(sensorId),
-            AutomationService.getRules().catch((): null => null),
-        ])
-            .then(([loaded, rules]) => {
+        SensorService.getSensorSecurity(sensorId)
+            .then(loaded => {
                 if (!active) return;
                 setSecurity(loaded);
-                setHasChargingRule(rules ? rules.some(rule => isChargingRule(rule, sensorId)) : null);
             })
             .catch(() => {});
         return () => { active = false; };
@@ -380,7 +370,10 @@ const GargeSecurityConfig: React.FC<{
 
     if (!security) return null;
 
-    const needsChargingRule = !security.enabled && hasChargingRule === false;
+    const needsChargingRule = !security.enabled && security.enforcingRule === null;
+    // A firmware update cannot fix this one, so it is said plainly and the toggle is not
+    // offered at all.
+    const unsupportedHardware = security.capable === false;
     const banner = securityBanner(security);
 
     const save = async (successMessage: string) => {
@@ -394,7 +387,14 @@ const GargeSecurityConfig: React.FC<{
             toast.success(successMessage);
         } catch (err) {
             const code = err instanceof ApiError ? err.code : null;
-            if (code === 'charging_automation_required') setHasChargingRule(false);
+            if (code === 'charging_automation_required') {
+                setSecurity({ ...security, enforcingRule: null });
+            }
+            // Learned between the load and the click, so take the API's word for it and
+            // stop offering a toggle that cannot succeed.
+            if (code === 'unsupported_hardware') {
+                setSecurity({ ...security, capable: false });
+            }
             toast.error(securityErrorMessage(code));
         } finally {
             generation.current += 1;
@@ -431,23 +431,29 @@ const GargeSecurityConfig: React.FC<{
                         Alerts you if this sensor stops checking in.
                     </p>
                 </div>
-                {security.isOwner ? (
+                {security.isOwner && !(unsupportedHardware && !security.enabled) ? (
                     <ToggleSwitch
                         checked={security.enabled}
                         onChange={security.enabled ? disable : () => save('Garge Security turned on')}
                         disabled={saving || (!security.enabled && needsChargingRule)}
                         ariaLabel={security.enabled ? 'Turn off Garge Security' : 'Turn on Garge Security'}
                     />
-                ) : (
+                ) : unsupportedHardware && !security.enabled ? null : (
                     <span className="text-xs font-medium text-gray-400 flex-shrink-0">{security.enabled ? 'On' : 'Off'}</span>
                 )}
             </div>
 
-            {banner && (
+            {unsupportedHardware && (
+                <p className="px-3 py-2 rounded-xl border text-xs leading-snug bg-gray-900/60 border-gray-700/40 text-gray-400">
+                    {UNSUPPORTED_HARDWARE}.
+                </p>
+            )}
+
+            {!unsupportedHardware && banner && (
                 <p className={`px-3 py-2 rounded-xl border text-xs leading-snug ${banner.className}`}>{banner.text}</p>
             )}
 
-            {security.isOwner && needsChargingRule && (
+            {security.isOwner && !unsupportedHardware && needsChargingRule && (
                 <div className="space-y-1.5">
                     <p className="text-xs text-gray-400 leading-snug">
                         Requires a charging automation.
