@@ -1,11 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react'
 
-const { getSensorSecurity, updateSensorSecurity, disableSensorSecurity, getRules, useFeature, toastSuccess, toastError } = vi.hoisted(() => ({
+const { getSensorSecurity, updateSensorSecurity, disableSensorSecurity, useFeature, toastSuccess, toastError } = vi.hoisted(() => ({
     getSensorSecurity: vi.fn(),
     updateSensorSecurity: vi.fn(),
     disableSensorSecurity: vi.fn(() => Promise.resolve()),
-    getRules: vi.fn(),
     useFeature: vi.fn(),
     toastSuccess: vi.fn(),
     toastError: vi.fn(),
@@ -23,7 +22,7 @@ vi.mock('@/services/sensorService', () => ({
     },
 }))
 vi.mock('@/services/automationService', () => ({
-    default: { getRules },
+    default: {},
 }))
 vi.mock('@/services/sensorPhotoService', () => ({
     default: { get: vi.fn(() => Promise.resolve(null)) },
@@ -36,7 +35,6 @@ vi.mock('next/dynamic', () => ({ default: () => () => null }))
 import DeviceDrawer from '@/app/DeviceDrawer'
 import type { UnifiedDevice } from '@/app/DeviceDashboard'
 import type { SensorSecurity } from '@/services/sensorService'
-import type { AutomationRuleDto } from '@/dto/Automation/AutomationRuleDto'
 import { ApiError } from '@/lib/errors'
 
 function makeVoltage(): UnifiedDevice {
@@ -66,32 +64,11 @@ function makeSecurity(overrides: Partial<SensorSecurity> = {}): SensorSecurity {
     return {
         sensorId: 7,
         enabled: false,
-        thresholdMinutes: 25,
-        requestedSleepSeconds: 3600,
-        appliedSleepSeconds: 3600,
-        armedAt: null,
-        lastReportedAt: null,
         state: 'off',
         reason: null,
         capable: true,
-        enforcingRule: null,
+        enforcingRule: { id: 3, targetId: 11, targetName: 'Charger', condition: '<', threshold: 12.2 },
         isOwner: true,
-        ...overrides,
-    }
-}
-
-function makeRule(overrides: Partial<AutomationRuleDto> = {}): AutomationRuleDto {
-    return {
-        id: 3,
-        targetType: 'relay',
-        targetId: 11,
-        sensorType: 'voltage',
-        sensorId: 7,
-        condition: '<',
-        threshold: 12.2,
-        action: 'on',
-        isEnabled: true,
-        lastTriggeredAt: null,
         ...overrides,
     }
 }
@@ -105,7 +82,6 @@ beforeEach(() => {
     vi.clearAllMocks()
     useFeature.mockReturnValue(true)
     getSensorSecurity.mockResolvedValue(makeSecurity())
-    getRules.mockResolvedValue([makeRule()])
 })
 
 afterEach(() => {
@@ -124,12 +100,7 @@ describe('DeviceDrawer Garge Security', () => {
     })
 
     it('disables the toggle and links to a charging preset when no charging automation exists', async () => {
-        getRules.mockResolvedValue([
-            makeRule({ condition: '>' }),
-            makeRule({ id: 4, action: 'off' }),
-            makeRule({ id: 5, isEnabled: false }),
-            makeRule({ id: 6, sensorId: 8 }),
-        ])
+        getSensorSecurity.mockResolvedValue(makeSecurity({ enforcingRule: null }))
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
 
         expect(await screen.findByRole('switch', { name: 'Turn on Garge Security' })).toBeDisabled()
@@ -139,7 +110,7 @@ describe('DeviceDrawer Garge Security', () => {
     })
 
     it.each(['<', '<='])('turns on with a "%s" charging automation', async condition => {
-        getRules.mockResolvedValue([makeRule({ condition, action: 'On' })])
+        getSensorSecurity.mockResolvedValue(makeSecurity({ enforcingRule: { id: 3, targetId: 11, targetName: 'Charger', condition, threshold: 12.2 } }))
         updateSensorSecurity.mockResolvedValue(makeSecurity({ enabled: true, state: 'pending', reason: 'awaiting_wake' }))
         const onSecurityChange = vi.fn()
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} onSecurityChange={onSecurityChange} />)
@@ -277,14 +248,13 @@ describe('DeviceDrawer Garge Security', () => {
         expect(screen.queryByRole('link', { name: 'Create charging automation' })).not.toBeInTheDocument()
     })
 
-    it('treats a failed automation fetch as unknown and leaves the API to decide', async () => {
-        getRules.mockRejectedValue(new Error('network down'))
+    // The API is the only judge of what qualifies, so a refusal is what surfaces the CTA.
+    it('surfaces the charging CTA when the API refuses for want of a rule', async () => {
         updateSensorSecurity.mockRejectedValue(new ApiError('Add a charging automation first.', 'charging_automation_required'))
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
 
         const toggle = await screen.findByRole('switch', { name: 'Turn on Garge Security' })
         expect(toggle).toBeEnabled()
-        expect(screen.queryByText('Requires a charging automation.')).not.toBeInTheDocument()
         expect(screen.queryByRole('link', { name: 'Create charging automation' })).not.toBeInTheDocument()
 
         fireEvent.click(toggle)
@@ -343,7 +313,7 @@ describe('DeviceDrawer Garge Security', () => {
     it('ignores a poll that was in flight when the user saved', async () => {
         vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
         getSensorSecurity.mockResolvedValue(makeSecurity({ enabled: true, state: 'pending', reason: 'awaiting_wake' }))
-        updateSensorSecurity.mockResolvedValue(makeSecurity({ enabled: true, thresholdMinutes: 40, state: 'armed' }))
+        updateSensorSecurity.mockResolvedValue(makeSecurity({ enabled: true, state: 'armed' }))
         const onSecurityChange = vi.fn()
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} onSecurityChange={onSecurityChange} />)
 

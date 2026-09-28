@@ -16,8 +16,6 @@ import LoadingDots from '@/components/LoadingDots';
 import PhotoUploader from '@/components/PhotoUploader';
 import SensorService, { SensorData, BatteryHealthData, SensorSecurity, SensorSecurityState } from '@/services/sensorService';
 import SwitchService, { SwitchData } from '@/services/switchService';
-import AutomationService from '@/services/automationService';
-import type { AutomationRuleDto } from '@/dto/Automation/AutomationRuleDto';
 import { formatDateTime, formatRelative } from '@/lib/dateUtils';
 import SensorPhotoService from '@/services/sensorPhotoService';
 import type { Photo } from '@/services/photoServiceFactory';
@@ -301,12 +299,6 @@ const VoltageThresholdConfig: React.FC<{
 
 const SECURITY_POLL_MS = 60_000;
 
-const isChargingRule = (rule: AutomationRuleDto, sensorId: number): boolean =>
-    rule.sensorId === sensorId
-    && rule.isEnabled
-    && (rule.condition === '<' || rule.condition === '<=')
-    && rule.action.toLowerCase() === 'on';
-
 function securityBanner(security: SensorSecurity): { text: string; className: string } | null {
     switch (security.state) {
         case 'pending':
@@ -340,7 +332,6 @@ const GargeSecurityConfig: React.FC<{
     onChange: (sensorId: number, security: { enabled: boolean; state: SensorSecurityState }) => void;
 }> = ({ sensorId, onChange }) => {
     const [security, setSecurity] = useState<SensorSecurity | null>(null);
-    const [hasChargingRule, setHasChargingRule] = useState<boolean | null>(null);
     const [saving, setSaving] = useState(false);
     const generation = useRef(0);
     const onChangeRef = useRef(onChange);
@@ -351,14 +342,10 @@ const GargeSecurityConfig: React.FC<{
 
     useEffect(() => {
         let active = true;
-        Promise.all([
-            SensorService.getSensorSecurity(sensorId),
-            AutomationService.getRules().catch((): null => null),
-        ])
-            .then(([loaded, rules]) => {
+        SensorService.getSensorSecurity(sensorId)
+            .then(loaded => {
                 if (!active) return;
                 setSecurity(loaded);
-                setHasChargingRule(rules ? rules.some(rule => isChargingRule(rule, sensorId)) : null);
             })
             .catch(() => {});
         return () => { active = false; };
@@ -383,7 +370,7 @@ const GargeSecurityConfig: React.FC<{
 
     if (!security) return null;
 
-    const needsChargingRule = !security.enabled && hasChargingRule === false;
+    const needsChargingRule = !security.enabled && security.enforcingRule === null;
     // A firmware update cannot fix this one, so it is said plainly and the toggle is not
     // offered at all.
     const unsupportedHardware = security.capable === false;
@@ -400,7 +387,9 @@ const GargeSecurityConfig: React.FC<{
             toast.success(successMessage);
         } catch (err) {
             const code = err instanceof ApiError ? err.code : null;
-            if (code === 'charging_automation_required') setHasChargingRule(false);
+            if (code === 'charging_automation_required') {
+                setSecurity({ ...security, enforcingRule: null });
+            }
             toast.error(securityErrorMessage(code));
         } finally {
             generation.current += 1;
