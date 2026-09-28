@@ -73,6 +73,7 @@ function makeSecurity(overrides: Partial<SensorSecurity> = {}): SensorSecurity {
         lastReportedAt: null,
         state: 'off',
         reason: null,
+        capable: true,
         enforcingRule: null,
         isOwner: true,
         ...overrides,
@@ -185,6 +186,35 @@ describe('DeviceDrawer Garge Security', () => {
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
 
         expect(await screen.findByText(copy)).toBeInTheDocument()
+    })
+
+    // A firmware update cannot make an ADS-less board take settings, so the toggle is
+    // not offered and the copy says what is actually wrong.
+    it('offers no toggle and says the hardware is unsupported', async () => {
+        getSensorSecurity.mockResolvedValue(makeSecurity({ capable: false }))
+        render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
+
+        expect(await screen.findByText("This sensor's hardware does not support Garge Security.")).toBeInTheDocument()
+        expect(screen.queryByRole('switch', { name: 'Turn on Garge Security' })).not.toBeInTheDocument()
+        expect(screen.queryByRole('link', { name: 'Create charging automation' })).not.toBeInTheDocument()
+    })
+
+    // Unknown is a device the bridge has not heard from, not one known to be incapable.
+    it('still offers the toggle when the capability is unknown', async () => {
+        getSensorSecurity.mockResolvedValue(makeSecurity({ capable: null }))
+        render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
+
+        expect(await screen.findByRole('switch', { name: 'Turn on Garge Security' })).toBeInTheDocument()
+    })
+
+    // Somebody who turned it on before the bridge knew better still needs a way out.
+    it('keeps the toggle when it is already on and the hardware is unsupported', async () => {
+        getSensorSecurity.mockResolvedValue(makeSecurity({ enabled: true, capable: false, state: 'pending', reason: 'firmware_too_old' }))
+        render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
+
+        expect(await screen.findByRole('switch', { name: 'Turn off Garge Security' })).toBeInTheDocument()
+        expect(screen.getByText("This sensor's hardware does not support Garge Security.")).toBeInTheDocument()
+        expect(screen.queryByText('This sensor needs a firmware update before Garge Security can turn on.')).not.toBeInTheDocument()
     })
 
     it('shows a specific toast and stays off when the API requires a charging automation', async () => {

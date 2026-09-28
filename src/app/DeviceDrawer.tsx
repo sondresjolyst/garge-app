@@ -328,6 +328,7 @@ function securityErrorMessage(code: string | null): string {
         case 'no_alert_channel':             return 'Turn on push or email notifications in your profile first';
         case 'invalid_charging_threshold':   return 'Set your charging automation to a normal battery voltage first';
         case 'unsupported_sensor':           return 'Garge Security only works on battery voltage sensors';
+        case 'unsupported_hardware':         return "This sensor's hardware does not support Garge Security";
         default:                             return 'Failed to save Garge Security';
     }
 }
@@ -381,6 +382,9 @@ const GargeSecurityConfig: React.FC<{
     if (!security) return null;
 
     const needsChargingRule = !security.enabled && hasChargingRule === false;
+    // A firmware update cannot fix this one, so it is said plainly and the toggle is not
+    // offered at all.
+    const unsupportedHardware = security.capable === false;
     const banner = securityBanner(security);
 
     const save = async (successMessage: string) => {
@@ -431,23 +435,29 @@ const GargeSecurityConfig: React.FC<{
                         Alerts you if this sensor stops checking in.
                     </p>
                 </div>
-                {security.isOwner ? (
+                {security.isOwner && !(unsupportedHardware && !security.enabled) ? (
                     <ToggleSwitch
                         checked={security.enabled}
                         onChange={security.enabled ? disable : () => save('Garge Security turned on')}
-                        disabled={saving || (!security.enabled && needsChargingRule)}
+                        disabled={saving || (!security.enabled && (needsChargingRule || unsupportedHardware))}
                         ariaLabel={security.enabled ? 'Turn off Garge Security' : 'Turn on Garge Security'}
                     />
-                ) : (
+                ) : unsupportedHardware ? null : (
                     <span className="text-xs font-medium text-gray-400 flex-shrink-0">{security.enabled ? 'On' : 'Off'}</span>
                 )}
             </div>
 
-            {banner && (
+            {unsupportedHardware && (
+                <p className="px-3 py-2 rounded-xl border text-xs leading-snug bg-gray-900/60 border-gray-700/40 text-gray-400">
+                    This sensor&apos;s hardware does not support Garge Security.
+                </p>
+            )}
+
+            {!unsupportedHardware && banner && (
                 <p className={`px-3 py-2 rounded-xl border text-xs leading-snug ${banner.className}`}>{banner.text}</p>
             )}
 
-            {security.isOwner && needsChargingRule && (
+            {security.isOwner && !unsupportedHardware && needsChargingRule && (
                 <div className="space-y-1.5">
                     <p className="text-xs text-gray-400 leading-snug">
                         Requires a charging automation.

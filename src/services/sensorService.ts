@@ -40,6 +40,9 @@ export interface SensorSecurity {
     lastReportedAt: string | null;
     state: SensorSecurityState;
     reason: SensorSecurityReason | null;
+    /** False when the device's firmware takes no Garge Security settings, so it can never
+     * arm. Null until the bridge has seen one of its config messages. */
+    capable: boolean | null;
     enforcingRule: { id: number; targetId: number; targetName: string; condition: string; threshold: number } | null;
     isOwner: boolean;
 }
