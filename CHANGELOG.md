@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.0](https://github.com/sondresjolyst/garge-app/compare/v1.21.0...v1.22.0) (2026-09-28)
+
+
+### Features
+
+* say when a sensor's hardware cannot do Garge Security ([#526](https://github.com/sondresjolyst/garge-app/issues/526)) ([86e42b2](https://github.com/sondresjolyst/garge-app/commit/86e42b21d7cfad72b0672b0fb3832dda30b4ccf4))
+
 ## [1.21.0](https://github.com/sondresjolyst/garge-app/compare/v1.20.10...v1.21.0) (2026-09-27)
 
 
