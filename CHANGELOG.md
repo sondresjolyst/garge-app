@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.22.1](https://github.com/sondresjolyst/garge-app/compare/v1.22.0...v1.22.1) (2026-10-04)
+
+
+### Dependencies
+
+* **npm:** bump @types/node from 26.6.2 to 26.6.3 in the types group ([#531](https://github.com/sondresjolyst/garge-app/issues/531)) ([5a5f1ca](https://github.com/sondresjolyst/garge-app/commit/5a5f1caa1c56ec0a27e1d111d191471783343671))
+* **npm:** bump `apexcharts` from 7.4.0 to 7.6.0 ([#532](https://github.com/sondresjolyst/garge-app/issues/532)) ([1fd63e0](https://github.com/sondresjolyst/garge-app/commit/1fd63e0737f3407bce2a4c43c36960f4bdf686cc))
+* **npm:** bump `brace-expansion` from 1.1.18 to 1.1.21 ([#535](https://github.com/sondresjolyst/garge-app/issues/535)) ([a5cd4b4](https://github.com/sondresjolyst/garge-app/commit/a5cd4b47b45a5811c1c2c79e478ccc3721c8f620))
+* **npm:** bump `eslint-config-next` from 16.3.5 to 16.3.6 ([#536](https://github.com/sondresjolyst/garge-app/issues/536)) ([926fc34](https://github.com/sondresjolyst/garge-app/commit/926fc34ccd90ba55e3b0997ac4b388b851578d8a))
+* **npm:** bump `next` from 16.3.5 to 16.3.8 ([#534](https://github.com/sondresjolyst/garge-app/issues/534)) ([ac3a2cb](https://github.com/sondresjolyst/garge-app/commit/ac3a2cba28262b812d7039eed4f254a8cfffe6eb))
+* **npm:** bump the testing group with 2 updates ([#530](https://github.com/sondresjolyst/garge-app/issues/530)) ([c8b1220](https://github.com/sondresjolyst/garge-app/commit/c8b122059dddd749a285cc448f340950df7499a4))
+
 ## [1.22.0](https://github.com/sondresjolyst/garge-app/compare/v1.21.0...v1.22.0) (2026-09-28)
 
 
