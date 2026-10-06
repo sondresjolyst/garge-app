@@ -76,9 +76,19 @@ describe('formatApiError', () => {
         expect(formatApiError(err, 'fallback')).toBe('Conflict — already exists.')
     })
 
-    it('returns a Vipps-specific message on 502/503', () => {
-        expect(formatApiError(axiosErrorWith(502, {}), 'fallback')).toBe('Vipps unreachable. Try again in a moment.')
-        expect(formatApiError(axiosErrorWith(503, {}), 'fallback')).toBe('Vipps unreachable. Try again in a moment.')
+    it('returns the server message on 502 and 503, which name the failing service', () => {
+        expect(formatApiError(axiosErrorWith(502, 'Payment provider unavailable.'), 'fallback')).toBe('Payment provider unavailable.')
+        expect(formatApiError(axiosErrorWith(502, { message: 'Failed to fetch email stats from Brevo.' }), 'fallback')).toBe(
+            'Failed to fetch email stats from Brevo.',
+        )
+        expect(formatApiError(axiosErrorWith(503, { message: 'Push notifications not configured.' }), 'fallback')).toBe(
+            'Push notifications not configured.',
+        )
+    })
+
+    it('returns the fallback on 502 and 503 with no body', () => {
+        expect(formatApiError(axiosErrorWith(502, {}), 'fallback')).toBe('fallback')
+        expect(formatApiError(axiosErrorWith(503, {}), 'fallback')).toBe('fallback')
     })
 
     it('returns a rate-limit message on 429', () => {

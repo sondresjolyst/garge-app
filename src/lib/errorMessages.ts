@@ -7,8 +7,6 @@ const STATUS_MESSAGES: StatusMessages = {
     404: 'Not found.',
     409: 'Conflict — already exists.',
     429: 'Too many requests. Wait a moment.',
-    502: 'Vipps unreachable. Try again in a moment.',
-    503: 'Vipps unreachable. Try again in a moment.',
 };
 
 /**
