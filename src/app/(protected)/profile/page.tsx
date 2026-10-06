@@ -21,7 +21,7 @@ import CapacityMeter from '@/components/CapacityMeter';
 import ToggleSwitch from '@/components/ToggleSwitch';
 import { inputClass } from '@/components/TextInput';
 import InlineEditField from '@/components/InlineEditField';
-import Alert from '@/components/Alert';
+import { Alert } from '@sjolystinnovation/app-kit/ui';
 import { toast } from 'sonner';
 import Link from 'next/link';
 

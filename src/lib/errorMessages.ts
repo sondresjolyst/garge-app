@@ -1,20 +1,21 @@
-import { AxiosError } from 'axios';
+import axios from 'axios';
+import { formatApiError as formatWithKit, type StatusMessages } from '@sjolystinnovation/app-kit';
 
+const STATUS_MESSAGES: StatusMessages = {
+    401: 'Not authorized.',
+    403: 'Not authorized.',
+    404: 'Not found.',
+    409: 'Conflict — already exists.',
+    429: 'Too many requests. Wait a moment.',
+    502: 'Vipps unreachable. Try again in a moment.',
+    503: 'Vipps unreachable. Try again in a moment.',
+};
+
+/**
+ * Formats a failed API call with app-kit's rules and Garge's own wording per status. An error that
+ * did not come from axios gives the fallback, so a bug's message never ends up in a toast.
+ */
 export function formatApiError(err: unknown, fallback: string): string {
-    if (err instanceof AxiosError) {
-        const status = err.response?.status;
-        const data = err.response?.data;
-        const serverMessage = typeof data === 'string'
-            ? data
-            : (typeof data === 'object' && data && 'message' in data ? String((data as { message: unknown }).message) : '');
-
-        if (status === 400 && serverMessage) return serverMessage;
-        if (status === 401 || status === 403) return serverMessage || 'Not authorized.';
-        if (status === 404) return serverMessage || 'Not found.';
-        if (status === 409) return serverMessage || 'Conflict — already exists.';
-        if (status === 502 || status === 503) return 'Vipps unreachable. Try again in a moment.';
-        if (status === 429) return 'Too many requests. Wait a moment.';
-        if (serverMessage) return serverMessage;
-    }
-    return fallback;
+    if (!axios.isAxiosError(err)) return fallback;
+    return formatWithKit(err, fallback, STATUS_MESSAGES);
 }

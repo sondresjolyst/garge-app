@@ -1,8 +1,42 @@
 @import "tailwindcss";
+@import "@sjolystinnovation/app-kit/styles.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* Garge's dark look for the shared components in @sjolystinnovation/app-kit. */
+@theme {
+    --radius-alert: var(--radius-xl);
+    --color-alert-error-bg: color-mix(in oklab, var(--color-red-500) 10%, transparent);
+    --color-alert-error-border: color-mix(in oklab, var(--color-red-500) 20%, transparent);
+    --color-alert-error-text: var(--color-red-400);
+    --color-alert-warning-bg: color-mix(in oklab, var(--color-amber-500) 10%, transparent);
+    --color-alert-warning-border: color-mix(in oklab, var(--color-amber-500) 20%, transparent);
+    --color-alert-warning-text: var(--color-amber-400);
+    --color-alert-success-bg: color-mix(in oklab, var(--color-green-500) 10%, transparent);
+    --color-alert-success-border: color-mix(in oklab, var(--color-green-500) 20%, transparent);
+    --color-alert-success-text: var(--color-green-400);
+
+    --text-field-label: var(--text-xs);
+    --text-field-label--line-height: var(--text-xs--line-height);
+    --color-field-label-text: var(--color-gray-400);
+    --spacing-field-label: calc(var(--spacing) * 1.5);
+    --color-field-required: var(--color-red-400);
+    --color-field-error: var(--color-red-400);
+
+    --radius-input: var(--radius-xl);
+    --spacing-input-y: calc(var(--spacing) * 2.5);
+    --color-input-bg: color-mix(in oklab, var(--color-gray-900) 60%, transparent);
+    --color-input-border: color-mix(in oklab, var(--color-gray-700) 50%, transparent);
+    --color-input-focus-border: color-mix(in oklab, var(--color-sky-500) 60%, transparent);
+    --color-input-text: var(--color-gray-100);
+    --color-input-placeholder: var(--color-gray-600);
+    --color-input-focus-ring: color-mix(in oklab, var(--color-sky-500) 30%, transparent);
+    --input-focus-ring-width: 1px;
+    --color-input-toggle: var(--color-gray-500);
+    --color-input-toggle-hover: var(--color-gray-300);
+}
 
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
 html {

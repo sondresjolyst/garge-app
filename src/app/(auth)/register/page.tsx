@@ -7,8 +7,8 @@ import AuthService from '@/services/userService';
 import Image from 'next/image';
 import Link from 'next/link';
 import { inputClass } from '@/components/TextInput';
-import PasswordInput from '@/components/PasswordInput';
-import Alert from '@/components/Alert';
+import { PasswordInput } from '@sjolystinnovation/app-kit/ui';
+import { Alert } from '@sjolystinnovation/app-kit/ui';
 import { FieldValidationError, type FieldErrors } from '@/lib/errors';
 import { registerSchema, zodIssuesToFieldErrors } from '@/lib/validation/registerSchema';
 
@@ -129,8 +129,8 @@ const Register: React.FC = () => {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium text-gray-400 mb-1.5">Password</label>
                             <PasswordInput
+                                label="Password"
                                 placeholder="••••••••"
                                 value={password}
                                 onChange={e => handleFieldChange('password', setPassword, e.target.value)}
