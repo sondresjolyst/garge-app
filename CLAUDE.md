@@ -44,8 +44,8 @@ src/
 - Never manually attach Authorization headers; axiosInstance handles this.
 
 ### Styling
-- Tailwind CSS only. No CSS modules, no inline `style` props, no external component libraries.
-- `globals.css` is for base/reset rules only.
+- Tailwind CSS only. No CSS modules, no inline `style` props, no external component libraries apart from our own `@sjolystinnovation/app-kit`.
+- `globals.css` is for base/reset rules and design tokens, including the theme variables that style `@sjolystinnovation/app-kit`.
 
 ### Components
 - Default to server components inside `app/`. Add `"use client"` only when you need hooks, event handlers, or browser APIs.

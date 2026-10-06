@@ -6,8 +6,8 @@ import { signIn, getSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { inputClass } from '@/components/TextInput';
-import PasswordInput from '@/components/PasswordInput';
-import Alert from '@/components/Alert';
+import { PasswordInput } from '@sjolystinnovation/app-kit/ui';
+import { Alert } from '@sjolystinnovation/app-kit/ui';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -57,7 +57,7 @@ const Login: React.FC = () => {
 
                     <form onSubmit={handleLogin} className="space-y-4">
                         <div>
-                            <label htmlFor="email" className="block text-xs font-medium text-gray-400 mb-1.5">Email</label>
+                            <label htmlFor="email" className="block text-xs font-medium text-gray-400 mb-1.5">Email<span className="text-red-400"> *</span></label>
                             <input
                                 id="email"
                                 className={inputClass}
@@ -70,9 +70,9 @@ const Login: React.FC = () => {
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-xs font-medium text-gray-400 mb-1.5">Password</label>
                             <PasswordInput
                                 id="password"
+                                label="Password"
                                 placeholder="••••••••"
                                 required
                                 value={password}

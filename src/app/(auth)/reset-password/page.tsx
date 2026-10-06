@@ -5,8 +5,8 @@ import AuthService from '@/services/userService';
 import Image from 'next/image';
 import Link from 'next/link';
 import { inputClass } from '@/components/TextInput';
-import PasswordInput from '@/components/PasswordInput';
-import Alert from '@/components/Alert';
+import { PasswordInput } from '@sjolystinnovation/app-kit/ui';
+import { Alert } from '@sjolystinnovation/app-kit/ui';
 
 const ResetPassword: React.FC = () => {
     const [step, setStep] = useState<1 | 2>(1);
@@ -87,8 +87,8 @@ const ResetPassword: React.FC = () => {
                                 <input className={inputClass} type="text" placeholder="Code from email" value={code} onChange={e => setCode(e.target.value)} />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1.5">New password</label>
                                 <PasswordInput
+                                    label="New password"
                                     placeholder="••••••••"
                                     value={NewPassword}
                                     onChange={e => setNewPassword(e.target.value)}

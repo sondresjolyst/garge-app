@@ -7,7 +7,7 @@ import LoadingDots from '@/components/LoadingDots';
 import Section from '@/components/Section';
 import { inputClass } from '@/components/TextInput';
 import InlineEditField from '@/components/InlineEditField';
-import Alert from '@/components/Alert';
+import { Alert } from '@sjolystinnovation/app-kit/ui';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useCanClaimDevice } from '@/hooks/useCanClaimDevice';
