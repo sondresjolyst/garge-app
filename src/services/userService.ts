@@ -46,15 +46,6 @@ const UserService = {
         }
     },
 
-    async login(data: LoginData): Promise<{ token: string, refreshToken: string }> {
-        try {
-            const response = await axiosInstance.post<{ token: string, refreshToken: string }>('/auth/login', data);
-            return response.data;
-        } catch (error: unknown) {
-            throw new Error(formatApiError(error, 'Failed to login'));
-        }
-    },
-
     async register(data: RegisterData): Promise<{ message: string }> {
         const result = registerSchema.safeParse(data);
 
@@ -107,15 +98,6 @@ const UserService = {
             return response.data;
         } catch (error: unknown) {
             throw new Error(formatApiError(error, 'Failed to reset password'));
-        }
-    },
-
-    async refreshToken(data: { token: string, refreshToken: string }): Promise<{ token: string, refreshToken: string }> {
-        try {
-            const response = await axiosInstance.post<{ token: string, refreshToken: string }>('/auth/refresh-token', data);
-            return response.data;
-        } catch (error: unknown) {
-            throw new Error(formatApiError(error, 'Failed to refresh token'));
         }
     },
 

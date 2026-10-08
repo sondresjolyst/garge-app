@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { inputClass } from '@/components/TextInput';
 import { PasswordInput } from '@sjolystinnovation/app-kit/ui';
 import { Alert } from '@sjolystinnovation/app-kit/ui';
+import { SIGN_IN_ERRORS } from '@sjolystinnovation/app-kit/session';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -26,7 +27,9 @@ const Login: React.FC = () => {
         setLoading(true);
         const result = await signIn('credentials', { redirect: false, email, password });
         if (result?.error) {
-            setApiMessage(result.error);
+            setApiMessage(result.error === SIGN_IN_ERRORS.unavailable
+                ? 'Sign-in is unavailable right now. Try again shortly.'
+                : 'Invalid email or password.');
             setLoading(false);
         } else {
             let session = await getSession();
