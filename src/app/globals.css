@@ -36,6 +36,19 @@
     --input-focus-ring-width: 1px;
     --color-input-toggle: var(--color-gray-500);
     --color-input-toggle-hover: var(--color-gray-300);
+
+    --radius-button: var(--radius-xl);
+    --color-button-primary-bg: var(--color-sky-600);
+    --color-button-primary-text: var(--color-white);
+    --color-button-secondary-border: color-mix(in oklab, var(--color-gray-700) 50%, transparent);
+    --color-button-secondary-text: var(--color-gray-300);
+    --color-button-secondary-hover-bg: color-mix(in oklab, var(--color-gray-700) 40%, transparent);
+
+    --radius-dialog: var(--radius-2xl);
+    --color-dialog-backdrop: color-mix(in oklab, var(--color-black) 60%, transparent);
+    --color-dialog-bg: var(--color-gray-800);
+    --color-dialog-title: var(--color-gray-100);
+    --color-dialog-text: var(--color-gray-400);
 }
 
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
