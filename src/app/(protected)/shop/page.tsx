@@ -11,7 +11,7 @@ import PaymentPhoneModal from '@/components/PaymentPhoneModal';
 import RedirectingOverlay from '@/components/RedirectingOverlay';
 import CartFab from '@/components/CartFab';
 import CartDrawer from '@/components/CartDrawer';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import AdminService, { AppSettings } from '@/services/adminService';
 import ProductService, { Product } from '@/services/productService';
 import ShopService, { ShopItem } from '@/services/shopService';

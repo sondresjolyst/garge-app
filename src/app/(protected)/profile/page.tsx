@@ -22,7 +22,7 @@ import ToggleSwitch from '@/components/ToggleSwitch';
 import { inputClass } from '@/components/TextInput';
 import InlineEditField from '@/components/InlineEditField';
 import { Alert } from '@sjolystinnovation/app-kit/ui';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import Link from 'next/link';
 
 const Profile: React.FC = () => {

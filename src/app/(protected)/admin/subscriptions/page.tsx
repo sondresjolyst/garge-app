@@ -6,7 +6,7 @@ import { ArrowLeftIcon, ArrowDownTrayIcon, ChevronDownIcon, ChevronRightIcon } f
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import TestPill from '@/components/TestPill';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import SubscriptionService, { AdminSubscription, SubscriptionInvoice } from '@/services/subscriptionService';
 import { formatNok } from '@/lib/formatUtils';
 import { formatDate } from '@/lib/dateUtils';

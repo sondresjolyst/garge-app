@@ -8,7 +8,7 @@ import { ArrowLeftIcon, PencilSquareIcon, TrashIcon, PlusIcon } from '@heroicons
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import ShopService, { ShopItem, CreateShopItemPayload, UpdateShopItemPayload } from '@/services/shopService';
 import ShopItemPhotoService from '@/services/shopItemPhotoService';
 import PhotoUploader from '@/components/PhotoUploader';
