@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeftIcon, PencilSquareIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
-import { toast } from '@/lib/toast';
+import { toast } from '@sjolystinnovation/app-kit/toast';
 import ShopService, { ShopItem, CreateShopItemPayload, UpdateShopItemPayload } from '@/services/shopService';
 import ShopItemPhotoService from '@/services/shopItemPhotoService';
 import PhotoUploader from '@/components/PhotoUploader';
@@ -19,15 +18,10 @@ import { formatNok } from '@/lib/formatUtils';
 const emptyForm = { name: '', description: '', priceNok: '', stock: '-1' };
 
 export default function AdminShopPage() {
-    const { data: session, status } = useSession();
-    const router = useRouter();
+    const { data: session } = useSession();
 
     const roles: string[] = (session?.user as { roles?: string[] })?.roles ?? [];
     const isAdmin = roles.includes('Admin');
-
-    useEffect(() => {
-        if (status === 'authenticated' && !isAdmin) router.push('/');
-    }, [status, isAdmin, router]);
 
     const [items, setItems] = useState<ShopItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -138,10 +132,6 @@ export default function AdminShopPage() {
             toast.error('Failed to delete item');
             setDeleteTarget(null);
         }
-    }
-
-    if (status === 'loading' || (status === 'authenticated' && !isAdmin)) {
-        return <LoadingDots height="h-64" />;
     }
 
     return (

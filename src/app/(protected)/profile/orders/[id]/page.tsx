@@ -6,7 +6,7 @@ import { ArrowLeftIcon, ArrowDownTrayIcon, CheckCircleIcon, ClockIcon, TruckIcon
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import TestPill from '@/components/TestPill';
-import { toast } from '@/lib/toast';
+import { toast } from '@sjolystinnovation/app-kit/toast';
 import ShopService, { Order } from '@/services/shopService';
 import { formatNok } from '@/lib/formatUtils';
 import { formatDate } from '@/lib/dateUtils';

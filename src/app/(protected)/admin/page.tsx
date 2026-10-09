@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { TrashIcon, PlusIcon, XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import dynamic from 'next/dynamic';
@@ -11,7 +10,7 @@ import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
 import ToggleSwitch from '@/components/ToggleSwitch';
 import { StatGrid } from '@/components/StatCard';
-import { toast } from '@/lib/toast';
+import { toast } from '@sjolystinnovation/app-kit/toast';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
 import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats, AppSettings, SecuritySettings } from '@/services/adminService';
@@ -26,17 +25,11 @@ const isValidThreshold = (value: string, limits: SecuritySettings): boolean => {
         && minutes >= limits.minAlertThresholdMinutes && minutes <= limits.maxAlertThresholdMinutes;
 };
 
-
 export default function AdminPage() {
-    const { data: session, status } = useSession();
-    const router = useRouter();
+    const { data: session } = useSession();
 
     const roles: string[] = (session?.user as { roles?: string[] })?.roles ?? [];
     const isAdmin = roles.includes('Admin');
-
-    useEffect(() => {
-        if (status === 'authenticated' && !isAdmin) router.push('/');
-    }, [status, isAdmin, router]);
 
     const [stats, setStats] = useState<AdminStats | null>(null);
     const [statsTest, setStatsTest] = useState(false);
@@ -274,10 +267,6 @@ export default function AdminPage() {
             setDeleteTarget(null);
         }
     };
-
-    if (status === 'loading' || (status === 'authenticated' && !isAdmin)) {
-        return <LoadingDots height="h-64" />;
-    }
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8 space-y-6 pb-32">
