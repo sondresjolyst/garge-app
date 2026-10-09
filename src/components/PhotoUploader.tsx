@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { CameraIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { compressImage } from '@/lib/imageUtils';
 import type { Photo, PhotoService } from '@/services/photoServiceFactory';
 

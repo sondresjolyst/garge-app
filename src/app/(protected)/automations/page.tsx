@@ -24,7 +24,7 @@ import {
     PencilSquareIcon,
     BoltIcon,
 } from '@heroicons/react/24/outline';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 const initialForm: CreateAutomationRuleDto = {
     targetType: '',

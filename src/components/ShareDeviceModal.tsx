@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { XMarkIcon, UserPlusIcon } from '@heroicons/react/24/outline';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { inputClass } from '@/components/TextInput';
 import Modal from '@/components/Modal';
 import { SensorShare, SharePermission } from '@/services/sensorService';

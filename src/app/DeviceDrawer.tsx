@@ -19,7 +19,7 @@ import SwitchService, { SwitchData } from '@/services/switchService';
 import { formatDateTime, formatRelative } from '@/lib/dateUtils';
 import SensorPhotoService from '@/services/sensorPhotoService';
 import type { Photo } from '@/services/photoServiceFactory';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import ActivitiesSection from '@/components/ActivitiesSection';
 import type { UnifiedDevice } from './DeviceDashboard';
 
