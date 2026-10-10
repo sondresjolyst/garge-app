@@ -17,7 +17,7 @@ import ShopService, { Order } from '@/services/shopService';
 import { formatNok } from '@/lib/formatUtils';
 import { formatDate } from '@/lib/dateUtils';
 import { statusColor } from '@/lib/statusUtils';
-import { effectivePriceInOre, vatLabel } from '@/lib/pricing';
+import { VAT_LABEL } from '@/lib/pricing';
 import { formatApiError } from '@/lib/errorMessages';
 
 function deriveCancelEndDate(sub: Subscription): string {
@@ -150,7 +150,7 @@ export default function BillingPage() {
                                                 <TestPill visible={sub.isTest} />
                                             </div>
                                             <p className="text-xs text-gray-500 mt-0.5">
-                                                {formatNok(effectivePriceInOre(sub.priceInOre, vatEnabled) * sub.quantity)} / {sub.interval === 'Monthly' ? 'month' : 'year'} · {vatLabel(vatEnabled)}
+                                                {formatNok(sub.priceInOre * sub.quantity)} / {sub.interval === 'Monthly' ? 'month' : 'year'}{vatEnabled && ` · ${VAT_LABEL}`}
                                             </p>
                                         </div>
                                         <span className={`px-2 py-0.5 border rounded text-xs font-medium ${statusColor(sub.status)}`}>

@@ -460,7 +460,7 @@ export default function AdminPage() {
                             <div className="flex items-center justify-between gap-4 bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
                                 <div className="min-w-0 flex-1">
                                     <p className="text-sm font-medium text-gray-200">VAT (mva 25%)</p>
-                                    <p className="text-xs text-gray-500 mt-0.5">Add 25% VAT to prices. Disable if below the 50,000 NOK threshold.</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">Prices include 25% VAT. Customers pay the same either way. Turn on once registered for VAT.</p>
                                 </div>
                                 {appSettings === null ? (
                                     <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />

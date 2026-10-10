@@ -77,7 +77,7 @@ export default async function TermsPage() {
 
                 <section className="space-y-2">
                     <h2 className="text-base font-semibold text-gray-100">12. Pricing</h2>
-                    <p>All prices are shown in NOK. Prices include or exclude VAT as indicated at checkout. No additional fees are added beyond the total shown at the time of purchase.</p>
+                    <p>All prices are total prices in NOK. When we are registered for VAT, they include 25% VAT. No additional fees are added beyond the total shown at the time of purchase.</p>
                 </section>
 
                 <section className="space-y-2">

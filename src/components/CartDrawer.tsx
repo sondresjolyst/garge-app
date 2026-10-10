@@ -5,7 +5,7 @@ import { useRef, useState } from 'react';
 import { MinusIcon, PlusIcon, TrashIcon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { CartLine, cartTotalInOre, removeLine, setLineQty } from '@/lib/cart';
 import { ShopItem } from '@/services/shopService';
-import { effectivePriceInOre, vatLabel } from '@/lib/pricing';
+import { VAT_LABEL } from '@/lib/pricing';
 import { formatNok } from '@/lib/formatUtils';
 import { normalizeNoPhone } from '@/lib/phone';
 import Drawer from '@/components/Drawer';
@@ -61,7 +61,7 @@ export default function CartDrawer({
         .filter(r => r.item && r.item.isActive)
         .map(r => ({ priceInOre: r.item!.priceInOre, quantity: r.line.quantity }));
 
-    const total = cartTotalInOre(priceableLines, vatEnabled);
+    const total = cartTotalInOre(priceableLines);
 
     const hasUnavailable = resolved.some(r =>
         !r.item || !r.item.isActive || (r.item.stockCount >= 0 && r.line.quantity > r.item.stockCount)
@@ -130,7 +130,7 @@ export default function CartDrawer({
                                         <div className="min-w-0">
                                             <p className="text-sm font-medium text-gray-100 truncate">{item.name}</p>
                                             <p className="text-xs text-gray-500">
-                                                {formatNok(effectivePriceInOre(item.priceInOre, vatEnabled))} {vatLabel(vatEnabled)} each
+                                                {formatNok(item.priceInOre)}{vatEnabled && ` ${VAT_LABEL}`} each
                                             </p>
                                         </div>
                                         <button
@@ -161,7 +161,7 @@ export default function CartDrawer({
                                             </button>
                                         </div>
                                         <p className="text-sm font-semibold text-sky-400 tabular-nums">
-                                            {formatNok(effectivePriceInOre(item.priceInOre, vatEnabled) * line.quantity)}
+                                            {formatNok(item.priceInOre * line.quantity)}
                                         </p>
                                     </div>
                                     {overStock && (
@@ -179,7 +179,7 @@ export default function CartDrawer({
                             <span className="text-sm text-gray-400">Total</span>
                             <span className="text-lg font-bold text-sky-400 tabular-nums">
                                 {formatNok(total)}
-                                <span className="text-xs font-normal text-gray-500 ml-1">{vatLabel(vatEnabled)}</span>
+                                <span className="text-xs font-normal text-gray-500 ml-1">{vatEnabled && VAT_LABEL}</span>
                             </span>
                         </div>
 
