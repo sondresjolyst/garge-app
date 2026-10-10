@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.23.0](https://github.com/sondresjolyst/garge-app/compare/v1.22.1...v1.23.0) (2026-10-10)
+
+
+### Features
+
+* **admin:** show turnover against the VAT threshold ([#552](https://github.com/sondresjolyst/garge-app/issues/552)) ([d810468](https://github.com/sondresjolyst/garge-app/commit/d8104685b55c763b85e1578406fd05c592c3f9e3))
+* move sign-in, the API client and the session prompt to app-kit ([#545](https://github.com/sondresjolyst/garge-app/issues/545)) ([1164b27](https://github.com/sondresjolyst/garge-app/commit/1164b279c6d4601f3a69ea61dc33dfb9a1b38e66))
+* **pricing:** show prices as stored, with VAT included when on ([#551](https://github.com/sondresjolyst/garge-app/issues/551)) ([14f1a13](https://github.com/sondresjolyst/garge-app/commit/14f1a138442f73b1ae34e11cb8250173052793d9))
+* **ui:** add an error page and use NotFoundState from app-kit ([#556](https://github.com/sondresjolyst/garge-app/issues/556)) ([fc574fc](https://github.com/sondresjolyst/garge-app/commit/fc574fc94d85353e079a9025e5a2fc444b92a67e))
+
+
+### Bug Fixes
+
+* keep error toasts quiet while the re-sign-in prompt is open ([#546](https://github.com/sondresjolyst/garge-app/issues/546)) ([6bd941d](https://github.com/sondresjolyst/garge-app/commit/6bd941dbd84239a19cab616b2cb72f0b6009c2af))
+* **layout:** drop unused fonts and size the logo in CSS ([#555](https://github.com/sondresjolyst/garge-app/issues/555)) ([fe5b96d](https://github.com/sondresjolyst/garge-app/commit/fe5b96d114563e9b6f15e50f6761d45b4e91c846))
+* use app-kit for admin access, session renewal, quiet error toasts and the register and reset rules ([#547](https://github.com/sondresjolyst/garge-app/issues/547)) ([c1e166e](https://github.com/sondresjolyst/garge-app/commit/c1e166e3e34ca7256e4ab29ea47d0085a97bda0f))
+
+
+### Dependencies
+
+* **npm:** bump `apexcharts` from 7.6.0 to 7.6.1 ([#540](https://github.com/sondresjolyst/garge-app/issues/540)) ([402c7bb](https://github.com/sondresjolyst/garge-app/commit/402c7bbf61924f395744c959be21962eab49a04d))
+* **npm:** bump `sharp` from 0.35.4 to 0.35.5 ([#542](https://github.com/sondresjolyst/garge-app/issues/542)) ([8bbdef1](https://github.com/sondresjolyst/garge-app/commit/8bbdef18618691f119ade424b54d6ff6174c251a))
+* **npm:** bump `source-map-js` from 1.2.1 to 1.2.2 ([#543](https://github.com/sondresjolyst/garge-app/issues/543)) ([8deab18](https://github.com/sondresjolyst/garge-app/commit/8deab187457b57d19b49bad3393348ffb64a3921))
+* **npm:** bump eslint-config-next from 16.3.6 to 16.3.7 in the next group ([#538](https://github.com/sondresjolyst/garge-app/issues/538)) ([a046a1b](https://github.com/sondresjolyst/garge-app/commit/a046a1b84c463ded1e5181ca9dc7dbbbc0a8f29c))
+
 ## [1.22.1](https://github.com/sondresjolyst/garge-app/compare/v1.22.0...v1.22.1) (2026-10-04)
 
 
