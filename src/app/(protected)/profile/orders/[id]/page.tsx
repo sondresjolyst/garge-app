@@ -83,7 +83,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 <Link href="/profile/billing" className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700/60 transition-all" aria-label="Back to billing">
                     <ArrowLeftIcon className="h-4 w-4" aria-hidden />
                 </Link>
-                <h1 className="text-xl font-display font-bold text-gray-100">Order #{order.id}</h1>
+                <h1 className="text-xl font-bold text-gray-100">Order #{order.id}</h1>
                 <TestPill visible={order.isTest} />
                 <span className={`ml-auto px-2 py-0.5 border rounded text-xs font-medium ${statusColor(order.status)}`}>
                     {order.status}

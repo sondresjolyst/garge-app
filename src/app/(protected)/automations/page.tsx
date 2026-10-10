@@ -295,7 +295,7 @@ const AutomationsPage: React.FC = () => {
                     <PlusIcon className="h-3 w-3 text-sky-400" />
                 </div>
             </div>
-            <h2 className="text-xl font-display font-semibold text-gray-100 mb-2">No automations yet</h2>
+            <h2 className="text-xl font-semibold text-gray-100 mb-2">No automations yet</h2>
             <p className="text-gray-400 text-sm leading-relaxed mb-8">
                 Automations watch your sensors and automatically control switches — like turning on a heater when the temperature drops too low.
             </p>
@@ -444,7 +444,7 @@ const AutomationsPage: React.FC = () => {
             {/* Page header */}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">Automations</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white">Automations</h1>
 
                 </div>
                 <button

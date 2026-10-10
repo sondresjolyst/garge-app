@@ -81,7 +81,7 @@ export default function MarketingPage() {
                 <div className="fixed top-0 left-0 right-0 h-[480px] -z-10 bg-[radial-gradient(ellipse_at_50%_0%,rgba(14,165,233,0.1),transparent_70%)] pointer-events-none" />
                 <Image src="/garge-icon-large.png" width={0} height={0} style={{ height: '80px', width: 'auto' }} alt="Garge" priority unoptimized />
                 <div>
-                    <h1 className="text-5xl sm:text-7xl font-display font-bold text-gray-100 leading-tight mb-3">
+                    <h1 className="text-5xl sm:text-7xl font-bold text-gray-100 leading-tight mb-3">
                         Know what&apos;s happening<br className="hidden sm:block" /> in your space
                     </h1>
                     <p className="text-lg text-gray-400 max-w-xl mx-auto">
@@ -119,7 +119,7 @@ export default function MarketingPage() {
             {/* Features */}
             <section>
                 <RevealSection>
-                <h2 className="text-2xl font-display font-bold text-gray-100 mb-6 text-center">Everything you need</h2>
+                <h2 className="text-2xl font-bold text-gray-100 mb-6 text-center">Everything you need</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {features.map(({ icon: Icon, title, description }) => (
                         <div key={title} className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-5">
@@ -137,7 +137,7 @@ export default function MarketingPage() {
             {/* FAQ */}
             <section>
                 <RevealSection>
-                <h2 className="text-2xl font-display font-bold text-gray-100 mb-6 text-center">Frequently asked questions</h2>
+                <h2 className="text-2xl font-bold text-gray-100 mb-6 text-center">Frequently asked questions</h2>
                 <div className="space-y-3">
                     {faqs.map(({ q, a }) => (
                         <div key={q} className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-5">

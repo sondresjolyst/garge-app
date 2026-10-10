@@ -16,7 +16,7 @@ export default function Navbar() {
             <div className="px-4 sm:px-6 py-3 flex items-center justify-between max-w-7xl mx-auto">
 
                 <Link href="/" className="flex items-center gap-2.5">
-                    <Image src="/garge-icon-large.png" height={32} width={32} quality={75} style={{ width: 'auto' }} alt="Garge" priority/>
+                    <Image src="/garge-icon-large.png" width={32} height={37} quality={75} className="h-auto w-8" alt="Garge" priority/>
                     <span className="text-sm font-semibold text-gray-100 tracking-wide hidden sm:block">Garge</span>
                 </Link>
 

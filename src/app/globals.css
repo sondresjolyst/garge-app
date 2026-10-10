@@ -5,6 +5,11 @@
 @tailwind utilities;
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* JetBrains Mono from next/font, set on <body>. Inline, so font-mono reads the variable where it is used. */
+@theme inline {
+    --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
 /* Garge's dark look for the shared components in @sjolystinnovation/app-kit. */
 @theme {
     --radius-alert: var(--radius-xl);

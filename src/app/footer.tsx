@@ -12,7 +12,7 @@ export default async function Footer() {
 
                 {/* Brand */}
                 <div className="flex items-center gap-2.5">
-                    <Image src="/garge-icon-large.png" height={32} width={32} quality={75} style={{ width: 'auto' }} alt="Garge" />
+                    <Image src="/garge-icon-large.png" width={32} height={37} quality={75} className="h-auto w-8" alt="Garge" />
                     <span className="text-sm font-semibold text-gray-300">Garge</span>
                 </div>
 

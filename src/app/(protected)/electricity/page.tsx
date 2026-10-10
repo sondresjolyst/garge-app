@@ -145,7 +145,7 @@ const ElectricityPage = () => {
 
             {/* ── Page header ──────────────────────────────────────────────────── */}
             <div className="mb-6">
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-100">Electricity Prices</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-100">Electricity Prices</h1>
             </div>
 
             <div className="flex flex-col gap-5">

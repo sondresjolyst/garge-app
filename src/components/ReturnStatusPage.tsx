@@ -30,7 +30,7 @@ export default function ReturnStatusPage(props: ReturnStatusPageProps) {
             {props.variant === 'success' && (
                 <>
                     <CheckCircleIcon className="h-16 w-16 text-green-400" aria-hidden />
-                    <p className="text-xl font-display font-bold text-gray-100">{props.successTitle}</p>
+                    <p className="text-xl font-bold text-gray-100">{props.successTitle}</p>
                     <p className="text-sm text-gray-500">{props.successBody}</p>
                     {props.successExtra}
                     <Link href={props.successHref} className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors">
@@ -41,7 +41,7 @@ export default function ReturnStatusPage(props: ReturnStatusPageProps) {
             {props.variant === 'pending' && (
                 <>
                     <ClockIcon className="h-16 w-16 text-amber-400" aria-hidden />
-                    <p className="text-xl font-display font-bold text-gray-100">{props.pendingTitle}</p>
+                    <p className="text-xl font-bold text-gray-100">{props.pendingTitle}</p>
                     <p className="text-sm text-gray-500">{props.pendingBody}</p>
                     {props.pendingEmailNote && (
                         <p className="text-xs text-gray-600">{props.pendingEmailNote}</p>
@@ -66,7 +66,7 @@ export default function ReturnStatusPage(props: ReturnStatusPageProps) {
             {props.variant === 'failed' && (
                 <>
                     <XCircleIcon className="h-16 w-16 text-red-400" aria-hidden />
-                    <p className="text-xl font-display font-bold text-gray-100">{props.failedTitle}</p>
+                    <p className="text-xl font-bold text-gray-100">{props.failedTitle}</p>
                     <p className="text-sm text-gray-500">{props.failedBody}</p>
                     <Link href={props.failedHref} className="px-5 py-2.5 bg-gray-700/60 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors">
                         {props.failedCta}

@@ -271,7 +271,7 @@ export default function AdminPage() {
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8 space-y-6 pb-32">
-            <h1 className="text-xl font-display font-bold text-gray-100">Admin</h1>
+            <h1 className="text-xl font-bold text-gray-100">Admin</h1>
 
             {loading && <LoadingDots height="h-32" />}
             {error && <p className="text-sm text-red-400">{error}</p>}

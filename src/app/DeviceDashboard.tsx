@@ -471,7 +471,7 @@ const DeviceDashboard: React.FC = () => {
             <div className="p-4 max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-100">My Devices</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-100">My Devices</h1>
                 <div className="flex items-center gap-2">
                     <button
                         type="button"
@@ -642,7 +642,7 @@ const DeviceDashboard: React.FC = () => {
                                     <PlusIcon className="h-3 w-3 text-sky-400" />
                                 </div>
                             </div>
-                            <h2 className="text-xl font-display font-semibold text-gray-100 mb-2">No devices yet</h2>
+                            <h2 className="text-xl font-semibold text-gray-100 mb-2">No devices yet</h2>
                             <p className="text-sm text-gray-400 leading-relaxed">Get started by adding a sensor or socket.</p>
                         </div>
                         <div className="space-y-2.5 mb-8">
