@@ -9,6 +9,7 @@ import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
 import ToggleSwitch from '@/components/ToggleSwitch';
+import VatThresholdCard from '@/components/admin/VatThresholdCard';
 import { StatGrid } from '@/components/StatCard';
 import { toast } from '@sjolystinnovation/app-kit/toast';
 
@@ -490,6 +491,10 @@ export default function AdminPage() {
                                 )}
                             </div>
                         </div>
+                    </Section>
+
+                    <Section title="VAT threshold">
+                        <VatThresholdCard />
                     </Section>
 
                     {/* Garge Security */}

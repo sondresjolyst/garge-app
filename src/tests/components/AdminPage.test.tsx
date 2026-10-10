@@ -30,6 +30,7 @@ vi.mock('next-auth/react', () => ({ useSession: () => session }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
 vi.mock('next/dynamic', () => ({ default: () => () => null }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('@/components/admin/VatThresholdCard', () => ({ default: () => null }))
 vi.mock('@/services/sensorService', () => ({
     default: { reanalyzeBatteryHealth: vi.fn() },
 }))
