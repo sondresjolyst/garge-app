@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import type { VatThreshold } from '@/services/vatService'
 
-const { getThreshold, setOtherTurnover, makeSupplements, toastError } = vi.hoisted(() => ({
+const { getThreshold, setOtherTurnover, makeCorrections, toastError } = vi.hoisted(() => ({
     getThreshold: vi.fn(),
     setOtherTurnover: vi.fn(),
-    makeSupplements: vi.fn(),
+    makeCorrections: vi.fn(),
     toastError: vi.fn(),
 }))
 
@@ -14,8 +14,8 @@ vi.mock('@/services/vatService', () => ({
     default: {
         getThreshold: () => getThreshold(),
         setOtherTurnover: (v: number) => setOtherTurnover(v),
-        makeSupplements: () => makeSupplements(),
-        downloadSupplement: vi.fn(),
+        makeCorrections: () => makeCorrections(),
+        downloadDocument: vi.fn(),
         downloadOwedCsv: vi.fn(),
     },
 }))
@@ -40,8 +40,8 @@ const crossed: VatThreshold = {
     crossedAt: '2026-09-01T10:00:00Z',
     owedVatInOre: 44_000,
     owed: [
-        { invoiceId: 42, issuedAt: '2026-09-01T10:00:00Z', amountInOre: 200_000, vatInOre: 40_000, supplementNumber: null, supplementIssuedAt: null },
-        { invoiceId: 43, issuedAt: '2026-09-02T10:00:00Z', amountInOre: 20_000, vatInOre: 4_000, supplementNumber: null, supplementIssuedAt: null },
+        { invoiceId: 42, issuedAt: '2026-09-01T10:00:00Z', amountInOre: 200_000, vatInOre: 40_000, correctedAt: null, creditNoteId: null, replacementInvoiceId: null },
+        { invoiceId: 43, issuedAt: '2026-09-02T10:00:00Z', amountInOre: 20_000, vatInOre: 4_000, correctedAt: null, creditNoteId: null, replacementInvoiceId: null },
     ],
 }
 
@@ -49,7 +49,7 @@ describe('VatThresholdCard', () => {
     beforeEach(() => {
         getThreshold.mockReset()
         setOtherTurnover.mockReset()
-        makeSupplements.mockReset()
+        makeCorrections.mockReset()
         toastError.mockReset()
     })
 
@@ -67,34 +67,35 @@ describe('VatThresholdCard', () => {
         expect(await screen.findByText(/Register for VAT, then turn VAT on/)).toBeInTheDocument()
         expect(screen.getByText(/#0042/, { selector: 'div' })).toBeInTheDocument()
         expect(screen.getByText(/VAT owed from before registration/)).toBeInTheDocument()
-        expect(screen.getAllByText(/No supplement/)).toHaveLength(2)
+        expect(screen.getAllByText(/Not corrected/)).toHaveLength(2)
     })
 
-    it('only makes supplements once VAT is on', async () => {
+    it('only makes credit notes and new invoices once VAT is on', async () => {
         getThreshold.mockResolvedValue(crossed)
         const { unmount } = render(<VatThresholdCard />)
-        expect(await screen.findByRole('button', { name: /Make VAT supplements \(2\)/ })).toBeDisabled()
-        expect(screen.getByText(/Turn VAT on after registration to make the supplements/)).toBeInTheDocument()
+        expect(await screen.findByRole('button', { name: /Make credit notes and new invoices \(2\)/ })).toBeDisabled()
+        expect(screen.getByText(/Turn VAT on after registration to make the credit notes and new invoices/)).toBeInTheDocument()
         unmount()
 
         getThreshold.mockResolvedValue({ ...crossed, vatEnabled: true })
-        makeSupplements.mockResolvedValue(2)
+        makeCorrections.mockResolvedValue(2)
         render(<VatThresholdCard />)
-        const button = await screen.findByRole('button', { name: /Make VAT supplements \(2\)/ })
+        const button = await screen.findByRole('button', { name: /Make credit notes and new invoices \(2\)/ })
         expect(button).toBeEnabled()
         expect(screen.queryByText(/Register for VAT/)).not.toBeInTheDocument()
         fireEvent.click(button)
-        await waitFor(() => expect(makeSupplements).toHaveBeenCalledTimes(1))
+        await waitFor(() => expect(makeCorrections).toHaveBeenCalledTimes(1))
     })
 
-    it('offers each made supplement for download under its own number', async () => {
+    it('offers the credit note and the new invoice of each corrected sale', async () => {
         getThreshold.mockResolvedValue({
             ...crossed, vatEnabled: true,
-            owed: [{ ...crossed.owed[0], supplementNumber: 'MVA-0001', supplementIssuedAt: '2026-10-01T10:00:00Z' }],
+            owed: [{ ...crossed.owed[0], correctedAt: '2026-10-01T10:00:00Z', creditNoteId: 50, replacementInvoiceId: 51 }],
         })
         render(<VatThresholdCard />)
-        expect(await screen.findByRole('button', { name: 'Download VAT supplement MVA-0001 for invoice #0042' })).toHaveTextContent('MVA-0001')
-        expect(screen.queryByRole('button', { name: /Make VAT supplements/ })).not.toBeInTheDocument()
+        expect(await screen.findByRole('button', { name: 'Download credit note #0050 for invoice #0042' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Download invoice #0051 with VAT for invoice #0042' })).toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: /Make credit notes/ })).not.toBeInTheDocument()
     })
 
     it('saves other turnover in øre and refuses a bad amount', async () => {

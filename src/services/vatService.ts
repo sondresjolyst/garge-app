@@ -6,8 +6,9 @@ export interface VatOwedSale {
     issuedAt: string;
     amountInOre: number;
     vatInOre: number;
-    supplementNumber: string | null;
-    supplementIssuedAt: string | null;
+    correctedAt: string | null;
+    creditNoteId: number | null;
+    replacementInvoiceId: number | null;
 }
 
 export interface VatThreshold {
@@ -54,16 +55,16 @@ const VatService = {
         }
     },
 
-    async makeSupplements(): Promise<number> {
+    async makeCorrections(): Promise<number> {
         try {
-            return (await axiosInstance.post<{ made: number }>('/admin/vat/supplements')).data.made;
+            return (await axiosInstance.post<{ made: number }>('/admin/vat/corrections')).data.made;
         } catch (error: unknown) {
-            throw new Error(formatApiError(error, 'Failed to make VAT supplements'));
+            throw new Error(formatApiError(error, 'Failed to make the credit notes and new invoices'));
         }
     },
 
-    downloadSupplement(invoiceId: number, supplementNumber: string): Promise<void> {
-        return download(`/admin/vat/supplements/${invoiceId}`, `${supplementNumber}.pdf`, 'Failed to download the VAT supplement');
+    downloadDocument(invoiceId: number, kind: 'credit-note' | 'invoice'): Promise<void> {
+        return download(`/admin/vat/documents/${invoiceId}`, `${kind}-${String(invoiceId).padStart(4, '0')}.pdf`, 'Failed to download the document');
     },
 
     downloadOwedCsv(): Promise<void> {

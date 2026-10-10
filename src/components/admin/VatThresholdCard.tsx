@@ -19,8 +19,8 @@ function invoiceNumber(id: number): string {
 
 /**
  * Turnover over the last 12 months against the 50 000 kr VAT registration threshold. After it is
- * passed, lists the sales that owe VAT from before registration and makes their VAT supplements
- * once VAT is on.
+ * passed, lists the sales that owe VAT from before registration. Once VAT is on, each of them gets
+ * a credit note for its VAT-free invoice and a new invoice with VAT included in the same price.
  */
 export default function VatThresholdCard() {
     const [status, setStatus] = useState<VatThreshold | null>(null);
@@ -60,7 +60,7 @@ export default function VatThresholdCard() {
     const percent = Math.min(100, Math.floor((status.turnoverInOre * 100) / status.thresholdInOre));
     const passed = status.crossingInvoiceId !== null;
     const barColor = passed ? 'bg-red-500' : percent >= 90 ? 'bg-amber-500' : percent >= 80 ? 'bg-yellow-500' : 'bg-sky-500';
-    const missingSupplements = status.owed.filter(o => o.supplementIssuedAt === null).length;
+    const uncorrected = status.owed.filter(o => o.correctedAt === null).length;
 
     const filled = Math.floor((percent * SEGMENTS) / 100);
 
@@ -71,9 +71,9 @@ export default function VatThresholdCard() {
         toast.success('Other turnover saved');
     });
 
-    const makeSupplements = () => run(async () => {
-        const made = await VatService.makeSupplements();
-        toast.success(made === 1 ? 'Made 1 VAT supplement' : `Made ${made} VAT supplements`);
+    const makeCorrections = () => run(async () => {
+        const made = await VatService.makeCorrections();
+        toast.success(made === 1 ? 'Corrected 1 sale' : `Corrected ${made} sales`);
     });
 
     return (
@@ -160,36 +160,46 @@ export default function VatThresholdCard() {
                                 <span className="tabular-nums text-gray-400">
                                     {formatNok(o.amountInOre)}, VAT {formatNok(o.vatInOre)}
                                 </span>
-                                {o.supplementIssuedAt && o.supplementNumber ? (
-                                    <button
-                                        onClick={() => run(() => VatService.downloadSupplement(o.invoiceId, o.supplementNumber!))}
-                                        disabled={busy}
-                                        aria-label={`Download VAT supplement ${o.supplementNumber} for invoice ${invoiceNumber(o.invoiceId)}`}
-                                        className="text-sky-400 hover:text-sky-300 disabled:opacity-50"
-                                    >
-                                        {o.supplementNumber}
-                                    </button>
+                                {o.creditNoteId && o.replacementInvoiceId ? (
+                                    <span className="flex gap-2">
+                                        <button
+                                            onClick={() => run(() => VatService.downloadDocument(o.creditNoteId!, 'credit-note'))}
+                                            disabled={busy}
+                                            aria-label={`Download credit note ${invoiceNumber(o.creditNoteId)} for invoice ${invoiceNumber(o.invoiceId)}`}
+                                            className="text-sky-400 hover:text-sky-300 disabled:opacity-50"
+                                        >
+                                            Credit {invoiceNumber(o.creditNoteId)}
+                                        </button>
+                                        <button
+                                            onClick={() => run(() => VatService.downloadDocument(o.replacementInvoiceId!, 'invoice'))}
+                                            disabled={busy}
+                                            aria-label={`Download invoice ${invoiceNumber(o.replacementInvoiceId)} with VAT for invoice ${invoiceNumber(o.invoiceId)}`}
+                                            className="text-sky-400 hover:text-sky-300 disabled:opacity-50"
+                                        >
+                                            Invoice {invoiceNumber(o.replacementInvoiceId)}
+                                        </button>
+                                    </span>
                                 ) : (
-                                    <span className="text-gray-400">No supplement</span>
+                                    <span className="text-gray-400">Not corrected</span>
                                 )}
                             </li>
                         ))}
                     </ul>
-                    {missingSupplements > 0 && (
+                    {uncorrected > 0 && (
                         <div className="space-y-1">
                             <button
-                                onClick={makeSupplements}
+                                onClick={makeCorrections}
                                 disabled={busy || !status.vatEnabled}
-                                aria-describedby="vat-supplement-help"
+                                aria-describedby="vat-correction-help"
                                 className="px-3 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-sm rounded-lg transition-colors"
                             >
-                                Make VAT supplements ({missingSupplements})
+                                Make credit notes and new invoices ({uncorrected})
                             </button>
-                            {!status.vatEnabled && (
-                                <p id="vat-supplement-help" className="text-xs text-gray-400">
-                                    Turn VAT on after registration to make the supplements.
-                                </p>
-                            )}
+                            <p id="vat-correction-help" className="text-xs text-gray-400">
+                                {status.vatEnabled
+                                    ? 'Each sale gets a credit note for its invoice without VAT and a new invoice with VAT included in the same price. Both are emailed to the customer, who pays nothing more.'
+                                    : 'Turn VAT on after registration to make the credit notes and new invoices.'}
+                            </p>
                         </div>
                     )}
                 </div>
