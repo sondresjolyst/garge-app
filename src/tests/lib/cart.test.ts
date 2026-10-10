@@ -113,24 +113,16 @@ describe('removeLine', () => {
 });
 
 describe('cartTotalInOre', () => {
-    it('sums lines without VAT', () => {
+    it('sums the prices customers pay', () => {
         const total = cartTotalInOre([
             { priceInOre: 1000, quantity: 2 },
             { priceInOre: 500, quantity: 3 },
-        ], false);
+        ]);
         expect(total).toBe(3500);
     });
 
-    it('applies VAT once on the subtotal', () => {
-        const total = cartTotalInOre([
-            { priceInOre: 1000, quantity: 2 },
-        ], true);
-        expect(total).toBe(2500);
-    });
-
     it('returns 0 for empty cart', () => {
-        expect(cartTotalInOre([], false)).toBe(0);
-        expect(cartTotalInOre([], true)).toBe(0);
+        expect(cartTotalInOre([])).toBe(0);
     });
 });
 

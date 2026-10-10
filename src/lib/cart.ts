@@ -1,5 +1,3 @@
-import { effectivePriceInOre } from '@/lib/pricing';
-
 export interface CartLine {
     shopItemId: number;
     quantity: number;
@@ -39,12 +37,8 @@ export function removeLine(cart: CartLine[], itemId: number): CartLine[] {
     return cart.filter(l => l.shopItemId !== itemId);
 }
 
-export function cartTotalInOre(
-    lines: { priceInOre: number; quantity: number }[],
-    vatEnabled: boolean,
-): number {
-    const subtotal = lines.reduce((sum, l) => sum + l.priceInOre * l.quantity, 0);
-    return effectivePriceInOre(subtotal, vatEnabled);
+export function cartTotalInOre(lines: { priceInOre: number; quantity: number }[]): number {
+    return lines.reduce((sum, l) => sum + l.priceInOre * l.quantity, 0);
 }
 
 export function cartItemCount(cart: CartLine[]): number {

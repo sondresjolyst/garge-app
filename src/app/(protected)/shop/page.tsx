@@ -20,7 +20,7 @@ import UserService from '@/services/userService';
 import ShopItemPhotoService from '@/services/shopItemPhotoService';
 import type { Photo } from '@/services/photoServiceFactory';
 import { formatNok } from '@/lib/formatUtils';
-import { effectivePriceInOre, vatLabel } from '@/lib/pricing';
+import { VAT_LABEL } from '@/lib/pricing';
 import { useLocalStorage } from '@/lib/useLocalStorage';
 import { formatApiError } from '@/lib/errorMessages';
 import { CartLine, addToCart, cartItemCount } from '@/lib/cart';
@@ -188,8 +188,8 @@ export default function ShopPage() {
                                         <div className="flex-1">
                                             <p className="text-sm font-semibold text-gray-100">{item.name}</p>
                                             <p className="text-lg font-bold text-sky-400 mt-1">
-                                                {formatNok(effectivePriceInOre(item.priceInOre, vatEnabled) * qty)}
-                                                <span className="text-xs font-normal text-gray-500 ml-1">{vatLabel(vatEnabled)}</span>
+                                                {formatNok(item.priceInOre * qty)}
+                                                <span className="text-xs font-normal text-gray-500 ml-1">{vatEnabled && VAT_LABEL}</span>
                                             </p>
                                             {item.description && (
                                                 <div className="mt-1">
@@ -248,7 +248,7 @@ export default function ShopPage() {
                             const addOnLocked = !isPrimary && !hasActivePrimary;
                             const dimmed = primaryActive || addOnLocked;
                             const subQty = isPrimary ? 1 : getSubQty(p.id);
-                            const lineTotal = effectivePriceInOre(p.priceInOre, vatEnabled) * subQty;
+                            const lineTotal = p.priceInOre * subQty;
                             return (
                                 <div
                                     key={p.id}
@@ -261,7 +261,7 @@ export default function ShopPage() {
                                         <p className="text-lg font-bold text-sky-400 mt-1">
                                             {formatNok(lineTotal)}
                                             <span className="text-xs font-normal text-gray-500 ml-1">
-                                                / {p.interval === 'Monthly' ? 'month' : 'year'} · {vatLabel(vatEnabled)}
+                                                / {p.interval === 'Monthly' ? 'month' : 'year'}{vatEnabled && ` · ${VAT_LABEL}`}
                                             </span>
                                         </p>
                                         {p.description && (
@@ -365,7 +365,7 @@ export default function ShopPage() {
                             <span className="text-gray-300">{phoneSubModal.product.name}</span>
                             {phoneSubModal.quantity > 1 && <> {' × '}{phoneSubModal.quantity}</>}
                             {' — '}
-                            {formatNok(effectivePriceInOre(phoneSubModal.product.priceInOre, vatEnabled) * phoneSubModal.quantity)} / {phoneSubModal.product.interval === 'Monthly' ? 'month' : 'year'} · {vatLabel(vatEnabled)}
+                            {formatNok(phoneSubModal.product.priceInOre * phoneSubModal.quantity)} / {phoneSubModal.product.interval === 'Monthly' ? 'month' : 'year'}{vatEnabled && ` · ${VAT_LABEL}`}
                         </>
                     }
                     requireConsent

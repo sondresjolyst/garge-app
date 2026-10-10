@@ -61,7 +61,7 @@ test.describe('Shop page — items', () => {
 
     test('shows VAT-inclusive price when VatEnabled', async ({ page }) => {
         await setup(page, { items: [sensorItem], vatEnabled: true })
-        await expect(page.getByText('NOK 625,00')).toBeVisible()
+        await expect(page.getByText('NOK 500,00')).toBeVisible()
         await expect(page.getByText(/incl\. VAT/i).first()).toBeVisible()
     })
 

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import Modal from '@/components/Modal';
-import { effectivePriceInOre, vatLabel } from '@/lib/pricing';
+import { VAT_LABEL } from '@/lib/pricing';
 import { formatNok } from '@/lib/formatUtils';
 import type { Subscription } from '@/services/subscriptionService';
 
@@ -24,7 +24,7 @@ export default function QuantityChangeModal({
 }: QuantityChangeModalProps) {
     const [qty, setQty] = useState(subscription.quantity);
 
-    const unitPrice = effectivePriceInOre(subscription.priceInOre, vatEnabled);
+    const unitPrice = subscription.priceInOre;
     const newTotal = unitPrice * qty;
     const intervalLabel = subscription.interval === 'Monthly' ? 'month' : 'year';
     const changed = qty !== subscription.quantity;
@@ -71,7 +71,7 @@ export default function QuantityChangeModal({
                     <span className="text-gray-500">New price</span>
                     <span className="text-sky-400 font-semibold tabular-nums">
                         {formatNok(newTotal)} / {intervalLabel}
-                        <span className="text-gray-600 font-normal ml-1">{vatLabel(vatEnabled)}</span>
+                        <span className="text-gray-600 font-normal ml-1">{vatEnabled && VAT_LABEL}</span>
                     </span>
                 </div>
 
