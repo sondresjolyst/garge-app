@@ -18,6 +18,9 @@
     --color-alert-success-border: color-mix(in oklab, var(--color-green-500) 20%, transparent);
     --color-alert-success-text: var(--color-green-400);
 
+    --color-toggle-on: var(--color-sky-600);
+    --color-toggle-off: var(--color-gray-700);
+
     --text-field-label: var(--text-xs);
     --text-field-label--line-height: var(--text-xs--line-height);
     --color-field-label-text: var(--color-gray-400);

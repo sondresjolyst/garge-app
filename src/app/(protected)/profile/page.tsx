@@ -18,10 +18,9 @@ import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
 import Section from '@/components/Section';
 import CapacityMeter from '@/components/CapacityMeter';
-import ToggleSwitch from '@/components/ToggleSwitch';
 import { inputClass } from '@/components/TextInput';
 import InlineEditField from '@/components/InlineEditField';
-import { Alert } from '@sjolystinnovation/app-kit/ui';
+import { Alert, Toggle } from '@sjolystinnovation/app-kit/ui';
 import { toast } from '@sjolystinnovation/app-kit/toast';
 import Link from 'next/link';
 
@@ -639,11 +638,11 @@ const Profile: React.FC = () => {
                                     <p className="text-sm text-gray-100 font-medium">Offline alerts on this device</p>
                                     <p className="text-xs text-gray-500 mt-0.5">Receive a push notification here when a sensor stops reporting. Toggle is per-device — enable on each browser or installed app where you want alerts.</p>
                                 </div>
-                                <ToggleSwitch
+                                <Toggle
                                     checked={pushEnabled}
                                     onChange={handleTogglePush}
                                     disabled={pushLoading || profileLoading}
-                                    ariaLabel={pushEnabled ? 'Disable offline alerts on this device' : 'Enable offline alerts on this device'}
+                                    aria-label={pushEnabled ? 'Disable offline alerts on this device' : 'Enable offline alerts on this device'}
                                 />
                             </div>
                             {pushEnabled && (
@@ -691,11 +690,11 @@ const Profile: React.FC = () => {
                                 <p className="text-sm text-gray-100 font-medium">Email notifications</p>
                                 <p className="text-xs text-gray-500 mt-0.5">Receive Garge Security alerts by email.</p>
                             </div>
-                            <ToggleSwitch
+                            <Toggle
                                 checked={emailNotificationsEnabled}
                                 onChange={handleToggleEmailNotifications}
                                 disabled={emailNotificationsSaving || profileLoading || !user?.id}
-                                ariaLabel={emailNotificationsEnabled ? 'Turn off email notifications' : 'Turn on email notifications'}
+                                aria-label={emailNotificationsEnabled ? 'Turn off email notifications' : 'Turn on email notifications'}
                             />
                         </div>
                     )}
@@ -721,11 +720,11 @@ const Profile: React.FC = () => {
                                 <p className="text-sm text-gray-100 font-medium">Keep my history after my subscription ends</p>
                                 <p className="text-xs text-gray-500 mt-0.5">On (default): we keep your sensor history for as long as you own the device, so you can resume and compare year over year when you return. Off: once your subscription lapses, suspended devices are removed and their data deleted or anonymized after 6 months.</p>
                             </div>
-                            <ToggleSwitch
+                            <Toggle
                                 checked={retentionKeep}
                                 onChange={handleToggleRetention}
                                 disabled={retentionLoading || profileLoading || !user?.id}
-                                ariaLabel={retentionKeep ? 'Stop keeping history after subscription ends' : 'Keep history after subscription ends'}
+                                aria-label={retentionKeep ? 'Stop keeping history after subscription ends' : 'Keep history after subscription ends'}
                             />
                         </div>
                         <div className="border-t border-gray-700/40 pt-4 flex items-center justify-between gap-4">

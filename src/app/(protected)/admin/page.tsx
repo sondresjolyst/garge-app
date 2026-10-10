@@ -8,7 +8,6 @@ import dynamic from 'next/dynamic';
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
-import ToggleSwitch from '@/components/ToggleSwitch';
 import VatThresholdCard from '@/components/admin/VatThresholdCard';
 import { StatGrid } from '@/components/StatCard';
 import { toast } from '@sjolystinnovation/app-kit/toast';
@@ -17,6 +16,7 @@ const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { 
 import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats, AppSettings, SecuritySettings } from '@/services/adminService';
 import SensorService from '@/services/sensorService';
 import { formatNok } from '@/lib/formatUtils';
+import { Toggle } from '@sjolystinnovation/app-kit/ui';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
 
@@ -450,11 +450,11 @@ export default function AdminPage() {
                                 {appSettings === null ? (
                                     <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />
                                 ) : (
-                                    <ToggleSwitch
+                                    <Toggle
                                         checked={appSettings.cookieBannerEnabled}
                                         onChange={() => handleToggleAppSetting('cookieBannerEnabled', !appSettings.cookieBannerEnabled)}
                                         disabled={appSettingsLoading}
-                                        ariaLabel="Toggle cookie banner"
+                                        aria-label="Toggle cookie banner"
                                     />
                                 )}
                             </div>
@@ -466,11 +466,11 @@ export default function AdminPage() {
                                 {appSettings === null ? (
                                     <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />
                                 ) : (
-                                    <ToggleSwitch
+                                    <Toggle
                                         checked={appSettings.vatEnabled}
                                         onChange={() => handleToggleAppSetting('vatEnabled', !appSettings.vatEnabled)}
                                         disabled={appSettingsLoading}
-                                        ariaLabel="Toggle VAT"
+                                        aria-label="Toggle VAT"
                                     />
                                 )}
                             </div>
@@ -482,11 +482,11 @@ export default function AdminPage() {
                                 {appSettings === null ? (
                                     <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />
                                 ) : (
-                                    <ToggleSwitch
+                                    <Toggle
                                         checked={appSettings.vippsTestMode}
                                         onChange={() => handleToggleAppSetting('vippsTestMode', !appSettings.vippsTestMode)}
                                         disabled={appSettingsLoading}
-                                        ariaLabel="Toggle Vipps test mode"
+                                        aria-label="Toggle Vipps test mode"
                                     />
                                 )}
                             </div>
@@ -585,11 +585,11 @@ export default function AdminPage() {
                     <Section title="Users">
                         <div className="flex items-center justify-end gap-2 mb-3">
                             <span className="text-xs text-gray-400 select-none">Show deleted{usersLoading ? '…' : ''}</span>
-                            <ToggleSwitch
+                            <Toggle
                                 checked={showDeletedUsers}
                                 onChange={() => reloadUsersForDeletedToggle(!showDeletedUsers)}
                                 disabled={usersLoading}
-                                ariaLabel="Show deleted users"
+                                aria-label="Show deleted users"
                             />
                         </div>
                         {users.length > 0 && (
