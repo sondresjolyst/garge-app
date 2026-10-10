@@ -1,63 +1,8 @@
-import type { NextConfig } from "next";
+import { defineAppConfig } from '@sjolystinnovation/app-kit/next-config';
 
-function getApiOrigin(): string {
-    const url = process.env.NEXT_PUBLIC_API_URL;
-    if (!url) return '';
-    try {
-        const { origin } = new URL(url);
-        return origin;
-    } catch {
-        return '';
-    }
-}
-
-const nextConfig: NextConfig = {
-    transpilePackages: ['@sjolystinnovation/app-kit'],
-    output: 'standalone',
-    poweredByHeader: false,
-    images: {
-        qualities: [75, 100],
-    },
-    async headers() {
-        const apiOrigin = getApiOrigin();
-        // SignalR WebSocket transport uses ws/wss on the same host as the
-        // REST origin. CSP connect-src needs both schemes.
-        const apiWsOrigin = apiOrigin.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:');
-        const connectSrc = ['self', apiOrigin, apiWsOrigin]
-            .filter(Boolean)
-            .map(s => s === 'self' ? "'self'" : s)
-            .join(' ');
-
-        const isDev = process.env.NODE_ENV !== 'production';
-        const scriptSrc = isDev
-            ? "script-src 'self' 'unsafe-eval' 'unsafe-inline'"
-            : "script-src 'self' 'unsafe-inline'";
-
-        const csp = [
-            "default-src 'self'",
-            scriptSrc,
-            "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data: blob:",
-            `connect-src ${connectSrc}`,
-            "font-src 'self'",
-            "base-uri 'self'",
-            "form-action 'self'",
-            "frame-ancestors 'none'",
-            "upgrade-insecure-requests",
-        ].join('; ');
-
-        const headers = [
-            { key: 'X-Content-Type-Options', value: 'nosniff' },
-            { key: 'X-Frame-Options', value: 'DENY' },
-            { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-            { key: 'X-DNS-Prefetch-Control', value: 'on' },
-            { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-            { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
-            { key: 'Content-Security-Policy', value: csp },
-        ];
-
-        return [{ source: '/(.*)', headers }];
-    },
-};
-
-export default nextConfig;
+export default defineAppConfig({
+    apiUrl: process.env.NEXT_PUBLIC_API_URL,
+    dev: process.env.NODE_ENV !== 'production',
+    // SignalR connects over a WebSocket to the API.
+    websocket: true,
+});
