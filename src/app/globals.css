@@ -57,6 +57,12 @@
     --color-dialog-bg: var(--color-gray-800);
     --color-dialog-title: var(--color-gray-100);
     --color-dialog-text: var(--color-gray-400);
+
+    --color-state-heading: var(--color-gray-100);
+    --color-state-text: var(--color-gray-400);
+    --color-state-code: var(--color-gray-600);
+    --color-state-link: var(--color-sky-500);
+    --color-state-link-hover: var(--color-sky-400);
 }
 
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
