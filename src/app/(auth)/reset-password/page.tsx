@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import AuthService from '@/services/userService';
+import { gargePasswordSchema } from '@/lib/validation/registerSchema';
 import Image from 'next/image';
 import Link from 'next/link';
 import { inputClass } from '@/components/TextInput';
@@ -34,6 +35,11 @@ const ResetPassword: React.FC = () => {
     const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setApiMessage('');
+        const check = gargePasswordSchema.safeParse(NewPassword);
+        if (!check.success) {
+            setApiMessage(check.error.issues.map(issue => issue.message).join(' '));
+            return;
+        }
         setLoading(true);
         try {
             const response = await AuthService.resetPassword({ email, code, NewPassword });
