@@ -88,6 +88,13 @@ afterEach(() => {
     vi.useRealTimers()
 })
 
+// Waits for the pending state, then lets React run its effects, so the 60 second poll timer exists
+// before a test moves the fake clock.
+const pollingStarted = async () => {
+    await screen.findByText('Turns on at the sensor\'s next check-in, within about an hour.')
+    await act(async () => {})
+}
+
 describe('DeviceDrawer Garge Security', () => {
     it('renders nothing when the user does not have the feature', async () => {
         useFeature.mockReturnValue(false)
@@ -295,7 +302,7 @@ describe('DeviceDrawer Garge Security', () => {
         const onSecurityChange = vi.fn()
         const { unmount } = render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} onSecurityChange={onSecurityChange} />)
 
-        await screen.findByText('Turns on at the sensor\'s next check-in, within about an hour.')
+        await pollingStarted()
         expect(getSensorSecurity).toHaveBeenCalledTimes(1)
 
         getSensorSecurity.mockResolvedValue(makeSecurity({ enabled: true, state: 'armed' }))
@@ -317,7 +324,7 @@ describe('DeviceDrawer Garge Security', () => {
         const onSecurityChange = vi.fn()
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} onSecurityChange={onSecurityChange} />)
 
-        await screen.findByText('Turns on at the sensor\'s next check-in, within about an hour.')
+        await pollingStarted()
         const toggle = screen.getByRole('switch', { name: 'Turn off Garge Security', hidden: true })
 
         let resolvePoll: (value: SensorSecurity) => void = () => {}
@@ -345,6 +352,7 @@ describe('DeviceDrawer Garge Security', () => {
 
         const heading = await screen.findByText('Garge Security', { selector: 'h3' })
         const card = heading.closest('.rounded-2xl') as HTMLElement
+        await pollingStarted()
 
         let resolvePoll: (value: SensorSecurity) => void = () => {}
         getSensorSecurity.mockReturnValueOnce(new Promise<SensorSecurity>(resolve => { resolvePoll = resolve }))
@@ -366,7 +374,7 @@ describe('DeviceDrawer Garge Security', () => {
         getSensorSecurity.mockResolvedValue(makeSecurity({ enabled: true, state: 'pending', reason: 'awaiting_wake' }))
         const { unmount } = render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
 
-        await screen.findByText('Turns on at the sensor\'s next check-in, within about an hour.')
+        await pollingStarted()
         unmount()
         await act(async () => { vi.advanceTimersByTime(180_000) })
 
