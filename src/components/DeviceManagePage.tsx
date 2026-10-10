@@ -207,7 +207,7 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
                     <Link href="/profile" className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700/60 transition-all">
                         <ArrowLeftIcon className="h-4 w-4" />
                     </Link>
-                    <h1 className="text-2xl font-display font-bold text-gray-100">{title}</h1>
+                    <h1 className="text-2xl font-bold text-gray-100">{title}</h1>
                 </div>
 
                 <Section title={`Add a ${label}`}>

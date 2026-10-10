@@ -140,7 +140,7 @@ export default function AdminShopPage() {
                 <Link href="/admin" className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700/60 transition-all">
                     <ArrowLeftIcon className="h-4 w-4" />
                 </Link>
-                <h1 className="text-xl font-display font-bold text-gray-100">Shop Items</h1>
+                <h1 className="text-xl font-bold text-gray-100">Shop Items</h1>
             </div>
 
             <Section title="Items">

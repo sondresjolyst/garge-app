@@ -5,7 +5,7 @@ export default async function TermsPage() {
     const vatEnabled = await fetchVatEnabled();
     return (
         <div className="max-w-2xl mx-auto px-4 py-10 space-y-6">
-            <h1 className="text-3xl font-display font-bold text-gray-100">Terms of Service</h1>
+            <h1 className="text-3xl font-bold text-gray-100">Terms of Service</h1>
             <p className="text-xs text-gray-500">Last updated: May 2026</p>
 
             <div className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-6 shadow-lg space-y-6 text-sm text-gray-400 leading-relaxed">
