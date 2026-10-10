@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react';
 import { TrashIcon, BoltIcon } from '@heroicons/react/24/outline';
-import ToggleSwitch from '@/components/ToggleSwitch';
 import { Switch } from '@/services/switchService';
 import { Sensor } from '@/services/sensorService';
 import { CreateAutomationRuleDto } from '@/dto/Automation/CreateAutomationRuleDto';
 import { unitForType } from '@/lib/typeUtils';
+import { Toggle } from '@sjolystinnovation/app-kit/ui';
 
 const PRICE_AREAS = ['NO1', 'NO2', 'NO3', 'NO4', 'NO5'];
 
@@ -103,10 +103,10 @@ const PriceConditionForm: React.FC<PriceConditionFormProps> = ({ value, defaultA
                     <p className="text-sm font-medium text-gray-300">Electricity price condition</p>
                     <p className="text-xs text-gray-500 mt-0.5">Also check current electricity price</p>
                 </div>
-                <ToggleSwitch
+                <Toggle
                     checked={enabled}
                     onChange={toggle}
-                    ariaLabel={enabled ? 'Disable electricity price condition' : 'Enable electricity price condition'}
+                    aria-label={enabled ? 'Disable electricity price condition' : 'Enable electricity price condition'}
                 />
             </div>
             {enabled && (
@@ -245,10 +245,10 @@ const AutomationRuleForm: React.FC<AutomationRuleFormProps> = ({
                             <p className="text-sm font-medium text-gray-300">Auto-off timer</p>
                             <p className="text-xs text-gray-500 mt-0.5">Automatically turn off after a set duration</p>
                         </div>
-                        <ToggleSwitch
+                        <Toggle
                             checked={!!value.timerDurationHours}
                             onChange={() => onChange({ ...value, timerDurationHours: value.timerDurationHours ? undefined : 2 })}
-                            ariaLabel={value.timerDurationHours ? 'Disable auto-off timer' : 'Enable auto-off timer'}
+                            aria-label={value.timerDurationHours ? 'Disable auto-off timer' : 'Enable auto-off timer'}
                         />
                     </div>
                     {value.timerDurationHours != null && (

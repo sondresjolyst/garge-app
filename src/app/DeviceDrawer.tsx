@@ -7,7 +7,6 @@ import { XMarkIcon, PencilIcon, InformationCircleIcon } from '@heroicons/react/2
 import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { useFeature } from '@/hooks/useFeature';
 import InlineEditField from '@/components/InlineEditField';
-import ToggleSwitch from '@/components/ToggleSwitch';
 import { TYPE_CONFIG as typeConfig, DEFAULT_TYPE as defaultType, BATTERY_STATUS_CONFIG as statusConfig } from '@/lib/typeConfig';
 import { unitForType, typeLabel } from '@/lib/typeUtils';
 import { RANGE_OPTIONS, type RangeIndex } from '@/lib/constants';
@@ -22,6 +21,7 @@ import type { Photo } from '@/services/photoServiceFactory';
 import { toast } from '@sjolystinnovation/app-kit/toast';
 import ActivitiesSection from '@/components/ActivitiesSection';
 import type { UnifiedDevice } from './DeviceDashboard';
+import { Toggle } from '@sjolystinnovation/app-kit/ui';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
 
@@ -432,11 +432,11 @@ const GargeSecurityConfig: React.FC<{
                     </p>
                 </div>
                 {security.isOwner && !(unsupportedHardware && !security.enabled) ? (
-                    <ToggleSwitch
+                    <Toggle
                         checked={security.enabled}
                         onChange={security.enabled ? disable : () => save('Garge Security turned on')}
                         disabled={saving || (!security.enabled && needsChargingRule)}
-                        ariaLabel={security.enabled ? 'Turn off Garge Security' : 'Turn on Garge Security'}
+                        aria-label={security.enabled ? 'Turn off Garge Security' : 'Turn on Garge Security'}
                     />
                 ) : unsupportedHardware && !security.enabled ? null : (
                     <span className="text-xs font-medium text-gray-400 flex-shrink-0">{security.enabled ? 'On' : 'Off'}</span>

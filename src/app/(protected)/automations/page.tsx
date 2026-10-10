@@ -15,7 +15,6 @@ import { sortAutomationRules } from '@/lib/automationSort';
 import { formatApiError } from '@/lib/errorMessages';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingDots from '@/components/LoadingDots';
-import ToggleSwitch from '@/components/ToggleSwitch';
 import AutomationRuleForm from './AutomationRuleForm';
 import {
     PlusIcon,
@@ -25,6 +24,7 @@ import {
     BoltIcon,
 } from '@heroicons/react/24/outline';
 import { toast } from '@sjolystinnovation/app-kit/toast';
+import { Toggle } from '@sjolystinnovation/app-kit/ui';
 
 const initialForm: CreateAutomationRuleDto = {
     targetType: '',
@@ -356,10 +356,10 @@ const AutomationsPage: React.FC = () => {
                             {isOn ? 'Turn on rule' : 'Turn off rule'}
                         </span>
                     </div>
-                    <ToggleSwitch
+                    <Toggle
                         checked={rule.isEnabled}
                         onChange={() => handleToggleEnabled(rule)}
-                        ariaLabel={rule.isEnabled ? 'Disable rule' : 'Enable rule'}
+                        aria-label={rule.isEnabled ? 'Disable rule' : 'Enable rule'}
                     />
                 </div>
 
