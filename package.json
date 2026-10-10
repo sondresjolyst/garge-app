@@ -17,7 +17,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@microsoft/signalr": "^10.0.11",
-    "@sjolystinnovation/app-kit": "^0.7.0",
+    "@sjolystinnovation/app-kit": "^0.8.0",
     "apexcharts": "^7.6.1",
     "axios": "^1.20.0",
     "date-fns": "^4.4.0",

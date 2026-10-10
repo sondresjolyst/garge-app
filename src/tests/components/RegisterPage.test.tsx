@@ -38,8 +38,8 @@ describe('Register — live client-side validation', () => {
             expect(screen.getByText('Be at least 8 characters long.')).toBeInTheDocument()
         )
         // It surfaces every failing rule, not just the first.
-        expect(screen.getByText('Contain at least one number.')).toBeInTheDocument()
-        expect(screen.getByText('Contain at least one uppercase letter.')).toBeInTheDocument()
+        expect(screen.getByText('Contain at least one number (0-9).')).toBeInTheDocument()
+        expect(screen.getByText('Contain at least one uppercase letter (A-Z).')).toBeInTheDocument()
 
         // No network call yet — this is pure client-side feedback.
         expect(register).not.toHaveBeenCalled()

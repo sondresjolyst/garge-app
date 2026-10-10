@@ -14,14 +14,44 @@ describe('registerSchema', () => {
         expect(registerSchema.safeParse(valid).success).toBe(true)
     })
 
-    it('rejects names shorter than 2 characters', () => {
-        const result = registerSchema.safeParse({ ...valid, firstName: 'A', lastName: 'B', userName: 'c' })
+    it('accepts one-letter names, as the API does', () => {
+        expect(registerSchema.safeParse({ ...valid, firstName: 'A', lastName: 'B' }).success).toBe(true)
+    })
+
+    it('rejects empty names and names over 50 characters', () => {
+        const result = registerSchema.safeParse({ ...valid, firstName: '', lastName: 'x'.repeat(51) })
         expect(result.success).toBe(false)
         if (!result.success) {
             const fields = zodIssuesToFieldErrors(result.error.issues)
-            expect(fields.firstName).toContain('First Name must be at least 2 characters long.')
-            expect(fields.lastName).toContain('Last Name must be at least 2 characters long.')
-            expect(fields.userName).toContain('Username must be at least 2 characters long.')
+            expect(fields.firstName).toContain('First Name is required.')
+            expect(fields.lastName).toContain('Last Name must be at most 50 characters long.')
+        }
+    })
+
+    it('needs a username of 3 to 64 characters', () => {
+        const short = registerSchema.safeParse({ ...valid, userName: 'ad' })
+        const long = registerSchema.safeParse({ ...valid, userName: 'a'.repeat(65) })
+        expect(short.success || zodIssuesToFieldErrors(short.error.issues).userName).toContain('Username must be at least 3 characters long.')
+        expect(long.success || zodIssuesToFieldErrors(long.error.issues).userName).toContain('Username must be at most 64 characters long.')
+        expect(registerSchema.safeParse({ ...valid, userName: 'a'.repeat(64) }).success).toBe(true)
+    })
+
+    it('allows only the username characters Identity allows', () => {
+        expect(registerSchema.safeParse({ ...valid, userName: 'ada.love-lace_1@x+y' }).success).toBe(true)
+        for (const userName of ['ada love', 'åse', 'ada!']) {
+            const result = registerSchema.safeParse({ ...valid, userName })
+            expect(result.success, `expected "${userName}" to fail`).toBe(false)
+            if (!result.success) {
+                expect(zodIssuesToFieldErrors(result.error.issues).userName).toContain('Username can only use letters A-Z, digits and - . _ @ +.')
+            }
+        }
+    })
+
+    it('rejects an email over 254 characters', () => {
+        const result = registerSchema.safeParse({ ...valid, email: `${'a'.repeat(250)}@x.no` })
+        expect(result.success).toBe(false)
+        if (!result.success) {
+            expect(zodIssuesToFieldErrors(result.error.issues).email).toContain('Email must be at most 254 characters long.')
         }
     })
 
@@ -36,10 +66,10 @@ describe('registerSchema', () => {
     it('enforces every password rule', () => {
         const cases: Array<[string, string]> = [
             ['Sh1!aaa', 'Be at least 8 characters long.'],
-            ['nouppercase1!', 'Contain at least one uppercase letter.'],
-            ['NoNumber!!', 'Contain at least one number.'],
-            ['NoSpecial123', 'Contain at least one special character.'],
-            ['12345678!', 'Contain at least one letter.'],
+            ['nouppercase1!', 'Contain at least one uppercase letter (A-Z).'],
+            ['NOLOWERCASE1!', 'Contain at least one lowercase letter (a-z).'],
+            ['NoNumber!!', 'Contain at least one number (0-9).'],
+            [`Aa1${'a'.repeat(126)}`, 'Be at most 128 characters long.'],
         ]
         for (const [password, message] of cases) {
             const result = registerSchema.safeParse({ ...valid, password })
@@ -48,6 +78,10 @@ describe('registerSchema', () => {
                 expect(zodIssuesToFieldErrors(result.error.issues).password).toContain(message)
             }
         }
+    })
+
+    it('accepts a password without a special character, as the API does', () => {
+        expect(registerSchema.safeParse({ ...valid, password: 'Password1' }).success).toBe(true)
     })
 
     it('groups multiple issues per field', () => {
