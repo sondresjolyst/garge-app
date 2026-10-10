@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeftIcon, PencilSquareIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
-import { toast } from '@/lib/toast';
+import { toast } from '@sjolystinnovation/app-kit/toast';
 import ProductService, { Product, CreateProductPayload, UpdateProductPayload } from '@/services/productService';
 import MarkdownEditor from '@/components/MarkdownEditor';
 import { formatNok } from '@/lib/formatUtils';
@@ -16,15 +15,10 @@ import { formatNok } from '@/lib/formatUtils';
 const emptyForm = { name: '', description: '', priceNok: '', interval: 0 as 0 | 1, type: 0 as 0 | 1 };
 
 export default function AdminProductsPage() {
-    const { data: session, status } = useSession();
-    const router = useRouter();
+    const { data: session } = useSession();
 
     const roles: string[] = (session?.user as { roles?: string[] })?.roles ?? [];
     const isAdmin = roles.includes('Admin');
-
-    useEffect(() => {
-        if (status === 'authenticated' && !isAdmin) router.push('/');
-    }, [status, isAdmin, router]);
 
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
@@ -129,10 +123,6 @@ export default function AdminProductsPage() {
             toast.error('Failed to delete plan');
             setDeleteTarget(null);
         }
-    }
-
-    if (status === 'loading' || (status === 'authenticated' && !isAdmin)) {
-        return <LoadingDots height="h-64" />;
     }
 
     return (

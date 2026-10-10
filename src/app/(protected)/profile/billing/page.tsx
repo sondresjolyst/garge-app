@@ -10,7 +10,7 @@ import TestPill from '@/components/TestPill';
 import RedirectingOverlay from '@/components/RedirectingOverlay';
 import ConfirmModal from '@/components/ConfirmModal';
 import QuantityChangeModal from '@/components/QuantityChangeModal';
-import { toast } from '@/lib/toast';
+import { toast } from '@sjolystinnovation/app-kit/toast';
 import AdminService, { AppSettings } from '@/services/adminService';
 import SubscriptionService, { Subscription } from '@/services/subscriptionService';
 import ShopService, { Order } from '@/services/shopService';

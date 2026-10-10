@@ -1,6 +1,6 @@
 "use client";
 
-import { toast } from '@/lib/toast';
+import { toast } from '@sjolystinnovation/app-kit/toast';
 import { SessionExpiryGuard } from '@sjolystinnovation/app-kit/session/react';
 
 export default function SessionGuard() {

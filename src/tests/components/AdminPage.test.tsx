@@ -93,14 +93,14 @@ describe('AdminPage', () => {
         await waitFor(() => expect(getStats).toHaveBeenCalledTimes(1))
         expect(getUsers).toHaveBeenCalledTimes(1)
         expect(getStatsHistory).toHaveBeenCalledTimes(1)
-        expect(push).not.toHaveBeenCalled()
     })
 
-    it('redirects a non-admin and fetches nothing', async () => {
+    // The admin layout's RoleGate sends a non-admin away. The page itself only loads data for admins.
+    it('fetches nothing for a non-admin', async () => {
         signInAsUser()
         render(<AdminPage />)
 
-        await waitFor(() => expect(push).toHaveBeenCalledWith('/'))
+        await new Promise(resolve => setTimeout(resolve, 50))
         expect(getStats).not.toHaveBeenCalled()
         expect(getEmailStats).not.toHaveBeenCalled()
     })

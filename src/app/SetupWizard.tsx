@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { XMarkIcon, ChevronRightIcon, CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
-import { toast } from '@/lib/toast';
+import { toast } from '@sjolystinnovation/app-kit/toast';
 import Modal from '@/components/Modal';
 import SensorService, { Sensor } from '@/services/sensorService';
 import SwitchService, { Switch } from '@/services/switchService';
