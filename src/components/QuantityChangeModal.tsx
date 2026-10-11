@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import Modal from '@/components/Modal';
 import { VAT_LABEL } from '@/lib/pricing';
-import { formatNok } from '@/lib/formatUtils';
+import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import type { Subscription } from '@/services/subscriptionService';
 
 export interface QuantityChangeModalProps {

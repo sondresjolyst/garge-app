@@ -66,6 +66,17 @@
     --color-markdown-code-bg: color-mix(in oklab, var(--color-gray-800) 60%, transparent);
     --color-markdown-code-text: var(--color-gray-300);
 
+    --radius-payment-button: var(--radius-lg);
+    --color-payment-success: var(--color-green-400);
+    --color-payment-pending: var(--color-amber-400);
+    --color-payment-failed: var(--color-red-400);
+    --color-payment-title: var(--color-gray-100);
+    --color-payment-text: var(--color-gray-500);
+    --color-payment-note: var(--color-gray-600);
+    --color-payment-secondary-bg: color-mix(in oklab, var(--color-gray-700) 60%, transparent);
+    --color-payment-secondary-hover-bg: var(--color-gray-700);
+    --color-payment-secondary-text: var(--color-gray-300);
+
     --color-state-heading: var(--color-gray-100);
     --color-state-text: var(--color-gray-400);
     --color-state-code: var(--color-gray-600);
