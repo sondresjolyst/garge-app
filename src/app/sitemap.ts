@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
+import { site } from '@/lib/seo/site';
 
-const BASE_URL = 'https://www.garge.no';
+const BASE_URL = site.url;
 
 export default function sitemap(): MetadataRoute.Sitemap {
     return [
