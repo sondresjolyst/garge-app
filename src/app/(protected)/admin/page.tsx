@@ -15,7 +15,7 @@ import { toast } from '@sjolystinnovation/app-kit/toast';
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
 import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats, AppSettings, SecuritySettings } from '@/services/adminService';
 import SensorService from '@/services/sensorService';
-import { formatNok } from '@/lib/formatUtils';
+import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import { Toggle } from '@sjolystinnovation/app-kit/ui';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';

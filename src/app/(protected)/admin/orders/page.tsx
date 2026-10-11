@@ -9,7 +9,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import TestPill from '@/components/TestPill';
 import { toast } from '@sjolystinnovation/app-kit/toast';
 import ShopService, { AdminOrder } from '@/services/shopService';
-import { formatNok } from '@/lib/formatUtils';
+import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import { formatDate } from '@/lib/dateUtils';
 import { statusColor } from '@/lib/statusUtils';
 import { formatApiError } from '@/lib/errorMessages';

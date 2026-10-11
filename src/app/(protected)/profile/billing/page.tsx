@@ -14,7 +14,7 @@ import { toast } from '@sjolystinnovation/app-kit/toast';
 import AdminService, { AppSettings } from '@/services/adminService';
 import SubscriptionService, { Subscription } from '@/services/subscriptionService';
 import ShopService, { Order } from '@/services/shopService';
-import { formatNok } from '@/lib/formatUtils';
+import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import { formatDate } from '@/lib/dateUtils';
 import { statusColor } from '@/lib/statusUtils';
 import { VAT_LABEL } from '@/lib/pricing';

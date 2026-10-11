@@ -19,7 +19,7 @@ import SubscriptionService from '@/services/subscriptionService';
 import UserService from '@/services/userService';
 import ShopItemPhotoService from '@/services/shopItemPhotoService';
 import type { Photo } from '@/services/photoServiceFactory';
-import { formatNok } from '@/lib/formatUtils';
+import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import { VAT_LABEL } from '@/lib/pricing';
 import { useLocalStorage } from '@/lib/useLocalStorage';
 import { formatApiError } from '@/lib/errorMessages';

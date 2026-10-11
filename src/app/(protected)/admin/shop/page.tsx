@@ -13,7 +13,7 @@ import ShopItemPhotoService from '@/services/shopItemPhotoService';
 import PhotoUploader from '@/components/PhotoUploader';
 import type { Photo } from '@/services/photoServiceFactory';
 import MarkdownEditor from '@/components/MarkdownEditor';
-import { formatNok } from '@/lib/formatUtils';
+import { formatNok } from '@sjolystinnovation/app-kit/payments';
 
 const emptyForm = { name: '', description: '', priceNok: '', stock: '-1' };
 

@@ -10,7 +10,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from '@sjolystinnovation/app-kit/toast';
 import ProductService, { Product, CreateProductPayload, UpdateProductPayload } from '@/services/productService';
 import MarkdownEditor from '@/components/MarkdownEditor';
-import { formatNok } from '@/lib/formatUtils';
+import { formatNok } from '@sjolystinnovation/app-kit/payments';
 
 const emptyForm = { name: '', description: '', priceNok: '', interval: 0 as 0 | 1, type: 0 as 0 | 1 };
 

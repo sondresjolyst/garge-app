@@ -1,10 +1,9 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
+import { PaymentReturn, usePollUntilFinal } from '@sjolystinnovation/app-kit/payments';
 import LoadingDots from '@/components/LoadingDots';
-import ReturnStatusPage from '@/components/ReturnStatusPage';
 import SubscriptionService, { Subscription } from '@/services/subscriptionService';
-import { usePollUntilFinal } from '@/lib/usePollUntilFinal';
 
 export default function BillingReturnPage() {
     const searchParams = useSearchParams();
@@ -27,29 +26,20 @@ export default function BillingReturnPage() {
     if (loading) return <LoadingDots height="h-64" />;
 
     const status = subscription?.status;
-    const variant = status === 'Active'
+    const state = status === 'Active'
         ? 'success'
         : status === 'Pending'
             ? 'pending'
             : 'failed';
 
     return (
-        <ReturnStatusPage
-            variant={variant}
-            successTitle="Subscription active!"
-            successBody="You now have full access to Garge."
-            successHref="/"
-            successCta="Go to dashboard"
-            pendingTitle="Pending confirmation"
-            pendingBody="Your subscription is being confirmed by Vipps."
-            pendingEmailNote="We'll send a confirmation as soon as Vipps responds."
-            pendingHref="/profile/billing"
-            pendingCta="View billing"
+        <PaymentReturn
+            state={state}
+            className="pb-32"
+            success={{ title: 'Subscription active!', body: 'You now have full access to Garge.', href: '/', cta: 'Go to dashboard' }}
+            pending={{ title: 'Pending confirmation', body: 'Your subscription is being confirmed by Vipps.', note: "We'll send a confirmation as soon as Vipps responds.", href: '/profile/billing', cta: 'View billing' }}
+            failed={{ title: 'Subscription not found', body: 'Something went wrong or the agreement was not completed.', href: '/profile/billing', cta: 'Try again' }}
             onRefresh={refresh}
-            failedTitle="Subscription not found"
-            failedBody="Something went wrong or the agreement was not completed."
-            failedHref="/profile/billing"
-            failedCta="Try again"
         />
     );
 }

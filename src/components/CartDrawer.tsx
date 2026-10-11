@@ -6,7 +6,7 @@ import { MinusIcon, PlusIcon, TrashIcon, XMarkIcon, CheckIcon } from '@heroicons
 import { CartLine, cartTotalInOre, removeLine, setLineQty } from '@/lib/cart';
 import { ShopItem } from '@/services/shopService';
 import { VAT_LABEL } from '@/lib/pricing';
-import { formatNok } from '@/lib/formatUtils';
+import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import { normalizeNoPhone } from '@/lib/phone';
 import Drawer from '@/components/Drawer';
 

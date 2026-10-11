@@ -1,10 +1,9 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
+import { PaymentReturn, usePollUntilFinal } from '@sjolystinnovation/app-kit/payments';
 import LoadingDots from '@/components/LoadingDots';
-import ReturnStatusPage from '@/components/ReturnStatusPage';
 import ShopService, { Order } from '@/services/shopService';
-import { usePollUntilFinal } from '@/lib/usePollUntilFinal';
 
 export default function ShopReturnPage() {
     const searchParams = useSearchParams();
@@ -24,29 +23,20 @@ export default function ShopReturnPage() {
     if (loading) return <LoadingDots height="h-64" />;
 
     const status = order?.status;
-    const variant = status === 'Paid' || status === 'Reserved'
+    const state = status === 'Paid' || status === 'Reserved'
         ? 'success'
         : status === 'Pending'
             ? 'pending'
             : 'failed';
 
     return (
-        <ReturnStatusPage
-            variant={variant}
-            successTitle="Payment received!"
-            successBody="Your order is confirmed. We'll ship your sensor soon."
-            successHref="/shop"
-            successCta="Back to shop"
-            pendingTitle="Payment pending"
-            pendingBody="Your payment is being confirmed by Vipps."
-            pendingEmailNote="We'll email you a receipt once it's captured."
-            pendingHref="/profile/billing"
-            pendingCta="View billing"
+        <PaymentReturn
+            state={state}
+            className="pb-32"
+            success={{ title: 'Payment received!', body: "Your order is confirmed. We'll ship your sensor soon.", href: '/shop', cta: 'Back to shop' }}
+            pending={{ title: 'Payment pending', body: 'Your payment is being confirmed by Vipps.', note: "We'll email you a receipt once it's captured.", href: '/profile/billing', cta: 'View billing' }}
+            failed={{ title: 'Payment failed', body: 'The payment was not completed. No charge was made.', href: '/shop', cta: 'Try again' }}
             onRefresh={refresh}
-            failedTitle="Payment failed"
-            failedBody="The payment was not completed. No charge was made."
-            failedHref="/shop"
-            failedCta="Try again"
         />
     );
 }

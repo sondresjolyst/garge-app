@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from '@sjolystinnovation/app-kit/toast';
-import { formatNok } from '@/lib/formatUtils';
+import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import VatService, { VatThreshold } from '@/services/vatService';
 import { otherTurnoverSchema } from '@/lib/validation/otherTurnoverSchema';
 
