@@ -11,6 +11,10 @@ export interface Subscription {
     productName: string;
     productType: SubscriptionProductType;
     priceInOre: number;
+    /** The unit price of a price increase the subscriber was told of, or null when none is coming. */
+    upcomingPriceInOre: number | null;
+    /** The first charge due date that pays `upcomingPriceInOre`. */
+    upcomingPriceFrom: string | null;
     quantity: number;
     interval: string;
     vippsAgreementId: string;

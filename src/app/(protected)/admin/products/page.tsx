@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { ArrowLeftIcon, PencilSquareIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, PencilSquareIcon, TrashIcon, PlusIcon, ArrowTrendingUpIcon } from '@heroicons/react/24/outline';
 import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -11,6 +11,8 @@ import { toast } from '@sjolystinnovation/app-kit/toast';
 import ProductService, { Product, CreateProductPayload, UpdateProductPayload } from '@/services/productService';
 import MarkdownEditor from '@/components/MarkdownEditor';
 import { formatNok } from '@sjolystinnovation/app-kit/payments';
+import PriceChangePanel from '@/components/admin/PriceChangePanel';
+import { formatApiError } from '@/lib/errorMessages';
 
 const emptyForm = { name: '', description: '', priceNok: '', interval: 0 as 0 | 1, type: 0 as 0 | 1 };
 
@@ -27,6 +29,7 @@ export default function AdminProductsPage() {
     const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
+    const [priceChangeId, setPriceChangeId] = useState<number | null>(null);
 
     async function refresh() {
         const all = await ProductService.getProducts();
@@ -105,8 +108,8 @@ export default function AdminProductsPage() {
             }
             closeForm();
             await refresh();
-        } catch {
-            toast.error('Failed to save plan');
+        } catch (e) {
+            toast.error(formatApiError(e, 'Failed to save plan'));
         } finally {
             setSaving(false);
         }
@@ -144,40 +147,52 @@ export default function AdminProductsPage() {
                                 <p className="text-sm text-gray-500">No plans yet.</p>
                             )}
                             {products.map(p => (
-                                <li key={p.id} className="bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 flex items-center justify-between gap-3">
-                                    <div className="min-w-0 flex-1">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="text-sm font-semibold text-gray-100">{p.name}</span>
-                                            <span className="text-xs font-medium text-sky-400">
-                                                {formatNok(p.priceInOre)} / {p.interval === 'Monthly' ? 'mo' : 'yr'}
-                                            </span>
-                                            <span className={`px-1.5 py-0.5 border rounded text-xs font-medium ${p.type === 'Primary' ? 'bg-sky-900/30 border-sky-700/40 text-sky-400' : 'bg-purple-900/30 border-purple-700/40 text-purple-400'}`}>
-                                                {p.type === 'Primary' ? 'Primary' : 'Add-on'}
-                                            </span>
-                                            {!p.isActive && (
-                                                <span className="px-1.5 py-0.5 bg-gray-700/50 border border-gray-600/40 text-gray-500 text-xs rounded">Inactive</span>
+                                <li key={p.id} className="bg-gray-900/40 border border-gray-700/30 rounded-xl p-4">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <span className="text-sm font-semibold text-gray-100">{p.name}</span>
+                                                <span className="text-xs font-medium text-sky-400">
+                                                    {formatNok(p.priceInOre)} / {p.interval === 'Monthly' ? 'mo' : 'yr'}
+                                                </span>
+                                                <span className={`px-1.5 py-0.5 border rounded text-xs font-medium ${p.type === 'Primary' ? 'bg-sky-900/30 border-sky-700/40 text-sky-400' : 'bg-purple-900/30 border-purple-700/40 text-purple-400'}`}>
+                                                    {p.type === 'Primary' ? 'Primary' : 'Add-on'}
+                                                </span>
+                                                {!p.isActive && (
+                                                    <span className="px-1.5 py-0.5 bg-gray-700/50 border border-gray-600/40 text-gray-500 text-xs rounded">Inactive</span>
+                                                )}
+                                            </div>
+                                            {p.description && (
+                                                <p className="text-xs text-gray-500 mt-1">{p.description}</p>
                                             )}
                                         </div>
-                                        {p.description && (
-                                            <p className="text-xs text-gray-500 mt-1">{p.description}</p>
-                                        )}
+                                        <div className="flex items-center gap-1 shrink-0">
+                                            <button
+                                                onClick={() => setPriceChangeId(id => id === p.id ? null : p.id)}
+                                                className={`p-1.5 rounded-lg hover:bg-gray-700/60 transition-all ${priceChangeId === p.id ? 'text-sky-400' : 'text-gray-500 hover:text-sky-400'}`}
+                                                title="Price changes"
+                                                aria-label={`Price changes for ${p.name}`}
+                                                aria-expanded={priceChangeId === p.id}
+                                            >
+                                                <ArrowTrendingUpIcon className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => openEdit(p)}
+                                                className="p-1.5 rounded-lg text-gray-500 hover:text-sky-400 hover:bg-gray-700/60 transition-all"
+                                                title="Edit"
+                                            >
+                                                <PencilSquareIcon className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => setDeleteTarget(p)}
+                                                className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-gray-700/60 transition-all"
+                                                title="Delete"
+                                            >
+                                                <TrashIcon className="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-1 shrink-0">
-                                        <button
-                                            onClick={() => openEdit(p)}
-                                            className="p-1.5 rounded-lg text-gray-500 hover:text-sky-400 hover:bg-gray-700/60 transition-all"
-                                            title="Edit"
-                                        >
-                                            <PencilSquareIcon className="h-4 w-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => setDeleteTarget(p)}
-                                            className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-gray-700/60 transition-all"
-                                            title="Delete"
-                                        >
-                                            <TrashIcon className="h-4 w-4" />
-                                        </button>
-                                    </div>
+                                    {priceChangeId === p.id && <PriceChangePanel product={p} />}
                                 </li>
                             ))}
                         </ul>
@@ -232,6 +247,12 @@ export default function AdminProductsPage() {
                                         <option value={1}>Add-on</option>
                                     </select>
                                 </div>
+                                {editTarget && (
+                                    <p className="text-xs text-gray-500">
+                                        A higher price or another interval is refused while the plan has subscribers. Schedule a price change instead.
+                                        A lower price applies at once, to current subscribers too.
+                                    </p>
+                                )}
                                 <div className="flex gap-2">
                                     <button
                                         onClick={handleSave}
