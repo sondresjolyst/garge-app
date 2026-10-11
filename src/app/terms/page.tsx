@@ -6,7 +6,7 @@ export default async function TermsPage() {
     return (
         <div className="max-w-2xl mx-auto px-4 py-10 space-y-6">
             <h1 className="text-3xl font-bold text-gray-100">Terms of Service</h1>
-            <p className="text-xs text-gray-500">Last updated: May 2026</p>
+            <p className="text-xs text-gray-500">Last updated: October 2026</p>
 
             <div className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-6 shadow-lg space-y-6 text-sm text-gray-400 leading-relaxed">
                 <section className="space-y-2">
@@ -54,7 +54,9 @@ export default async function TermsPage() {
 
                 <section className="space-y-2">
                     <h2 className="text-base font-semibold text-gray-100">8. Subscription pricing and billing</h2>
-                    <p>Prices are shown in NOK. Recurring charges are processed through Vipps at the start of each billing period. We will give you at least 30 days&apos; notice by email before any price change takes effect.</p>
+                    <p>Prices are shown in NOK. Recurring charges are processed through Vipps at the start of each billing period.</p>
+                    <p>We may change the price of a subscription. A higher price applies to you no earlier than 30 days after we have emailed you about it. The email states your current price, the new price and the date from which charges use the new price. Charges due before that date keep your current price.</p>
+                    <p>When the price goes up, you may cancel the subscription at no cost from the Billing page, both before and after the new price takes effect. If the new amount is above the maximum you approved in Vipps, the Vipps app asks you to approve it at the first charge. A lower price applies at once.</p>
                     <p>Your current plan and next charge date are shown on the <Link href="/profile/billing" className="text-sky-400 hover:text-sky-300">Billing page</Link>.</p>
                 </section>
 
