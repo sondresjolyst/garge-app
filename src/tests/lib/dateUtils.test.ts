@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatDate, formatDateTime, formatRelative } from '@/lib/dateUtils'
+import { formatDate, formatDateTime, formatRelative, osloDateInput } from '@/lib/dateUtils'
 
 describe('formatDate', () => {
     it('formats Date object in nb-NO locale', () => {
@@ -47,5 +47,14 @@ describe('formatRelative', () => {
     })
     it('returns years', () => {
         expect(formatRelative(new Date('2023-01-01T12:00:00Z'), now)).toBe('3 y ago')
+    })
+})
+
+describe('osloDateInput', () => {
+    it('gives the Norwegian calendar date of a UTC moment', () => {
+        expect(osloDateInput('2026-09-14T21:59:59Z')).toBe('2026-09-14')
+        expect(osloDateInput('2026-09-14T22:00:00Z')).toBe('2026-09-15')
+        // Winter time is one hour ahead of UTC.
+        expect(osloDateInput('2026-01-14T23:00:00Z')).toBe('2026-01-15')
     })
 })
