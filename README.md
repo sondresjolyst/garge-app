@@ -38,7 +38,7 @@ garge-api must be running and reachable at `NEXT_PUBLIC_API_URL`.
 | `NEXT_PUBLIC_BASE_URL` | Public URL of this app, used in absolute links |
 | `NEXTAUTH_URL` | URL of this app |
 | `NEXTAUTH_SECRET` | next-auth session secret |
-| `GARGE_API_JWT_SECRET` | Must match the API's `Jwt__Key`. Unset falls back to decoding tokens without verifying them |
+| `GARGE_API_JWT_SECRET` | Must match the API's `Jwt__Key`. Sign-in fails while it is unset |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Web push application server key |
 | `VAPID_PRIVATE_KEY` | Web push private key, server side only |
 

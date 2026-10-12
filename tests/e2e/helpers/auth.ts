@@ -1,7 +1,8 @@
 import { Page } from '@playwright/test';
 import { encode } from 'next-auth/jwt';
 
-const NEXTAUTH_SECRET = 'foobarfoobarfoobarfoobarfoobarfoobarfoobarfoobar';
+/** The secret the Playwright web server signs sessions with. playwright.config.ts passes it to the app. */
+export const NEXTAUTH_SECRET = 'foobarfoobarfoobarfoobarfoobarfoobarfoobarfoobar';
 
 export interface MockUser {
     id: string;
@@ -30,7 +31,9 @@ export async function mockSession(page: Page, user: MockUser) {
         token: {
             user: { id: user.id, name: user.name, email: user.email, roles: user.roles },
             accessToken: 'test-access-token',
-            accessTokenExpires: Date.now() + 3_600_000,
+            refreshToken: 'test-refresh-token',
+            // Far enough ahead that the session is never refreshed against the real API during a test.
+            refreshAt: Date.now() + 3_600_000,
             loginAt: Date.now(),
         },
         maxAge: 3600,

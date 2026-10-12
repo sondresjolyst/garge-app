@@ -17,6 +17,7 @@ import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats, AppSetti
 import SensorService from '@/services/sensorService';
 import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import { Toggle } from '@sjolystinnovation/app-kit/ui';
+import { osloDateInput } from '@/lib/dateUtils';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
 
@@ -198,6 +199,20 @@ export default function AdminPage() {
             toast.success('Setting updated');
         } catch {
             toast.error('Failed to update setting');
+        } finally {
+            setAppSettingsLoading(false);
+        }
+    };
+
+    // The API reads a plain date as midnight in Norway.
+    const handleVatRegisteredFrom = async (date: string) => {
+        if (!date) return;
+        setAppSettingsLoading(true);
+        try {
+            setAppSettings(await AdminService.updateAppSettings({ vatRegisteredFrom: date }));
+            toast.success('VAT registration date updated');
+        } catch {
+            toast.error('Failed to update the VAT registration date');
         } finally {
             setAppSettingsLoading(false);
         }
@@ -461,7 +476,19 @@ export default function AdminPage() {
                             <div className="flex items-center justify-between gap-4 bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
                                 <div className="min-w-0 flex-1">
                                     <p className="text-sm font-medium text-gray-200">VAT (mva 25%)</p>
-                                    <p className="text-xs text-gray-500 mt-0.5">Prices include 25% VAT. Customers pay the same either way. Turn on once registered for VAT.</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">Prices include 25% VAT. Customers pay the same either way. Turn on once registered for VAT. Sales from the registration date carry VAT.</p>
+                                    {appSettings?.vatEnabled && (
+                                        <label className="mt-2 flex items-center gap-2 text-xs text-gray-400">
+                                            Registered from
+                                            <input
+                                                type="date"
+                                                value={appSettings.vatRegisteredFrom ? osloDateInput(appSettings.vatRegisteredFrom) : ''}
+                                                onChange={e => handleVatRegisteredFrom(e.target.value)}
+                                                disabled={appSettingsLoading}
+                                                className="bg-gray-900/60 border border-gray-700/60 rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60 [color-scheme:dark]"
+                                            />
+                                        </label>
+                                    )}
                                 </div>
                                 {appSettings === null ? (
                                     <div className="w-10 h-6 bg-gray-700 rounded-full animate-pulse shrink-0" />

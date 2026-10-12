@@ -11,7 +11,7 @@ test.describe('Marketing / home page', () => {
 
     test('has link to login', async ({ page }) => {
         await page.goto('/')
-        const loginLink = page.getByRole('link', { name: /log in|sign in|login/i })
+        const loginLink = page.getByRole('banner').getByRole('link', { name: /log in|sign in|login/i })
         await expect(loginLink).toBeVisible()
     })
 })

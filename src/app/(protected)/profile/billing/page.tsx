@@ -159,6 +159,13 @@ export default function BillingPage() {
                                         </span>
                                     </div>
 
+                                    {sub.status === 'Active' && sub.upcomingPriceInOre !== null && sub.upcomingPriceFrom && (
+                                        <p className="text-xs text-amber-400">
+                                            The price changes to {formatNok(sub.upcomingPriceInOre * sub.quantity)} / {sub.interval === 'Monthly' ? 'month' : 'year'}{vatEnabled && ` · ${VAT_LABEL}`} for
+                                            charges due from {formatDate(sub.upcomingPriceFrom)}. You can cancel at no cost, also after that date.
+                                        </p>
+                                    )}
+
                                     {isStoppedGrace && sub.nextChargeDate && (
                                         <p className="text-xs text-amber-400">
                                             Cancelled. You keep access until {formatDate(sub.nextChargeDate)}.

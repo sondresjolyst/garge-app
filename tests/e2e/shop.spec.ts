@@ -106,24 +106,24 @@ test.describe('Shop page — items', () => {
     })
 })
 
-test.describe('Shop page — payment modal', () => {
-    test('Buy opens payment modal with item summary', async ({ page }) => {
-        await setup(page, { items: [sensorItem] })
-        await page.getByRole('button', { name: /^Buy$/ }).click()
-        await expect(page.getByRole('dialog')).toBeVisible()
-        await expect(page.getByText(/pay with vipps/i)).toBeVisible()
-    })
+async function openCart(page: Page) {
+    await page.getByRole('button', { name: /add to cart/i }).click()
+    await page.getByRole('button', { name: /open cart/i }).click()
+    await expect(page.getByRole('dialog', { name: 'Cart' })).toBeVisible()
+}
 
-    test('phone input auto-focuses when modal opens', async ({ page }) => {
+test.describe('Shop page — cart', () => {
+    test('Add to cart, then the cart button opens the cart with the item', async ({ page }) => {
         await setup(page, { items: [sensorItem] })
-        await page.getByRole('button', { name: /^Buy$/ }).click()
-        const phone = page.locator('input[type="tel"]')
-        await expect(phone).toBeFocused()
+        await openCart(page)
+        const cart = page.getByRole('dialog', { name: 'Cart' })
+        await expect(cart.getByText('Garge Sensor')).toBeVisible()
+        await expect(cart.getByText('NOK 500,00').first()).toBeVisible()
     })
 
     test('phone validates as user types — invalid then valid', async ({ page }) => {
         await setup(page, { items: [sensorItem] })
-        await page.getByRole('button', { name: /^Buy$/ }).click()
+        await openCart(page)
         const phone = page.locator('input[type="tel"]')
 
         await phone.fill('123')
@@ -135,24 +135,25 @@ test.describe('Shop page — payment modal', () => {
 
     test('Continue button disabled when phone invalid', async ({ page }) => {
         await setup(page, { items: [sensorItem] })
-        await page.getByRole('button', { name: /^Buy$/ }).click()
+        await openCart(page)
         await page.locator('input[type="tel"]').fill('123')
         await expect(page.getByRole('button', { name: /continue to vipps/i })).toBeDisabled()
+        await page.locator('input[type="tel"]').fill('91234567')
+        await expect(page.getByRole('button', { name: /continue to vipps/i })).toBeEnabled()
     })
 
-    test('Escape closes modal', async ({ page }) => {
+    test('Escape closes the cart', async ({ page }) => {
         await setup(page, { items: [sensorItem] })
-        await page.getByRole('button', { name: /^Buy$/ }).click()
-        await expect(page.getByRole('dialog')).toBeVisible()
+        await openCart(page)
         await page.keyboard.press('Escape')
-        await expect(page.getByRole('dialog')).not.toBeVisible()
+        await expect(page.getByRole('dialog', { name: 'Cart' })).not.toBeVisible()
     })
 
-    test('Cancel button closes modal', async ({ page }) => {
+    test('Close button closes the cart', async ({ page }) => {
         await setup(page, { items: [sensorItem] })
-        await page.getByRole('button', { name: /^Buy$/ }).click()
-        await page.getByRole('button', { name: /cancel payment/i }).click()
-        await expect(page.getByRole('dialog')).not.toBeVisible()
+        await openCart(page)
+        await page.getByRole('button', { name: /close cart/i }).click()
+        await expect(page.getByRole('dialog', { name: 'Cart' })).not.toBeVisible()
     })
 })
 
@@ -197,8 +198,10 @@ test.describe('Shop page — subscription modal', () => {
         })
         await expect(page.getByText(/requires an active primary subscription/i)).not.toBeVisible()
 
+        // The primary plan shows as active, and only the add-on can be subscribed to.
+        await expect(page.getByText('Active', { exact: true })).toBeVisible()
         const subscribeButtons = page.getByRole('button', { name: /^Subscribe$/ })
-        await expect(subscribeButtons.nth(0)).toBeEnabled()
-        await expect(subscribeButtons.nth(1)).toBeEnabled()
+        await expect(subscribeButtons).toHaveCount(1)
+        await expect(subscribeButtons).toBeEnabled()
     })
 })
