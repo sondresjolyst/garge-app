@@ -12,6 +12,7 @@ import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import { formatDate } from '@/lib/dateUtils';
 import { statusColor } from '@/lib/statusUtils';
 import { formatApiError } from '@/lib/errorMessages';
+import ConfirmModal from '@/components/ConfirmModal';
 
 export default function AdminSubscriptionsPage() {
     const [subs, setSubs] = useState<AdminSubscription[]>([]);
@@ -19,6 +20,8 @@ export default function AdminSubscriptionsPage() {
     const [openInvoicesFor, setOpenInvoicesFor] = useState<number | null>(null);
     const [invoicesById, setInvoicesById] = useState<Record<number, SubscriptionInvoice[]>>({});
     const [invoicesLoading, setInvoicesLoading] = useState<number | null>(null);
+    const [refundTarget, setRefundTarget] = useState<{ subId: number; invoice: SubscriptionInvoice } | null>(null);
+    const [refundNok, setRefundNok] = useState('');
 
     useEffect(() => {
         async function load() {
@@ -48,6 +51,33 @@ export default function AdminSubscriptionsPage() {
             toast.error(formatApiError(err, 'Failed to load invoices'));
         } finally {
             setInvoicesLoading(null);
+        }
+    }
+
+    function openRefund(subId: number, invoice: SubscriptionInvoice) {
+        setRefundTarget({ subId, invoice });
+        setRefundNok(((invoice.amountInOre - invoice.refundedInOre) / 100).toFixed(2));
+    }
+
+    async function handleRefund() {
+        if (!refundTarget) return;
+        const { subId, invoice } = refundTarget;
+        const left = invoice.amountInOre - invoice.refundedInOre;
+        const amountInOre = Math.round(parseFloat(refundNok.replace(',', '.')) * 100);
+        if (!Number.isFinite(amountInOre) || amountInOre < 1 || amountInOre > left) {
+            toast.error(`Enter an amount between ${formatNok(1)} and ${formatNok(left)}.`);
+            return;
+        }
+        try {
+            const result = await SubscriptionService.refundCharge(invoice.id, amountInOre);
+            setInvoicesById(prev => ({
+                ...prev,
+                [subId]: prev[subId].map(i => i.id === invoice.id ? { ...i, refundedInOre: result.refundedInOre } : i),
+            }));
+            toast.success(`Refunded ${formatNok(amountInOre)}. The customer gets a credit note by email.`);
+            setRefundTarget(null);
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'Failed to refund the charge');
         }
     }
 
@@ -129,14 +159,27 @@ export default function AdminSubscriptionsPage() {
                                                             <li key={inv.id} className="flex items-center justify-between text-xs">
                                                                 <span className="text-gray-400">
                                                                     #{inv.id.toString().padStart(4, '0')} · {formatDate(inv.issuedAt)} · {formatNok(inv.amountInOre)}
+                                                                    {inv.refundedInOre > 0 && (
+                                                                        <span className="text-amber-400"> · {inv.refundedInOre >= inv.amountInOre ? 'refunded' : `${formatNok(inv.refundedInOre)} refunded`}</span>
+                                                                    )}
                                                                 </span>
-                                                                <button
-                                                                    onClick={() => handleDownload(inv.id)}
-                                                                    className="inline-flex items-center gap-1 px-2 py-1 text-gray-300 hover:text-white hover:bg-gray-700/60 rounded transition-colors"
-                                                                >
-                                                                    <ArrowDownTrayIcon className="h-3.5 w-3.5" aria-hidden />
-                                                                    PDF
-                                                                </button>
+                                                                <span className="flex items-center gap-1">
+                                                                    {inv.vippsChargeId && inv.refundedInOre < inv.amountInOre && (
+                                                                        <button
+                                                                            onClick={() => openRefund(sub.id, inv)}
+                                                                            className="px-2 py-1 text-gray-400 hover:text-amber-400 hover:bg-amber-900/30 rounded transition-colors"
+                                                                        >
+                                                                            Refund
+                                                                        </button>
+                                                                    )}
+                                                                    <button
+                                                                        onClick={() => handleDownload(inv.id)}
+                                                                        className="inline-flex items-center gap-1 px-2 py-1 text-gray-300 hover:text-white hover:bg-gray-700/60 rounded transition-colors"
+                                                                    >
+                                                                        <ArrowDownTrayIcon className="h-3.5 w-3.5" aria-hidden />
+                                                                        PDF
+                                                                    </button>
+                                                                </span>
                                                             </li>
                                                         ))}
                                                     </ul>
@@ -151,6 +194,33 @@ export default function AdminSubscriptionsPage() {
                         </ul>
                     )}
                 </Section>
+            )}
+            {refundTarget && (
+                <ConfirmModal
+                    title="Refund charge"
+                    message={
+                        <div className="space-y-3">
+                            <p>
+                                Refund charge #{refundTarget.invoice.id.toString().padStart(4, '0')} of {formatDate(refundTarget.invoice.issuedAt)} through Vipps.
+                                Up to {formatNok(refundTarget.invoice.amountInOre - refundTarget.invoice.refundedInOre)} is left to refund.
+                                The customer is emailed a credit note.
+                            </p>
+                            <label className="block text-xs text-gray-400">
+                                Amount in NOK
+                                <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={refundNok}
+                                    onChange={e => setRefundNok(e.target.value)}
+                                    className="mt-1 block w-full bg-gray-900/60 border border-gray-700/60 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60"
+                                />
+                            </label>
+                        </div>
+                    }
+                    confirmLabel="Refund"
+                    onConfirm={handleRefund}
+                    onCancel={() => setRefundTarget(null)}
+                />
             )}
         </div>
     );

@@ -1,15 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 
-const { searchParams } = vi.hoisted(() => ({
+const { searchParams, createRule, updateRule, getRules } = vi.hoisted(() => ({
     searchParams: { current: new URLSearchParams() },
+    createRule: vi.fn(),
+    updateRule: vi.fn(),
+    getRules: vi.fn(),
 }))
 
 vi.mock('next/navigation', () => ({
     useSearchParams: () => searchParams.current,
 }))
 vi.mock('@/services/automationService', () => ({
-    default: { getRules: vi.fn(() => Promise.resolve([])) },
+    default: {
+        getRules: () => getRules(),
+        createRule: (...a: unknown[]) => createRule(...a),
+        updateRule: (...a: unknown[]) => updateRule(...a),
+    },
 }))
 vi.mock('@/services/switchService', () => ({
     default: {
@@ -31,11 +38,72 @@ vi.mock('@/services/userService', () => ({
     default: { getUserProfile: vi.fn(() => Promise.resolve({ priceZone: 'NO2' })) },
 }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('next-auth/react', () => ({ useSession: () => ({ data: { user: { id: 'u1' } }, status: 'authenticated' }) }))
 
 import AutomationsPage from '@/app/(protected)/automations/page'
 
 beforeEach(() => {
     vi.clearAllMocks()
+    localStorage.clear()
+    getRules.mockResolvedValue([])
+})
+
+describe('AutomationsPage drafts', () => {
+    const KEY = 'garge:draft:u1:automation-rule:new'
+
+    const fillAndWait = async () => {
+        searchParams.current = new URLSearchParams('sensorId=7&preset=charging')
+        render(<AutomationsPage />)
+        await waitFor(() => expect(screen.getByDisplayValue('Bike battery')).toBeDisabled())
+        fireEvent.change(screen.getByDisplayValue('Select a socket'), { target: { value: '11' } })
+        fireEvent.change(screen.getByPlaceholderText('0'), { target: { value: '12.2' } })
+        await waitFor(() => expect(localStorage.getItem(KEY)).not.toBeNull(), { timeout: 2000 })
+    }
+
+    it('drops the draft of a new rule once it is created', async () => {
+        createRule.mockResolvedValue({})
+        await fillAndWait()
+
+        fireEvent.click(screen.getByRole('button', { name: /create rule/i }))
+
+        await waitFor(() => expect(createRule).toHaveBeenCalled())
+        await waitFor(() => expect(localStorage.getItem(KEY)).toBeNull())
+    })
+
+    it('drops the draft of an edited rule once it is saved, and keeps it when saving fails', async () => {
+        const EDIT_KEY = 'garge:draft:u1:automation-rule:3'
+        searchParams.current = new URLSearchParams()
+        getRules.mockResolvedValue([{
+            id: 3, targetType: 'relay', targetId: 11, sensorType: 'voltage', sensorId: 7, condition: '<',
+            threshold: 12, action: 'on', isEnabled: true, lastTriggeredAt: null,
+        }])
+        updateRule.mockRejectedValueOnce(new Error('session ended')).mockResolvedValueOnce({})
+        render(<AutomationsPage />)
+
+        fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
+        fireEvent.change(screen.getByDisplayValue('12'), { target: { value: '11.8' } })
+        await waitFor(() => expect(localStorage.getItem(EDIT_KEY)).not.toBeNull(), { timeout: 2000 })
+
+        fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+        await waitFor(() => expect(updateRule).toHaveBeenCalledTimes(1))
+        await new Promise(r => setTimeout(r, 50))
+        expect(localStorage.getItem(EDIT_KEY)).not.toBeNull()
+
+        fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+        await waitFor(() => expect(updateRule).toHaveBeenCalledTimes(2))
+        await waitFor(() => expect(localStorage.getItem(EDIT_KEY)).toBeNull())
+    })
+
+    it('keeps the draft when creating the rule fails', async () => {
+        createRule.mockRejectedValue(new Error('session ended'))
+        await fillAndWait()
+
+        fireEvent.click(screen.getByRole('button', { name: /create rule/i }))
+
+        await waitFor(() => expect(createRule).toHaveBeenCalled())
+        await new Promise(r => setTimeout(r, 50))
+        expect(JSON.parse(localStorage.getItem(KEY)!).value.threshold).toBe(12.2)
+    })
 })
 
 describe('AutomationsPage charging preset', () => {
