@@ -13,6 +13,11 @@ const DATETIME_OPTIONS: Intl.DateTimeFormatOptions = {
     second: '2-digit',
 }
 
+/** The Norwegian calendar date of a moment, as yyyy-mm-dd for a date input. */
+export function osloDateInput(date: Date | string | number): string {
+    return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Oslo' }).format(new Date(date));
+}
+
 export function formatDate(date: Date | string | number): string {
     return new Date(date).toLocaleDateString(LOCALE, DATE_OPTIONS)
 }

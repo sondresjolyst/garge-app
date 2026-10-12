@@ -10,7 +10,7 @@ const { getProducts, updateProduct, getPriceChanges, toastError } = vi.hoisted((
     toastError: vi.fn(),
 }))
 
-vi.mock('next-auth/react', () => ({ useSession: () => ({ data: { user: { roles: ['Admin'] } } }) }))
+vi.mock('next-auth/react', () => ({ useSession: () => ({ data: { user: { id: 'admin-1', roles: ['Admin'] } } }) }))
 vi.mock('@sjolystinnovation/app-kit/toast', () => ({ toast: { success: vi.fn(), error: toastError } }))
 vi.mock('@/components/MarkdownEditor', () => ({ default: () => null }))
 vi.mock('@/services/productService', () => ({
@@ -66,5 +66,68 @@ describe('AdminProductsPage', () => {
 
         fireEvent.click(toggle)
         expect(screen.queryByText('No price changes yet.')).not.toBeInTheDocument()
+    })
+})
+
+describe('AdminProductsPage drafts', () => {
+    const KEY = 'garge:draft:admin-1:product:7'
+
+    beforeEach(() => {
+        localStorage.clear()
+        for (const m of [getProducts, updateProduct, getPriceChanges, toastError]) m.mockReset()
+        getProducts.mockResolvedValue([product])
+        getPriceChanges.mockResolvedValue([])
+    })
+
+    const editPrice = async (value: string) => {
+        fireEvent.click(await screen.findByTitle('Edit'))
+        fireEvent.change(screen.getByLabelText(/Price customers pay/), { target: { value } })
+    }
+
+    it('stores an edit a moment after it is made', async () => {
+        render(<AdminProductsPage />)
+
+        await editPrice('59')
+
+        await waitFor(() => expect(localStorage.getItem(KEY)).not.toBeNull(), { timeout: 2000 })
+        expect(JSON.parse(localStorage.getItem(KEY)!).value.priceNok).toBe('59')
+    })
+
+    it('offers the draft when the plan is opened again, and restores it', async () => {
+        localStorage.setItem(KEY, JSON.stringify({ savedAt: Date.now(), value: { name: 'Garge Plus' } }))
+        render(<AdminProductsPage />)
+
+        fireEvent.click(await screen.findByTitle('Edit'))
+        fireEvent.click(await screen.findByRole('button', { name: 'Restore draft' }))
+
+        expect(screen.getByDisplayValue('Garge Plus')).toBeInTheDocument()
+        // Fields the draft lacks keep their values, so saving sends the plan's own price.
+        updateProduct.mockResolvedValue({})
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+        await waitFor(() => expect(updateProduct).toHaveBeenCalledWith(7, expect.objectContaining({ name: 'Garge Plus', priceInOre: 4900 })))
+    })
+
+    it('drops the draft once the plan is saved', async () => {
+        updateProduct.mockResolvedValue({})
+        render(<AdminProductsPage />)
+        await editPrice('59')
+        await waitFor(() => expect(localStorage.getItem(KEY)).not.toBeNull(), { timeout: 2000 })
+
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+        await waitFor(() => expect(updateProduct).toHaveBeenCalled())
+        await waitFor(() => expect(localStorage.getItem(KEY)).toBeNull())
+    })
+
+    it('keeps the draft when the save is refused', async () => {
+        updateProduct.mockRejectedValue(conflict('Refused'))
+        render(<AdminProductsPage />)
+        await editPrice('59')
+        await waitFor(() => expect(localStorage.getItem(KEY)).not.toBeNull(), { timeout: 2000 })
+
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+        await waitFor(() => expect(toastError).toHaveBeenCalled())
+        expect(JSON.parse(localStorage.getItem(KEY)!).value.priceNok).toBe('59')
     })
 })
