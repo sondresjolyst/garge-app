@@ -5,10 +5,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { signOut, useSession } from 'next-auth/react';
 import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/24/outline';
+import { isTerminalSessionError } from '@sjolystinnovation/app-kit/session';
 
 export default function Navbar() {
     const { data: session, status } = useSession();
-    const isAuthenticated = status === 'authenticated';
+    // A session that has ended still reads as authenticated until the user signs in again.
+    const isAuthenticated = status === 'authenticated' && !isTerminalSessionError(session?.error);
     const isAdmin = ((session?.user as { roles?: string[] })?.roles ?? []).includes('Admin');
 
     return (
