@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import React, { useState } from 'react'
 import AutomationRuleForm from '@/app/(protected)/automations/AutomationRuleForm'
 import type { CreateAutomationRuleDto } from '@/dto/Automation/CreateAutomationRuleDto'
@@ -272,5 +272,109 @@ describe('AutomationRuleForm — edit', () => {
         render(<Harness initial={existingRule} mode="edit" onSubmitCapture={() => {}} onDelete={onDelete} />)
         fireEvent.click(screen.getByRole('button', { name: /Delete Rule/ }))
         expect(onDelete).toHaveBeenCalledOnce()
+    })
+})
+
+/** Drives the form the way the automations page does, with a draft owner and scope. */
+const DraftHarness: React.FC<{ initial: CreateAutomationRuleDto; save: () => Promise<boolean>; scope?: string }> = ({ initial, save, scope = 'automation-rule:new' }) => {
+    const [value, setValue] = useState<CreateAutomationRuleDto>(initial)
+    return (
+        <>
+            <output data-testid="threshold">{value.threshold}</output>
+            <output data-testid="target">{String(value.targetId)}</output>
+            <AutomationRuleForm
+                value={value}
+                onChange={setValue}
+                onSubmit={e => { e.preventDefault(); return save() }}
+                onCancel={() => {}}
+                submitting={false}
+                mode="create"
+                sortedSwitches={sortedSwitches}
+                sortedSensors={sortedSensors}
+                sensors={sensors}
+                latestValueMap={{ 20: 12.6 }}
+                defaultPriceArea="NO1"
+                priceFormKey="create"
+                draftOwner="u1"
+                draftScope={scope || undefined}
+            />
+        </>
+    )
+}
+
+const KEY = 'garge:draft:u1:automation-rule:new'
+const filled = (): CreateAutomationRuleDto => ({ ...emptyRule(), targetId: 10, targetType: 'relay', sensorId: 20, sensorType: 'voltage', threshold: 12 })
+
+describe('AutomationRuleForm drafts', () => {
+    beforeEach(() => localStorage.clear())
+
+    const typeThreshold = (v: string) => fireEvent.change(screen.getByDisplayValue('12'), { target: { value: v } })
+
+    it('stores the values a moment after the user changes them, and not before', async () => {
+        render(<DraftHarness initial={filled()} save={async () => true} />)
+        expect(localStorage.getItem(KEY)).toBeNull()
+
+        typeThreshold('11.5')
+
+        await waitFor(() => expect(localStorage.getItem(KEY)).not.toBeNull(), { timeout: 2000 })
+        expect(JSON.parse(localStorage.getItem(KEY)!).value.threshold).toBe(11.5)
+    })
+
+    it('offers a stored draft and restores it on request', async () => {
+        localStorage.setItem(KEY, JSON.stringify({ savedAt: Date.now(), value: { threshold: 9 } }))
+        render(<DraftHarness initial={filled()} save={async () => true} />)
+
+        fireEvent.click(await screen.findByRole('button', { name: 'Restore draft' }))
+
+        expect(screen.getByTestId('threshold')).toHaveTextContent('9')
+        // Fields the draft lacks keep their values.
+        expect(screen.getByTestId('target')).toHaveTextContent('10')
+        expect(screen.queryByText('You have an unsaved draft.')).not.toBeInTheDocument()
+    })
+
+    it('discards a stored draft on request', async () => {
+        localStorage.setItem(KEY, JSON.stringify({ savedAt: Date.now(), value: { threshold: 9 } }))
+        render(<DraftHarness initial={filled()} save={async () => true} />)
+
+        fireEvent.click(await screen.findByRole('button', { name: 'Discard draft' }))
+
+        expect(localStorage.getItem(KEY)).toBeNull()
+        expect(screen.getByTestId('threshold')).toHaveTextContent('12')
+    })
+
+    it('drops the draft once the rule is saved', async () => {
+        render(<DraftHarness initial={filled()} save={async () => true} />)
+        typeThreshold('11.5')
+        await waitFor(() => expect(localStorage.getItem(KEY)).not.toBeNull(), { timeout: 2000 })
+
+        await act(async () => { fireEvent.submit(screen.getByRole('button', { name: /create rule/i }).closest('form')!) })
+
+        expect(localStorage.getItem(KEY)).toBeNull()
+    })
+
+    it('keeps the draft when saving fails, such as after the session ended', async () => {
+        render(<DraftHarness initial={filled()} save={async () => false} />)
+        typeThreshold('11.5')
+        await waitFor(() => expect(localStorage.getItem(KEY)).not.toBeNull(), { timeout: 2000 })
+
+        await act(async () => { fireEvent.submit(screen.getByRole('button', { name: /create rule/i }).closest('form')!) })
+
+        expect(JSON.parse(localStorage.getItem(KEY)!).value.threshold).toBe(11.5)
+    })
+
+    it('keeps no draft for a signed-in user when the form has no scope', async () => {
+        render(<DraftHarness initial={filled()} save={async () => true} scope="" />)
+        typeThreshold('11.5')
+        await new Promise(r => setTimeout(r, 700))
+
+        expect(localStorage.length).toBe(0)
+    })
+
+    it('keeps no draft without an owner and scope', async () => {
+        render(<Harness initial={filled()} mode="create" onSubmitCapture={() => {}} />)
+        typeThreshold('11.5')
+        await new Promise(r => setTimeout(r, 700))
+
+        expect(localStorage.length).toBe(0)
     })
 })

@@ -13,6 +13,9 @@ import MarkdownEditor from '@/components/MarkdownEditor';
 import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import PriceChangePanel from '@/components/admin/PriceChangePanel';
 import { formatApiError } from '@/lib/errorMessages';
+import { Alert } from '@sjolystinnovation/app-kit/ui';
+import { useFormDraft } from '@sjolystinnovation/app-kit/forms';
+import { sessionConfig } from '@/lib/session';
 
 const emptyForm = { name: '', description: '', priceNok: '', interval: 0 as 0 | 1, type: 0 as 0 | 1 };
 
@@ -30,6 +33,19 @@ export default function AdminProductsPage() {
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
     const [priceChangeId, setPriceChangeId] = useState<number | null>(null);
+    const draft = useFormDraft(sessionConfig, {
+        owner: session?.user?.id,
+        scope: `product:${editTarget?.id ?? 'new'}`,
+        value: form,
+    });
+
+    function restoreDraft() {
+        const stored = draft.pending;
+        if (!stored) return;
+        // Merge rather than replace, so a draft saved before a field was added keeps that field.
+        setForm(f => ({ ...f, ...stored }));
+        draft.dismiss();
+    }
 
     async function refresh() {
         const all = await ProductService.getProducts();
@@ -106,6 +122,7 @@ export default function AdminProductsPage() {
                 await ProductService.createProduct(payload);
                 toast.success('Plan created');
             }
+            draft.clear();
             closeForm();
             await refresh();
         } catch (e) {
@@ -202,6 +219,21 @@ export default function AdminProductsPage() {
                                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                     {editTarget ? 'Edit plan' : 'New plan'}
                                 </p>
+                                {draft.pending && (
+                                    <Alert variant="warning">
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                            <span>You have an unsaved draft.</span>
+                                            <span className="flex gap-3">
+                                                <button type="button" onClick={restoreDraft} className="font-semibold underline underline-offset-2">
+                                                    Restore draft
+                                                </button>
+                                                <button type="button" onClick={() => { draft.clear(); draft.dismiss(); }} className="underline underline-offset-2">
+                                                    Discard draft
+                                                </button>
+                                            </span>
+                                        </div>
+                                    </Alert>
+                                )}
                                 <input
                                     type="text"
                                     value={form.name}
