@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { inputClass } from '@/components/TextInput';
 import { PasswordInput } from '@sjolystinnovation/app-kit/ui';
 import { Alert } from '@sjolystinnovation/app-kit/ui';
-import { SIGN_IN_ERRORS } from '@sjolystinnovation/app-kit/session';
+import { SIGN_IN_ERRORS, isTerminalSessionError } from '@sjolystinnovation/app-kit/session';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -18,7 +18,7 @@ const Login: React.FC = () => {
     const router = useRouter();
 
     useEffect(() => {
-        getSession().then(s => { if (s) router.push('/'); });
+        getSession().then(s => { if (s && !isTerminalSessionError(s.error)) router.push('/'); });
     }, [router]);
 
     const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
