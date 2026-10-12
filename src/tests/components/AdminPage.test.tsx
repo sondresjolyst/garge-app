@@ -12,8 +12,9 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 
 const {
     getStats, getUsers, getStatsHistory, getEmailStats, getAllRoles, getAppSettings,
-    getSecuritySettings, push,
+    getSecuritySettings, push, updateAppSettings,
 } = vi.hoisted(() => ({
+    updateAppSettings: vi.fn(),
     getStats: vi.fn(),
     getUsers: vi.fn(),
     getStatsHistory: vi.fn(),
@@ -42,7 +43,7 @@ vi.mock('@/services/adminService', () => ({
         getEmailStats: (...a: unknown[]) => getEmailStats(...a),
         getAllRoles: () => getAllRoles(),
         getAppSettings: () => getAppSettings(),
-        updateAppSettings: vi.fn(),
+        updateAppSettings: (...a: unknown[]) => updateAppSettings(...a),
         getSecuritySettings: () => getSecuritySettings(),
         updateSecuritySettings: vi.fn(),
         assignRole: vi.fn(),
@@ -151,5 +152,43 @@ describe('AdminPage', () => {
         expect(getStats).toHaveBeenLastCalledWith({ test: true })
         expect(getUsers).toHaveBeenCalledTimes(1)
         expect(getStatsHistory).toHaveBeenCalledTimes(1)
+    })
+})
+
+describe('AdminPage VAT registration date', () => {
+    it('shows the registration date as the Norwegian calendar date while VAT is on', async () => {
+        // 21:30 UTC on 14 September is already 15 September in Norway.
+        getAppSettings.mockResolvedValue({ cookieBannerEnabled: true, vatEnabled: true, vatRegisteredFrom: '2026-09-14T22:30:00Z', vippsTestMode: false })
+        render(<AdminPage />)
+
+        expect(await screen.findByLabelText('Registered from')).toHaveValue('2026-09-15')
+    })
+
+    it('saves a new date and shows what the API stored', async () => {
+        getAppSettings.mockResolvedValue({ cookieBannerEnabled: true, vatEnabled: true, vatRegisteredFrom: '2026-09-14T22:00:00Z', vippsTestMode: false })
+        updateAppSettings.mockResolvedValue({ cookieBannerEnabled: true, vatEnabled: true, vatRegisteredFrom: '2026-08-31T22:00:00Z', vippsTestMode: false })
+        render(<AdminPage />)
+
+        fireEvent.change(await screen.findByLabelText('Registered from'), { target: { value: '2026-09-01' } })
+
+        await waitFor(() => expect(updateAppSettings).toHaveBeenCalledWith({ vatRegisteredFrom: '2026-09-01' }))
+        await waitFor(() => expect(screen.getByLabelText('Registered from')).toHaveValue('2026-09-01'))
+    })
+
+    it('ignores a cleared date', async () => {
+        getAppSettings.mockResolvedValue({ cookieBannerEnabled: true, vatEnabled: true, vatRegisteredFrom: '2026-09-14T22:00:00Z', vippsTestMode: false })
+        render(<AdminPage />)
+
+        fireEvent.change(await screen.findByLabelText('Registered from'), { target: { value: '' } })
+
+        expect(updateAppSettings).not.toHaveBeenCalled()
+    })
+
+    it('has no date while VAT is off', async () => {
+        getAppSettings.mockResolvedValue({ cookieBannerEnabled: true, vatEnabled: false, vatRegisteredFrom: null, vippsTestMode: false })
+        render(<AdminPage />)
+
+        await screen.findByLabelText('Toggle VAT')
+        expect(screen.queryByLabelText('Registered from')).not.toBeInTheDocument()
     })
 })
