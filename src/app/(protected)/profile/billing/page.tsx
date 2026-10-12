@@ -19,6 +19,7 @@ import { formatDate } from '@/lib/dateUtils';
 import { statusColor } from '@/lib/statusUtils';
 import { VAT_LABEL } from '@/lib/pricing';
 import { formatApiError } from '@/lib/errorMessages';
+import { partialAmountNote } from '@/lib/orderAmounts';
 
 function deriveCancelEndDate(sub: Subscription): string {
     if (sub.nextChargeDate) return formatDate(sub.nextChargeDate);
@@ -241,6 +242,9 @@ export default function BillingPage() {
                                         </span>
                                     </div>
                                 </div>
+                                {partialAmountNote(order) && (
+                                    <p className="text-xs text-amber-400">{partialAmountNote(order)}</p>
+                                )}
                                 <ul className="space-y-0.5">
                                     {order.items.map(oi => (
                                         <li key={oi.id} className="text-xs text-gray-400 flex justify-between">

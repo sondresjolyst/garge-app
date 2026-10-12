@@ -39,6 +39,10 @@ export interface Order {
     vippsOrderId: string | null;
     status: OrderStatus;
     totalInOre: number;
+    /** How much Vipps has captured. Below the total on a partly captured order. */
+    capturedInOre: number;
+    /** How much Vipps has refunded. Above zero and below the total on a partly refunded order. */
+    refundedInOre: number;
     shippingAddress: string | null;
     shippedAt: string | null;
     hasInvoice: boolean;

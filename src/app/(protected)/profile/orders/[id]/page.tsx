@@ -12,6 +12,7 @@ import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import { formatDate } from '@/lib/dateUtils';
 import { statusColor } from '@/lib/statusUtils';
 import { formatApiError } from '@/lib/errorMessages';
+import { partialAmountNote } from '@/lib/orderAmounts';
 
 interface TimelineEntry {
     label: string;
@@ -89,6 +90,10 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     {order.status}
                 </span>
             </div>
+
+            {partialAmountNote(order) && (
+                <p className="text-xs text-amber-400">{partialAmountNote(order)}</p>
+            )}
 
             <Section title="Items">
                 <ul className="space-y-1">
