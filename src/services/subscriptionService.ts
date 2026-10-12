@@ -11,6 +11,10 @@ export interface Subscription {
     productName: string;
     productType: SubscriptionProductType;
     priceInOre: number;
+    /** The unit price of a price increase the subscriber was told of, or null when none is coming. */
+    upcomingPriceInOre: number | null;
+    /** The first charge due date that pays `upcomingPriceInOre`. */
+    upcomingPriceFrom: string | null;
     quantity: number;
     interval: string;
     vippsAgreementId: string;
@@ -58,10 +62,28 @@ export interface SubscriptionInvoice {
     id: number;
     issuedAt: string;
     amountInOre: number;
+    /** How much of the charge has been paid back. */
+    refundedInOre: number;
     vippsChargeId: string | null;
 }
 
+export interface ChargeRefund {
+    id: number;
+    amountInOre: number;
+    refundedInOre: number;
+    creditNoteId: number | null;
+}
+
 const SubscriptionService = {
+    /** Refunds part or all of a captured charge. Without an amount, what is left of it. Admin only. */
+    async refundCharge(invoiceId: number, amountInOre?: number): Promise<ChargeRefund> {
+        try {
+            return (await axiosInstance.post<ChargeRefund>(`/subscriptions/invoices/${invoiceId}/refund`, { amountInOre })).data;
+        } catch (error: unknown) {
+            throw new Error(formatApiError(error, 'Failed to refund the charge'));
+        }
+    },
+
     async getMySubscriptions(): Promise<Subscription[]> {
         try {
             const res = await axiosInstance.get<Subscription[]>('/subscriptions/my');

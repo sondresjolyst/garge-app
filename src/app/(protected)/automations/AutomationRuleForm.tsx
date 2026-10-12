@@ -6,7 +6,9 @@ import { Switch } from '@/services/switchService';
 import { Sensor } from '@/services/sensorService';
 import { CreateAutomationRuleDto } from '@/dto/Automation/CreateAutomationRuleDto';
 import { unitForType } from '@/lib/typeUtils';
-import { Toggle } from '@sjolystinnovation/app-kit/ui';
+import { Alert, Toggle } from '@sjolystinnovation/app-kit/ui';
+import { useFormDraft } from '@sjolystinnovation/app-kit/forms';
+import { sessionConfig } from '@/lib/session';
 
 const PRICE_AREAS = ['NO1', 'NO2', 'NO3', 'NO4', 'NO5'];
 
@@ -149,7 +151,8 @@ export interface AutomationRuleFormProps {
     /** Current form values. Shared shape for both create and edit. */
     value: CreateAutomationRuleDto;
     onChange: (next: CreateAutomationRuleDto) => void;
-    onSubmit: (e: React.FormEvent) => void;
+    /** Resolves to true once the rule is saved, which drops the stored draft. */
+    onSubmit: (e: React.FormEvent) => void | Promise<boolean | void>;
     onCancel: () => void;
     submitting: boolean;
     mode: 'create' | 'edit';
@@ -165,6 +168,9 @@ export interface AutomationRuleFormProps {
     onDelete?: () => void;
     /** Keeps the trigger sensor fixed to `value.sensorId`. */
     lockSensor?: boolean;
+    /** The signed-in user and the rule the draft belongs to. Without both, no draft is kept. */
+    draftOwner?: string;
+    draftScope?: string;
 }
 
 const AutomationRuleForm: React.FC<AutomationRuleFormProps> = ({
@@ -182,7 +188,27 @@ const AutomationRuleForm: React.FC<AutomationRuleFormProps> = ({
     priceFormKey,
     onDelete,
     lockSensor = false,
+    draftOwner,
+    draftScope,
 }) => {
+    const draft = useFormDraft(sessionConfig, {
+        owner: draftScope ? draftOwner : undefined,
+        scope: draftScope ?? 'automation-rule',
+        value,
+    });
+
+    const restoreDraft = () => {
+        const stored = draft.pending;
+        if (!stored) return;
+        // Merge rather than replace, so a draft saved before a field was added keeps that field.
+        onChange({ ...value, ...stored });
+        draft.dismiss();
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        if (await onSubmit(e)) draft.clear();
+    };
+
     const sensorObj = sensors.find(s => s.id === value.sensorId);
     const unit = sensorObj ? unitForType(sensorObj.type) : '';
 
@@ -194,7 +220,22 @@ const AutomationRuleForm: React.FC<AutomationRuleFormProps> = ({
     };
 
     return (
-        <form onSubmit={onSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
+            {draft.pending && (
+                <Alert variant="warning">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span>You have an unsaved draft.</span>
+                        <span className="flex gap-3">
+                            <button type="button" onClick={restoreDraft} className="font-semibold underline underline-offset-2">
+                                Restore draft
+                            </button>
+                            <button type="button" onClick={() => { draft.clear(); draft.dismiss(); }} className="underline underline-offset-2">
+                                Discard draft
+                            </button>
+                        </span>
+                    </div>
+                </Alert>
+            )}
             <div>
                 <FieldLabel>Target socket</FieldLabel>
                 <Select value={value.targetId} required onChange={e => handleTargetChange(Number(e.target.value))}>

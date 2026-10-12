@@ -69,6 +69,8 @@ export interface EmailStats {
 export interface AppSettings {
     cookieBannerEnabled: boolean;
     vatEnabled: boolean;
+    /** The first moment sales carry VAT, in UTC. Null while VAT is off. */
+    vatRegisteredFrom?: string | null;
     vippsTestMode: boolean;
 }
 
