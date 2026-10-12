@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { HttpError, HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { getSession } from 'next-auth/react';
+import { isTerminalSessionError, openSessionPrompt } from '@sjolystinnovation/app-kit/session';
 
 export interface SwitchEvent {
     id: number;
@@ -21,6 +22,15 @@ export interface SensorEvent {
 export interface DeviceCreatedEvent {
     kind: 'switch' | 'sensor';
     id: number;
+}
+
+/**
+ * Opens the sign-in again prompt when the session has ended, the way the API client does after a 401.
+ * A missing session counts as ended, because signing in again recovers that too.
+ */
+async function promptIfSessionEnded(): Promise<void> {
+    const session = await getSession({ broadcast: false });
+    if (!session || isTerminalSessionError(session.error)) openSessionPrompt();
 }
 
 interface Handlers {
@@ -62,9 +72,15 @@ export function useDeviceStream(handlers: Handlers): void {
 
             connection = new HubConnectionBuilder()
                 .withUrl(hubUrl, {
+                    // Reconnects ask for the token again, so a session that ended meanwhile brings up
+                    // the prompt instead of failing quietly.
                     accessTokenFactory: async () => {
                         const session = await getSession();
-                        return session?.accessToken ?? '';
+                        if (!session || isTerminalSessionError(session.error)) {
+                            openSessionPrompt();
+                            return '';
+                        }
+                        return session.accessToken ?? '';
                     },
                 })
                 .withAutomaticReconnect()
@@ -96,6 +112,9 @@ export function useDeviceStream(handlers: Handlers): void {
                 // cleanup aborts the in-flight start(). That abort is expected,
                 // so it is suppressed rather than logged.
                 if (cancelled) return;
+                if (err instanceof HttpError && err.statusCode === 401) {
+                    await promptIfSessionEnded();
+                }
                 if (process.env.NODE_ENV === 'development') {
                     console.error('useDeviceStream connect failed:', err);
                 }
