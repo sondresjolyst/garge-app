@@ -260,8 +260,8 @@ const Profile: React.FC = () => {
             setEmailMessage(response.message);
             setEmailError(false);
             setUser({ ...user, emailConfirmed: true });
-        } catch {
-            setEmailMessage('Failed to confirm email');
+        } catch (e: unknown) {
+            setEmailMessage(e instanceof Error ? e.message : 'Failed to confirm email');
             setEmailError(true);
         }
     };
