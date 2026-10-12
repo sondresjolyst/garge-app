@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import AutomationService from '@/services/automationService';
 import SwitchService, { Switch } from '@/services/switchService';
 import SensorService, { Sensor } from '@/services/sensorService';
@@ -68,6 +69,7 @@ const formatTimerRemaining = (activatedAt: string, durationHours: number): strin
 const AutomationsPage: React.FC = () => {
     const searchParams = useSearchParams();
     const presetSensorId = searchParams.get('preset') === 'charging' ? Number(searchParams.get('sensorId')) : 0;
+    const { data: session }                   = useSession();
     const [rules, setRules]                   = useState<AutomationRuleDto[]>([]);
     const [loading, setLoading]               = useState(true);
     const [error, setError]                   = useState<string>('');
@@ -162,7 +164,7 @@ const AutomationsPage: React.FC = () => {
         setError(formatApiError(err, fallbackMsg || 'A network error occurred'));
     };
 
-    const handleCreate = async (e: React.FormEvent) => {
+    const handleCreate = async (e: React.FormEvent): Promise<boolean> => {
         e.preventDefault();
         setError('');
         setSubmitting(true);
@@ -173,7 +175,8 @@ const AutomationsPage: React.FC = () => {
             setFormOpen(false);
             fetchRules();
             toast.success('Automation created');
-        } catch (e) { handleError(e, 'Failed to create automation'); toast.error('Failed to create automation'); }
+            return true;
+        } catch (e) { handleError(e, 'Failed to create automation'); toast.error('Failed to create automation'); return false; }
         finally { setSubmitting(false); }
     };
 
@@ -225,9 +228,9 @@ const AutomationsPage: React.FC = () => {
 
     const cancelEdit = () => { setEditingId(null); setEditForm(null); setFormOpen(false); };
 
-    const handleUpdate = async (e: React.FormEvent) => {
+    const handleUpdate = async (e: React.FormEvent): Promise<boolean> => {
         e.preventDefault();
-        if (!editingId || !editForm) return;
+        if (!editingId || !editForm) return false;
         setError('');
         setSubmitting(true);
         try {
@@ -235,7 +238,8 @@ const AutomationsPage: React.FC = () => {
             cancelEdit();
             fetchRules();
             toast.success('Automation updated');
-        } catch (e) { handleError(e, 'Failed to update automation'); toast.error('Failed to update automation'); }
+            return true;
+        } catch (e) { handleError(e, 'Failed to update automation'); toast.error('Failed to update automation'); return false; }
         finally { setSubmitting(false); }
     };
 
@@ -262,6 +266,8 @@ const AutomationsPage: React.FC = () => {
             defaultPriceArea={defaultPriceArea}
             priceFormKey="create"
             lockSensor={sensorLocked}
+            draftOwner={session?.user?.id}
+            draftScope="automation-rule:new"
         />
     );
 
@@ -280,6 +286,8 @@ const AutomationsPage: React.FC = () => {
             defaultPriceArea={defaultPriceArea}
             priceFormKey={editingId ?? 'edit'}
             onDelete={() => editingId && setDeleteTargetId(editingId)}
+            draftOwner={session?.user?.id}
+            draftScope={`automation-rule:${editingId}`}
         />
     );
 
