@@ -69,11 +69,11 @@ test.describe('Admin orders page', () => {
         await expect(page.getByText('Testgata 1')).toBeVisible()
     })
 
-    test('Capture button opens confirm modal', async ({ page }) => {
+    test('Charge & ship button opens confirm modal', async ({ page }) => {
         await setup(page, [reservedOrder({ id: 1, createdDaysAgo: 1 })])
-        await page.getByRole('button', { name: /capture payment/i }).click()
+        await page.getByRole('button', { name: /charge & ship/i }).click()
         await expect(page.getByRole('alertdialog')).toBeVisible()
-        await expect(page.getByRole('heading', { name: /capture payment/i })).toBeVisible()
+        await expect(page.getByRole('heading', { name: /charge & ship/i })).toBeVisible()
     })
 
     test('Cancel order button opens confirm modal', async ({ page }) => {
@@ -82,9 +82,10 @@ test.describe('Admin orders page', () => {
         await expect(page.getByRole('alertdialog')).toBeVisible()
     })
 
-    test('Escape closes capture confirm modal', async ({ page }) => {
+    test('Escape closes the Charge & ship confirm modal', async ({ page }) => {
         await setup(page, [reservedOrder({ id: 1, createdDaysAgo: 1 })])
-        await page.getByRole('button', { name: /capture payment/i }).click()
+        await page.getByRole('button', { name: /charge & ship/i }).click()
+        await expect(page.getByRole('alertdialog')).toBeVisible()
         await page.keyboard.press('Escape')
         await expect(page.getByRole('alertdialog')).not.toBeVisible()
     })

@@ -36,9 +36,14 @@ test.describe('Subscription gate', () => {
         await mockSession(page, regularUser)
         await mockApi(page, '/admin/settings', { vatEnabled: false, vippsTestMode: false })
         await mockApi(page, '/shop/items', [])
-        await mockApi(page, '/products', [])
+        await mockApi(page, '/products', [{
+            id: 1, name: 'Garge Basic', description: null, priceInOre: 29900, interval: 'Monthly',
+            type: 'Primary', isActive: true, createdAt: '2026-01-01',
+        }])
+        await mockApi(page, '/subscriptions/my', [])
         await page.goto('/shop')
         await expect(page.getByText(/subscription plans/i)).toBeVisible()
+        await expect(page.getByText('Garge Basic')).toBeVisible()
     })
 
     test('billing page shows active subscription for subscribed user', async ({ page }) => {
