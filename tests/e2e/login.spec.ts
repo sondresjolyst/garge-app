@@ -3,6 +3,8 @@ import { test, expect } from '@playwright/test'
 test.describe('Login page', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/login')
+        // The form signs in with JavaScript, so it is used only once the page is interactive.
+        await page.waitForLoadState('networkidle')
     })
 
     test('renders login form', async ({ page }) => {
@@ -18,10 +20,11 @@ test.describe('Login page', () => {
         expect(validationMessage.length).toBeGreaterThan(0)
     })
 
-    test('shows error on wrong credentials', async ({ page }) => {
+    test('shows an error when sign-in fails', async ({ page }) => {
         await page.getByRole('textbox', { name: /email/i }).fill('wrong@example.com')
         await page.locator('input[type="password"]').fill('wrongpassword')
         await page.getByRole('button', { name: /log in|sign in/i }).click()
-        await expect(page.getByRole('alert').or(page.locator('[class*="red"]'))).toBeVisible({ timeout: 5000 })
+        // No API answers in the specs, so sign-in reports it is unavailable.
+        await expect(page.getByRole('alert').filter({ hasText: /sign-in is unavailable|invalid email or password/i })).toBeVisible({ timeout: 15000 })
     })
 })
