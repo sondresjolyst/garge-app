@@ -13,6 +13,7 @@ import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import { formatDate } from '@/lib/dateUtils';
 import { statusColor } from '@/lib/statusUtils';
 import { formatApiError } from '@/lib/errorMessages';
+import { partialAmountNote } from '@/lib/orderAmounts';
 
 const RESERVATION_DAYS = 7;
 
@@ -101,6 +102,7 @@ export default function AdminOrdersPage() {
                             {orders.map(order => {
                                 const reserved = order.status === 'Reserved';
                                 const countdown = reserved ? reservationCountdown(order.createdAt) : null;
+                                const partial = partialAmountNote(order);
                                 return (
                                     <li key={order.id} className="bg-gray-900/40 border border-gray-700/30 rounded-xl p-4 space-y-3">
                                         <div className="flex items-start justify-between gap-3">
@@ -121,6 +123,12 @@ export default function AdminOrdersPage() {
                                                 <span className="text-xs font-medium text-gray-300">{formatNok(order.totalInOre)}</span>
                                             </div>
                                         </div>
+
+                                        {partial && (
+                                            <p className="text-xs text-amber-400">
+                                                {partial}{reserved && ' Charge & ship captures the rest.'}
+                                            </p>
+                                        )}
 
                                         {countdown && (
                                             <p className={`text-xs ${countdown.expired ? 'text-red-400' : countdown.days <= 2 ? 'text-red-400' : countdown.days <= 4 ? 'text-amber-400' : 'text-gray-500'}`}>
