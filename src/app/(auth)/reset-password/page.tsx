@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AuthService from '@/services/userService';
 import { gargePasswordSchema } from '@/lib/validation/registerSchema';
 import Image from 'next/image';
@@ -9,10 +10,12 @@ import { inputClass } from '@/components/TextInput';
 import { PasswordInput } from '@sjolystinnovation/app-kit/ui';
 import { Alert } from '@sjolystinnovation/app-kit/ui';
 
-const ResetPassword: React.FC = () => {
-    const [step, setStep] = useState<1 | 2>(1);
-    const [email, setEmail] = useState('');
-    const [code, setCode] = useState('');
+const ResetPasswordForm: React.FC = () => {
+    const params = useSearchParams();
+    const linkedCode = params.get('code') ?? '';
+    const [step, setStep] = useState<1 | 2>(linkedCode ? 2 : 1);
+    const [email, setEmail] = useState(params.get('email') ?? '');
+    const [code, setCode] = useState(linkedCode);
     const [NewPassword, setNewPassword] = useState('');
     const [apiMessage, setApiMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
@@ -111,5 +114,12 @@ const ResetPassword: React.FC = () => {
         </div>
     );
 };
+
+// The emailed link carries the email and code, so the form opens on the last step.
+const ResetPassword: React.FC = () => (
+    <Suspense fallback={null}>
+        <ResetPasswordForm />
+    </Suspense>
+);
 
 export default ResetPassword;
