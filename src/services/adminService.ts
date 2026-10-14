@@ -110,16 +110,12 @@ const AdminService = {
         return list.map(r => r.name);
     },
 
-    async assignRole(userEmail: string, roleName: string): Promise<void> {
-        await axiosInstance.post(`/roles/${encodeURIComponent(roleName)}/users`, null, {
-            params: { userEmail },
-        });
+    async assignRole(userId: string, roleName: string): Promise<void> {
+        await axiosInstance.post(`/users/${encodeURIComponent(userId)}/roles`, { role: roleName });
     },
 
-    async removeRole(userEmail: string, roleName: string): Promise<void> {
-        await axiosInstance.delete(`/roles/${encodeURIComponent(roleName)}/users`, {
-            params: { userEmail },
-        });
+    async removeRole(userId: string, roleName: string): Promise<void> {
+        await axiosInstance.delete(`/users/${encodeURIComponent(userId)}/roles/${encodeURIComponent(roleName)}`);
     },
 
     async deleteUser(userId: string): Promise<void> {
