@@ -3,13 +3,15 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ResetPassword from '@/app/(auth)/reset-password/page'
 
-const { resetPassword, requestPasswordReset } = vi.hoisted(() => ({
+const { resetPassword, requestPasswordReset, link } = vi.hoisted(() => ({
     resetPassword: vi.fn(),
     requestPasswordReset: vi.fn(),
+    link: { search: '' },
 }))
 
 vi.mock('@/services/userService', () => ({ default: { resetPassword, requestPasswordReset } }))
 vi.mock('next/image', () => ({ default: () => null }))
+vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams(link.search) }))
 
 const toStepTwo = async () => {
     render(<ResetPassword />)
@@ -22,6 +24,19 @@ describe('reset password page', () => {
     beforeEach(() => {
         resetPassword.mockReset().mockResolvedValue({ message: 'Password reset.' })
         requestPasswordReset.mockReset().mockResolvedValue({ message: 'sent' })
+        link.search = ''
+    })
+
+    it('opens on the last step with the email and code from the emailed link', async () => {
+        link.search = 'email=kari%2Btest%40example.no&code=AB12CD'
+        render(<ResetPassword />)
+
+        expect(screen.getByPlaceholderText('Code from email')).toHaveValue('AB12CD')
+        await userEvent.type(screen.getByPlaceholderText('••••••••'), 'Password1')
+        fireEvent.submit(screen.getByPlaceholderText('••••••••').closest('form')!)
+
+        expect(requestPasswordReset).not.toHaveBeenCalled()
+        expect(resetPassword).toHaveBeenCalledWith({ email: 'kari+test@example.no', code: 'AB12CD', NewPassword: 'Password1' })
     })
 
     it('names each rule a new password breaks, without sending it', async () => {
