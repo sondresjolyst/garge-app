@@ -12,8 +12,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 
 const {
     getStats, getUsers, getStatsHistory, getEmailStats, getAllRoles, getAppSettings,
-    getSecuritySettings, push, updateAppSettings,
+    getSecuritySettings, push, updateAppSettings, removeRole, assignRole, toastError,
 } = vi.hoisted(() => ({
+    removeRole: vi.fn(),
+    assignRole: vi.fn(),
+    toastError: vi.fn(),
     updateAppSettings: vi.fn(),
     getStats: vi.fn(),
     getUsers: vi.fn(),
@@ -31,6 +34,7 @@ vi.mock('next-auth/react', () => ({ useSession: () => session }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
 vi.mock('next/dynamic', () => ({ default: () => () => null }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('@sjolystinnovation/app-kit/toast', () => ({ toast: { success: vi.fn(), error: (...a: unknown[]) => toastError(...a) } }))
 vi.mock('@/components/admin/VatThresholdCard', () => ({ default: () => null }))
 vi.mock('@/services/sensorService', () => ({
     default: { reanalyzeBatteryHealth: vi.fn() },
@@ -46,13 +50,14 @@ vi.mock('@/services/adminService', () => ({
         updateAppSettings: (...a: unknown[]) => updateAppSettings(...a),
         getSecuritySettings: () => getSecuritySettings(),
         updateSecuritySettings: vi.fn(),
-        assignRole: vi.fn(),
-        removeRole: vi.fn(),
+        assignRole: (...a: unknown[]) => assignRole(...a),
+        removeRole: (...a: unknown[]) => removeRole(...a),
         deleteUser: vi.fn(),
     },
 }))
 
 import AdminPage from '@/app/(protected)/admin/page'
+import { AxiosError, AxiosHeaders } from 'axios'
 
 // Distinct values per field so an assertion on `requests` matches one node only.
 const emailStats = (requests: number) => ({
@@ -88,7 +93,35 @@ beforeEach(() => {
     getSecuritySettings.mockResolvedValue({ alertThresholdMinutes: 25 })
 })
 
+const refused = (status: number, message: string) =>
+    new AxiosError('refused', String(status), undefined, undefined,
+        { status, statusText: '', headers: {}, config: { headers: new AxiosHeaders() }, data: { message } })
+
+const kari = { id: 'u3', userName: 'kari', firstName: 'Kari', lastName: 'N', email: 'kari@example.no', isDeleted: false, roles: ['Admin'] }
+
 describe('AdminPage', () => {
+    it('takes a role by user id and shows why the API refused', async () => {
+        getUsers.mockResolvedValue([kari])
+        removeRole.mockRejectedValue(refused(409, 'The last admin keeps the admin role. Give someone else the role first.'))
+        render(<AdminPage />)
+
+        fireEvent.click(await screen.findByTitle('Remove Admin'))
+
+        await waitFor(() => expect(toastError).toHaveBeenCalledWith('The last admin keeps the admin role. Give someone else the role first.'))
+        expect(removeRole).toHaveBeenCalledWith('u3', 'Admin')
+    })
+
+    it('gives a role by user id', async () => {
+        getUsers.mockResolvedValue([kari])
+        assignRole.mockResolvedValue(undefined)
+        render(<AdminPage />)
+
+        fireEvent.click(await screen.findByText('Add role'))
+        fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+
+        await waitFor(() => expect(assignRole).toHaveBeenCalledWith('u3', 'Default'))
+    })
+
     it('loads the admin data once for an admin', async () => {
         render(<AdminPage />)
 

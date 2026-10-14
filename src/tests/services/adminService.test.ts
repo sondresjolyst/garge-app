@@ -14,6 +14,8 @@ import axiosInstance from '@/services/axiosInstance'
 
 const mockGet = axiosInstance.get as ReturnType<typeof vi.fn>
 const mockPut = axiosInstance.put as ReturnType<typeof vi.fn>
+const mockPost = axiosInstance.post as ReturnType<typeof vi.fn>
+const mockDelete = axiosInstance.delete as ReturnType<typeof vi.fn>
 
 beforeEach(() => {
     vi.clearAllMocks()
@@ -78,6 +80,20 @@ describe('AdminService.getUsers', () => {
         mockGet.mockResolvedValueOnce({ data: { $values: users } })
         const result = await AdminService.getUsers()
         expect(result).toEqual(users)
+    })
+})
+
+describe('AdminService roles', () => {
+    it('gives a role on the user-centric route', async () => {
+        mockPost.mockResolvedValue({ data: {} })
+        await AdminService.assignRole('u1', 'SensorAdmin')
+        expect(mockPost).toHaveBeenCalledWith('/users/u1/roles', { role: 'SensorAdmin' })
+    })
+
+    it('takes a role on the user-centric route, encoding both parts', async () => {
+        mockDelete.mockResolvedValue({ data: {} })
+        await AdminService.removeRole('u/1', 'A b')
+        expect(mockDelete).toHaveBeenCalledWith('/users/u%2F1/roles/A%20b')
     })
 })
 

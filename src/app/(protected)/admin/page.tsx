@@ -18,6 +18,7 @@ import SensorService from '@/services/sensorService';
 import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import { Toggle } from '@sjolystinnovation/app-kit/ui';
 import { osloDateInput } from '@/lib/dateUtils';
+import { formatApiError } from '@/lib/errorMessages';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
 
@@ -249,13 +250,13 @@ export default function AdminPage() {
         if (!selectedRole) return;
         setRoleLoading(true);
         try {
-            await AdminService.assignRole(user.email, selectedRole);
+            await AdminService.assignRole(user.id, selectedRole);
             toast.success(`Added ${selectedRole} to ${user.firstName}`);
             setAddRoleFor(null);
             setSelectedRole('');
             await load();
-        } catch {
-            toast.error('Failed to assign role');
+        } catch (err) {
+            toast.error(formatApiError(err, 'Failed to assign role'));
         } finally {
             setRoleLoading(false);
         }
@@ -263,11 +264,12 @@ export default function AdminPage() {
 
     const handleRemoveRole = async (user: AdminUser, role: string) => {
         try {
-            await AdminService.removeRole(user.email, role);
+            await AdminService.removeRole(user.id, role);
             toast.success(`Removed ${role} from ${user.firstName}`);
             await load();
-        } catch {
-            toast.error('Failed to remove role');
+        } catch (err) {
+            // The API refuses to take the admin role from yourself or from the last admin, and says why.
+            toast.error(formatApiError(err, 'Failed to remove role'));
         }
     };
 
