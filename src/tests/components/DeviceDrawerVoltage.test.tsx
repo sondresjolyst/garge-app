@@ -1,12 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { toastSpies, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
-const { updateVoltageThresholds, clearVoltageThresholds, getMultipleSensorsData, toastSuccess, toastError } = vi.hoisted(() => ({
+const { updateVoltageThresholds, clearVoltageThresholds, getMultipleSensorsData } = vi.hoisted(() => ({
     updateVoltageThresholds: vi.fn(() => Promise.resolve({})),
     clearVoltageThresholds: vi.fn(() => Promise.resolve()),
     getMultipleSensorsData: vi.fn(() => Promise.resolve({ data: [], totalCount: 0 })),
-    toastSuccess: vi.fn(),
-    toastError: vi.fn(),
 }))
 
 vi.mock('@/services/sensorService', () => ({
@@ -22,7 +21,7 @@ vi.mock('@/services/sensorPhotoService', () => ({
 }))
 vi.mock('@/components/ActivitiesSection', () => ({ default: () => null }))
 vi.mock('@/hooks/useFeature', () => ({ useFeature: () => false }))
-vi.mock('sonner', () => ({ toast: { success: toastSuccess, error: toastError } }))
+vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('next/dynamic', () => ({ default: () => () => null }))
 
 import DeviceDrawer from '@/app/DeviceDrawer'
@@ -53,6 +52,7 @@ function makeVoltage(overrides: Partial<Sensor> = {}): UnifiedDevice {
     }
 }
 
+beforeEach(resetTestMocks)
 beforeEach(() => vi.clearAllMocks())
 
 describe('DeviceDrawer voltage thresholds', () => {
@@ -68,7 +68,7 @@ describe('DeviceDrawer voltage thresholds', () => {
 
         await waitFor(() => expect(updateVoltageThresholds).toHaveBeenCalledWith(7, 12.4, 12.0))
         expect(onThresholdsChange).toHaveBeenCalledWith(7, 12.4, 12.0)
-        await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Voltage thresholds saved'))
+        await waitFor(() => expect(toastSpies.success).toHaveBeenCalledWith('Voltage thresholds saved'))
     })
 
     it('blocks saving when warning is not above critical', async () => {

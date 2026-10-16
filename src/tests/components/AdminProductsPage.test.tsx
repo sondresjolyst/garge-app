@@ -2,16 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { AxiosError, AxiosHeaders } from 'axios'
 import type { Product } from '@/services/productService'
+import { makeSession, resetTestMocks, setSession, toastSpies } from '@sjolystinnovation/app-kit/testing'
 
-const { getProducts, updateProduct, getPriceChanges, toastError } = vi.hoisted(() => ({
+const { getProducts, updateProduct, getPriceChanges } = vi.hoisted(() => ({
     getProducts: vi.fn(),
     updateProduct: vi.fn(),
     getPriceChanges: vi.fn(),
-    toastError: vi.fn(),
 }))
 
-vi.mock('next-auth/react', () => ({ useSession: () => ({ data: { user: { id: 'admin-1', roles: ['Admin'] } } }) }))
-vi.mock('@sjolystinnovation/app-kit/toast', () => ({ toast: { success: vi.fn(), error: toastError } }))
+vi.mock('next-auth/react', async () => (await import('@sjolystinnovation/app-kit/testing')).nextAuthMock())
+vi.mock('@sjolystinnovation/app-kit/toast', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('@/components/MarkdownEditor', () => ({ default: () => null }))
 vi.mock('@/services/productService', () => ({
     default: {
@@ -35,9 +35,14 @@ function conflict(message: string): AxiosError {
     return err
 }
 
+beforeEach(() => {
+    resetTestMocks()
+    setSession(makeSession({ user: { id: 'admin-1', name: 'admin', email: 'a@b.no', roles: ['Admin'] } }))
+})
+
 describe('AdminProductsPage', () => {
     beforeEach(() => {
-        for (const m of [getProducts, updateProduct, getPriceChanges, toastError]) m.mockReset()
+        for (const m of [getProducts, updateProduct, getPriceChanges]) m.mockReset()
         getProducts.mockResolvedValue([product])
         getPriceChanges.mockResolvedValue([])
     })
@@ -50,7 +55,7 @@ describe('AdminProductsPage', () => {
         fireEvent.change(screen.getByLabelText(/Price customers pay/), { target: { value: '59' } })
         fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
-        await waitFor(() => expect(toastError).toHaveBeenCalledWith(expect.stringContaining('Schedule a price change')))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith(expect.stringContaining('Schedule a price change')))
     })
 
     it('opens and closes the price changes of a plan', async () => {
@@ -74,7 +79,7 @@ describe('AdminProductsPage drafts', () => {
 
     beforeEach(() => {
         localStorage.clear()
-        for (const m of [getProducts, updateProduct, getPriceChanges, toastError]) m.mockReset()
+        for (const m of [getProducts, updateProduct, getPriceChanges]) m.mockReset()
         getProducts.mockResolvedValue([product])
         getPriceChanges.mockResolvedValue([])
     })
@@ -127,7 +132,7 @@ describe('AdminProductsPage drafts', () => {
 
         fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
-        await waitFor(() => expect(toastError).toHaveBeenCalled())
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalled())
         expect(JSON.parse(localStorage.getItem(KEY)!).value.priceNok).toBe('59')
     })
 })

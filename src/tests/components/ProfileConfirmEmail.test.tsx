@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { makeSession, resetTestMocks, setSession } from '@sjolystinnovation/app-kit/testing'
 
 // The profile shows why an email confirmation failed, as the API words it.
 
@@ -17,10 +18,7 @@ const {
     isPushSubscribed: vi.fn(),
 }))
 
-vi.mock('next-auth/react', () => ({
-    useSession: () => ({ data: { user: { id: 'u1' } }, status: 'authenticated' }),
-    signOut: vi.fn(),
-}))
+vi.mock('next-auth/react', async () => (await import('@sjolystinnovation/app-kit/testing')).nextAuthMock())
 vi.mock('@/services/userService', () => ({
     default: {
         getUserProfile: () => getUserProfile(),
@@ -44,7 +42,7 @@ vi.mock('@/hooks/useCanClaimDevice', () => ({
         canClaim: true, loading: false, used: 0, capacity: 5, bypass: false, refresh: vi.fn(),
     }),
 }))
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 
 import ProfilePage from '@/app/(protected)/profile/page'
 
@@ -62,6 +60,8 @@ const unconfirmedUser = {
 
 beforeEach(() => {
     vi.clearAllMocks()
+    resetTestMocks()
+    setSession(makeSession())
     getUserProfile.mockResolvedValue(unconfirmedUser)
     getDataRetention.mockResolvedValue({ optOut: false })
     getAllSensors.mockResolvedValue([])

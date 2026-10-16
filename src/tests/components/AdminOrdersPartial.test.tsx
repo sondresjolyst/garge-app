@@ -1,10 +1,11 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import type { AdminOrder } from '@/services/shopService'
+import { resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
 const { getAllOrders } = vi.hoisted(() => ({ getAllOrders: vi.fn() }))
 
-vi.mock('@sjolystinnovation/app-kit/toast', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('@sjolystinnovation/app-kit/toast', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('@/services/shopService', () => ({ default: { getAllOrders: () => getAllOrders() } }))
 
 import AdminOrdersPage from '@/app/(protected)/admin/orders/page'
@@ -15,6 +16,8 @@ const order = (over: Partial<AdminOrder>): AdminOrder => ({
     items: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
     userEmail: 'ada@example.com', userName: 'Ada', ...over,
 })
+
+beforeEach(resetTestMocks)
 
 describe('Admin orders, partly captured and refunded', () => {
     it('shows a partly captured order and that Charge & ship captures the rest', async () => {

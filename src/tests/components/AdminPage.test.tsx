@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { StrictMode } from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { makeSession, resetTestMocks, setSession, toastSpies } from '@sjolystinnovation/app-kit/testing'
 
 // First coverage for the admin page. Locks the parts the react-hooks refactor
 // changed:
@@ -12,11 +13,10 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 
 const {
     getStats, getUsers, getStatsHistory, getEmailStats, getAllRoles, getAppSettings,
-    getSecuritySettings, push, updateAppSettings, removeRole, assignRole, toastError,
+    getSecuritySettings, updateAppSettings, removeRole, assignRole,
 } = vi.hoisted(() => ({
     removeRole: vi.fn(),
     assignRole: vi.fn(),
-    toastError: vi.fn(),
     updateAppSettings: vi.fn(),
     getStats: vi.fn(),
     getUsers: vi.fn(),
@@ -25,16 +25,13 @@ const {
     getAllRoles: vi.fn(),
     getAppSettings: vi.fn(),
     getSecuritySettings: vi.fn(),
-    push: vi.fn(),
 }))
 
-const session = { data: null as unknown, status: 'loading' as string }
-
-vi.mock('next-auth/react', () => ({ useSession: () => session }))
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
+vi.mock('next-auth/react', async () => (await import('@sjolystinnovation/app-kit/testing')).nextAuthMock())
+vi.mock('next/navigation', async () => (await import('@sjolystinnovation/app-kit/testing')).nextNavigationMock())
 vi.mock('next/dynamic', () => ({ default: () => () => null }))
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
-vi.mock('@sjolystinnovation/app-kit/toast', () => ({ toast: { success: vi.fn(), error: (...a: unknown[]) => toastError(...a) } }))
+vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
+vi.mock('@sjolystinnovation/app-kit/toast', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('@/components/admin/VatThresholdCard', () => ({ default: () => null }))
 vi.mock('@/services/sensorService', () => ({
     default: { reanalyzeBatteryHealth: vi.fn() },
@@ -72,15 +69,14 @@ const emailStats = (requests: number) => ({
 })
 
 function signInAsAdmin() {
-    session.data = { user: { id: 'u1', roles: ['Admin'] } }
-    session.status = 'authenticated'
+    setSession(makeSession({ roles: ['Admin'] }))
 }
 
 function signInAsUser() {
-    session.data = { user: { id: 'u2', roles: ['Default'] } }
-    session.status = 'authenticated'
+    setSession(makeSession({ roles: ['Default'] }))
 }
 
+beforeEach(resetTestMocks)
 beforeEach(() => {
     vi.clearAllMocks()
     signInAsAdmin()
@@ -107,7 +103,7 @@ describe('AdminPage', () => {
 
         fireEvent.click(await screen.findByTitle('Remove Admin'))
 
-        await waitFor(() => expect(toastError).toHaveBeenCalledWith('The last admin keeps the admin role. Give someone else the role first.'))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith('The last admin keeps the admin role. Give someone else the role first.'))
         expect(removeRole).toHaveBeenCalledWith('u3', 'Admin')
     })
 

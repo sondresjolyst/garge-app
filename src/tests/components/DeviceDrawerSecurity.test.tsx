@@ -1,13 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react'
+import { toastSpies, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
-const { getSensorSecurity, updateSensorSecurity, disableSensorSecurity, useFeature, toastSuccess, toastError } = vi.hoisted(() => ({
+const { getSensorSecurity, updateSensorSecurity, disableSensorSecurity, useFeature } = vi.hoisted(() => ({
     getSensorSecurity: vi.fn(),
     updateSensorSecurity: vi.fn(),
     disableSensorSecurity: vi.fn(() => Promise.resolve()),
     useFeature: vi.fn(),
-    toastSuccess: vi.fn(),
-    toastError: vi.fn(),
 }))
 
 vi.mock('@/services/sensorService', () => ({
@@ -29,7 +28,7 @@ vi.mock('@/services/sensorPhotoService', () => ({
 }))
 vi.mock('@/hooks/useFeature', () => ({ useFeature }))
 vi.mock('@/components/ActivitiesSection', () => ({ default: () => null }))
-vi.mock('sonner', () => ({ toast: { success: toastSuccess, error: toastError } }))
+vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('next/dynamic', () => ({ default: () => () => null }))
 
 import DeviceDrawer from '@/app/DeviceDrawer'
@@ -78,6 +77,7 @@ async function findCard(): Promise<HTMLElement> {
     return heading.closest('.rounded-2xl') as HTMLElement
 }
 
+beforeEach(resetTestMocks)
 beforeEach(() => {
     vi.clearAllMocks()
     useFeature.mockReturnValue(true)
@@ -127,7 +127,7 @@ describe('DeviceDrawer Garge Security', () => {
         fireEvent.click(toggle)
 
         await waitFor(() => expect(updateSensorSecurity).toHaveBeenCalledWith(7, { enabled: true }))
-        await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Garge Security turned on'))
+        await waitFor(() => expect(toastSpies.success).toHaveBeenCalledWith('Garge Security turned on'))
         expect(onSecurityChange).toHaveBeenCalledWith(7, { enabled: true, state: 'pending' })
         expect(screen.getByRole('switch', { name: 'Turn off Garge Security' })).toHaveAttribute('aria-checked', 'true')
     })
@@ -150,7 +150,7 @@ describe('DeviceDrawer Garge Security', () => {
 
         await waitFor(() => expect(disableSensorSecurity).toHaveBeenCalledWith(7))
         expect(onSecurityChange).toHaveBeenCalledWith(7, { enabled: false, state: 'off' })
-        await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Garge Security turned off'))
+        await waitFor(() => expect(toastSpies.success).toHaveBeenCalledWith('Garge Security turned off'))
         expect(screen.getByRole('switch', { name: 'Turn on Garge Security' })).toHaveAttribute('aria-checked', 'false')
     })
 
@@ -198,7 +198,7 @@ describe('DeviceDrawer Garge Security', () => {
         await waitFor(() => expect(toggle).toBeEnabled())
         fireEvent.click(toggle)
 
-        await waitFor(() => expect(toastError).toHaveBeenCalledWith("This sensor's hardware does not support Garge Security"))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith("This sensor's hardware does not support Garge Security"))
         await waitFor(() => expect(screen.queryByRole('switch')).not.toBeInTheDocument())
         expect(screen.getByText("This sensor's hardware does not support Garge Security.")).toBeInTheDocument()
     })
@@ -239,7 +239,7 @@ describe('DeviceDrawer Garge Security', () => {
         await waitFor(() => expect(toggle).toBeEnabled())
         fireEvent.click(toggle)
 
-        await waitFor(() => expect(toastError).toHaveBeenCalledWith('Create a charging automation for this sensor first'))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith('Create a charging automation for this sensor first'))
         expect(screen.getByRole('switch', { name: 'Turn on Garge Security' })).toHaveAttribute('aria-checked', 'false')
         expect(screen.getByRole('link', { name: 'Create charging automation' })).toBeInTheDocument()
     })
@@ -254,7 +254,7 @@ describe('DeviceDrawer Garge Security', () => {
         await waitFor(() => expect(toggle).toBeEnabled())
         fireEvent.click(toggle)
 
-        await waitFor(() => expect(toastError).toHaveBeenCalledWith('Set your charging automation to a normal battery voltage first'))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith('Set your charging automation to a normal battery voltage first'))
         expect(screen.getByRole('switch', { name: 'Turn on Garge Security' })).toHaveAttribute('aria-checked', 'false')
     })
 
@@ -266,7 +266,7 @@ describe('DeviceDrawer Garge Security', () => {
         await waitFor(() => expect(toggle).toBeEnabled())
         fireEvent.click(toggle)
 
-        await waitFor(() => expect(toastError).toHaveBeenCalledWith('Turn on push or email notifications in your profile first'))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith('Turn on push or email notifications in your profile first'))
     })
 
     it('is read-only for users who do not own the sensor', async () => {
@@ -292,7 +292,7 @@ describe('DeviceDrawer Garge Security', () => {
 
         fireEvent.click(toggle)
 
-        await waitFor(() => expect(toastError).toHaveBeenCalledWith('Create a charging automation for this sensor first'))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith('Create a charging automation for this sensor first'))
         expect(screen.getByRole('link', { name: 'Create charging automation' })).toBeInTheDocument()
     })
 
@@ -333,7 +333,7 @@ describe('DeviceDrawer Garge Security', () => {
         await waitFor(() => expect(getSensorSecurity).toHaveBeenCalledTimes(2))
 
         fireEvent.click(toggle)
-        await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Garge Security turned off'))
+        await waitFor(() => expect(toastSpies.success).toHaveBeenCalledWith('Garge Security turned off'))
 
         await act(async () => { resolvePoll(makeSecurity({ enabled: true, state: 'pending', reason: 'awaiting_wake' })) })
 
@@ -360,7 +360,7 @@ describe('DeviceDrawer Garge Security', () => {
         await waitFor(() => expect(getSensorSecurity).toHaveBeenCalledTimes(2))
 
         fireEvent.click(within(card).getByRole('switch', { name: 'Turn off Garge Security', hidden: true }))
-        await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Garge Security turned off'))
+        await waitFor(() => expect(toastSpies.success).toHaveBeenCalledWith('Garge Security turned off'))
 
         await act(async () => { resolvePoll(makeSecurity({ enabled: true, state: 'pending', reason: 'awaiting_wake' })) })
 

@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import type { VatThreshold } from '@/services/vatService'
+import { toastSpies, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
-const { getThreshold, setOtherTurnover, makeCorrections, toastError } = vi.hoisted(() => ({
+const { getThreshold, setOtherTurnover, makeCorrections } = vi.hoisted(() => ({
     getThreshold: vi.fn(),
     setOtherTurnover: vi.fn(),
     makeCorrections: vi.fn(),
-    toastError: vi.fn(),
 }))
 
-vi.mock('@sjolystinnovation/app-kit/toast', () => ({ toast: { success: vi.fn(), error: toastError } }))
+vi.mock('@sjolystinnovation/app-kit/toast', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('@/services/vatService', () => ({
     default: {
         getThreshold: () => getThreshold(),
@@ -45,12 +45,13 @@ const crossed: VatThreshold = {
     ],
 }
 
+beforeEach(resetTestMocks)
+
 describe('VatThresholdCard', () => {
     beforeEach(() => {
         getThreshold.mockReset()
         setOtherTurnover.mockReset()
         makeCorrections.mockReset()
-        toastError.mockReset()
     })
 
     it('shows turnover as a share of the threshold', async () => {
@@ -106,7 +107,7 @@ describe('VatThresholdCard', () => {
 
         fireEvent.change(input, { target: { value: '-5' } })
         fireEvent.click(screen.getByRole('button', { name: 'Save sales outside Garge' }))
-        await waitFor(() => expect(toastError).toHaveBeenCalled())
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalled())
         expect(setOtherTurnover).not.toHaveBeenCalled()
 
         fireEvent.change(input, { target: { value: '12500.50' } })

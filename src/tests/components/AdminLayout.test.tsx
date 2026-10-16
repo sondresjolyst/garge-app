@@ -1,22 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import type { Session } from 'next-auth'
+import { makeSession, navigation, resetTestMocks, setSession } from '@sjolystinnovation/app-kit/testing'
 import AdminLayout from '@/app/(protected)/admin/layout'
 
-const replace = vi.fn()
-let session: { data: Session | null; status: 'loading' | 'authenticated' | 'unauthenticated' }
-
-vi.mock('next/navigation', () => ({
-    useRouter: () => ({ replace, push: vi.fn() }),
-    usePathname: () => '/admin/orders',
-}))
-vi.mock('next-auth/react', () => ({ useSession: () => session }))
-
-const withRoles = (roles: string[]): Session => ({
-    user: { id: '1', name: 'ada', email: 'a@b.no', roles } as Session['user'],
-    accessToken: 'token',
-    expires: '',
-} as Session)
+vi.mock('next/navigation', async () => (await import('@sjolystinnovation/app-kit/testing')).nextNavigationMock())
+vi.mock('next-auth/react', async () => (await import('@sjolystinnovation/app-kit/testing')).nextAuthMock())
 
 const layout = () => (
     <AdminLayout>
@@ -26,21 +14,24 @@ const layout = () => (
 
 // The role check itself is tested in app-kit. These tests cover what garge passes to it.
 describe('admin layout', () => {
-    beforeEach(() => replace.mockClear())
+    beforeEach(() => {
+        resetTestMocks()
+        navigation.pathname = '/admin/orders'
+    })
 
     it('renders admin pages for an admin', () => {
-        session = { data: withRoles(['Admin']), status: 'authenticated' }
+        setSession(makeSession({ roles: ['Admin'] }))
         render(layout())
 
         expect(screen.getByText('admin work')).toBeInTheDocument()
-        expect(replace).not.toHaveBeenCalled()
+        expect(navigation.router.replace).not.toHaveBeenCalled()
     })
 
     it('sends a signed-in user without the admin role to the start page', () => {
-        session = { data: withRoles([]), status: 'authenticated' }
+        setSession(makeSession({ roles: [] }))
         render(layout())
 
         expect(screen.queryByText('admin work')).not.toBeInTheDocument()
-        expect(replace).toHaveBeenCalledWith('/')
+        expect(navigation.router.replace).toHaveBeenCalledWith('/')
     })
 })

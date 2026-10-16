@@ -1,17 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { navigation, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 import ResetPassword from '@/app/(auth)/reset-password/page'
 
-const { resetPassword, requestPasswordReset, link } = vi.hoisted(() => ({
+const { resetPassword, requestPasswordReset } = vi.hoisted(() => ({
     resetPassword: vi.fn(),
     requestPasswordReset: vi.fn(),
-    link: { search: '' },
 }))
 
 vi.mock('@/services/userService', () => ({ default: { resetPassword, requestPasswordReset } }))
 vi.mock('next/image', () => ({ default: () => null }))
-vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams(link.search) }))
+vi.mock('next/navigation', async () => (await import('@sjolystinnovation/app-kit/testing')).nextNavigationMock())
 vi.mock('next/link', () => ({ default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a> }))
 
 const toStepTwo = async () => {
@@ -23,13 +23,13 @@ const toStepTwo = async () => {
 
 describe('reset password page', () => {
     beforeEach(() => {
+        resetTestMocks()
         resetPassword.mockReset().mockResolvedValue({ message: 'Password reset.' })
         requestPasswordReset.mockReset().mockResolvedValue({ message: 'sent' })
-        link.search = ''
     })
 
     it('opens on the last step with the email and code from the emailed link', async () => {
-        link.search = 'email=kari%2Btest%40example.no&code=AB12CD'
+        navigation.searchParams = new URLSearchParams('email=kari%2Btest%40example.no&code=AB12CD')
         render(<ResetPassword />)
 
         expect(screen.getByLabelText(/^Reset code/)).toHaveValue('AB12CD')

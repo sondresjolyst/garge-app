@@ -1,15 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { toastSpies, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
-const { getAllSubscriptions, getSubscriptionInvoices, refundCharge, toastSuccess, toastError } = vi.hoisted(() => ({
+const { getAllSubscriptions, getSubscriptionInvoices, refundCharge } = vi.hoisted(() => ({
     getAllSubscriptions: vi.fn(),
     getSubscriptionInvoices: vi.fn(),
     refundCharge: vi.fn(),
-    toastSuccess: vi.fn(),
-    toastError: vi.fn(),
 }))
 
-vi.mock('@sjolystinnovation/app-kit/toast', () => ({ toast: { success: toastSuccess, error: toastError } }))
+vi.mock('@sjolystinnovation/app-kit/toast', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('@/services/subscriptionService', () => ({
     default: {
         getAllSubscriptions: () => getAllSubscriptions(),
@@ -40,6 +39,7 @@ async function openInvoices() {
     await screen.findByText(/#0041/)
 }
 
+beforeEach(resetTestMocks)
 beforeEach(() => {
     vi.clearAllMocks()
     getAllSubscriptions.mockResolvedValue([sub])
@@ -69,7 +69,7 @@ describe('AdminSubscriptionsPage refunds', () => {
         await waitFor(() => expect(refundCharge).toHaveBeenCalledWith(41, 20000))
         await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())
         expect(within(row(41)).getByText(/· refunded/)).toBeInTheDocument()
-        expect(toastSuccess).toHaveBeenCalledWith(expect.stringContaining('credit note'))
+        expect(toastSpies.success).toHaveBeenCalledWith(expect.stringContaining('credit note'))
     })
 
     it('refunds a part, written with a comma', async () => {
@@ -93,7 +93,7 @@ describe('AdminSubscriptionsPage refunds', () => {
         fireEvent.change(within(dialog).getByLabelText('Amount in NOK'), { target: { value } })
         fireEvent.click(within(dialog).getByRole('button', { name: 'Refund' }))
 
-        await waitFor(() => expect(toastError).toHaveBeenCalled())
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalled())
         expect(refundCharge).not.toHaveBeenCalled()
         expect(screen.getByRole('alertdialog')).toBeInTheDocument()
     })
@@ -106,7 +106,7 @@ describe('AdminSubscriptionsPage refunds', () => {
 
         fireEvent.click(within(dialog).getByRole('button', { name: 'Refund' }))
 
-        await waitFor(() => expect(toastError).toHaveBeenCalledWith('Vipps did not accept the refund.'))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith('Vipps did not accept the refund.'))
         expect(screen.getByRole('alertdialog')).toBeInTheDocument()
         expect(within(row(41)).getByText(/NOK 99,00 refunded/)).toBeInTheDocument()
     })

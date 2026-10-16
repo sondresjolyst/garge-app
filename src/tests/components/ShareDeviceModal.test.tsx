@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import type { SensorShare } from '@/services/sensorService'
+import { resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 
 import ShareDeviceModal from '@/components/ShareDeviceModal'
 
@@ -37,6 +38,7 @@ function renderModal(over: Partial<React.ComponentProps<typeof ShareDeviceModal>
     return { ...render(<ShareDeviceModal {...props} />), props }
 }
 
+beforeEach(resetTestMocks)
 beforeEach(() => {
     vi.clearAllMocks()
 })

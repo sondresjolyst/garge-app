@@ -1,30 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import PairingService from '@/services/pairingService'
 
-vi.mock('@/services/axiosInstance', () => ({
-    default: { post: vi.fn() },
-}))
+vi.mock('@/services/axiosInstance', async () => (await import('@sjolystinnovation/app-kit/testing')).axiosInstanceMock())
 
-import axiosInstance from '@/services/axiosInstance'
+import { axiosSpies, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
-const mockPost = axiosInstance.post as ReturnType<typeof vi.fn>
-
-beforeEach(() => {
-    vi.clearAllMocks()
-})
+beforeEach(resetTestMocks)
 
 describe('PairingService', () => {
     it('mints a token via POST /pairing/token', async () => {
-        mockPost.mockResolvedValueOnce({ data: { token: 'ABC123', expiresAt: '2026-07-27T12:15:00Z' } })
+        axiosSpies.post.mockResolvedValueOnce({ data: { token: 'ABC123', expiresAt: '2026-07-27T12:15:00Z' } })
 
         const result = await PairingService.mintToken()
 
-        expect(mockPost).toHaveBeenCalledWith('/pairing/token')
+        expect(axiosSpies.post).toHaveBeenCalledWith('/pairing/token')
         expect(result).toEqual({ token: 'ABC123', expiresAt: '2026-07-27T12:15:00Z' })
     })
 
     it('wraps failures in a friendly error', async () => {
-        mockPost.mockRejectedValueOnce(new Error('network down'))
+        axiosSpies.post.mockRejectedValueOnce(new Error('network down'))
 
         await expect(PairingService.mintToken()).rejects.toThrow()
     })

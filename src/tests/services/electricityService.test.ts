@@ -1,21 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import ElectricityService from '@/services/electricityService'
 
-vi.mock('@/services/axiosInstance', () => ({
-    default: { get: vi.fn() },
-}))
+vi.mock('@/services/axiosInstance', async () => (await import('@sjolystinnovation/app-kit/testing')).axiosInstanceMock())
 
-import axiosInstance from '@/services/axiosInstance'
+import { axiosSpies, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
-const mockGet = axiosInstance.get as ReturnType<typeof vi.fn>
-
-beforeEach(() => {
-    vi.clearAllMocks()
-})
+beforeEach(resetTestMocks)
 
 describe('ElectricityService.getElectricityData', () => {
     it('passes through API value as price without client-side VAT', async () => {
-        mockGet.mockResolvedValueOnce({
+        axiosSpies.get.mockResolvedValueOnce({
             data: {
                 areas: {
                     NO2: {
@@ -51,7 +45,7 @@ describe('ElectricityService.getElectricityData', () => {
     })
 
     it('preserves spot for NO4 where the server VAT rate is 0', async () => {
-        mockGet.mockResolvedValueOnce({
+        axiosSpies.get.mockResolvedValueOnce({
             data: {
                 areas: {
                     NO4: {

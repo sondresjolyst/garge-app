@@ -1,16 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import type { PriceChange, Product } from '@/services/productService'
+import { toastSpies, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
-const { getPriceChanges, schedulePriceChange, cancelPriceChange, toastError, toastSuccess } = vi.hoisted(() => ({
+const { getPriceChanges, schedulePriceChange, cancelPriceChange } = vi.hoisted(() => ({
     getPriceChanges: vi.fn(),
     schedulePriceChange: vi.fn(),
     cancelPriceChange: vi.fn(),
-    toastError: vi.fn(),
-    toastSuccess: vi.fn(),
 }))
 
-vi.mock('@sjolystinnovation/app-kit/toast', () => ({ toast: { success: toastSuccess, error: toastError } }))
+vi.mock('@sjolystinnovation/app-kit/toast', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('@/services/productService', () => ({
     default: {
         getPriceChanges: (id: number) => getPriceChanges(id),
@@ -32,11 +31,13 @@ const change = (over: Partial<PriceChange> = {}): PriceChange => ({
     noticeCount: 4, notifiedCount: 3, appliedCount: 0, ...over,
 })
 
+beforeEach(resetTestMocks)
+
 describe('PriceChangePanel', () => {
     beforeEach(() => {
         vi.useFakeTimers({ toFake: ['Date'] })
         vi.setSystemTime(new Date('2026-10-11T09:00:00Z'))
-        for (const m of [getPriceChanges, schedulePriceChange, cancelPriceChange, toastError, toastSuccess]) m.mockReset()
+        for (const m of [getPriceChanges, schedulePriceChange, cancelPriceChange]) m.mockReset()
     })
     afterEach(() => vi.useRealTimers())
 
@@ -81,7 +82,7 @@ describe('PriceChangePanel', () => {
 
         await waitFor(() => expect(schedulePriceChange).toHaveBeenCalledWith(7, 5950, '2026-12-01'))
         expect(await screen.findByText('Scheduled')).toBeInTheDocument()
-        expect(toastSuccess).toHaveBeenCalled()
+        expect(toastSpies.success).toHaveBeenCalled()
     })
 
     it.each([
@@ -95,7 +96,7 @@ describe('PriceChangePanel', () => {
         fireEvent.change(screen.getByLabelText('Takes effect'), { target: { value: date } })
         fireEvent.click(screen.getByRole('button', { name: 'Schedule increase' }))
 
-        await waitFor(() => expect(toastError).toHaveBeenCalledWith(expect.stringContaining(message)))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith(expect.stringContaining(message)))
         expect(schedulePriceChange).not.toHaveBeenCalled()
     })
 
@@ -107,7 +108,7 @@ describe('PriceChangePanel', () => {
         fireEvent.change(await screen.findByLabelText(/^New price/), { target: { value: '500' } })
         fireEvent.click(screen.getByRole('button', { name: 'Schedule increase' }))
 
-        await waitFor(() => expect(toastError).toHaveBeenCalledWith(expect.stringContaining('20 000 kr')))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith(expect.stringContaining('20 000 kr')))
     })
 
     it('cancels a scheduled change after confirmation', async () => {

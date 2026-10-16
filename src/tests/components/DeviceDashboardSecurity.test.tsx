@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import { resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
 const { useFeature } = vi.hoisted(() => ({
     useFeature: vi.fn(),
@@ -36,11 +37,12 @@ vi.mock('@/services/groupService', () => ({
 }))
 vi.mock('@/hooks/useDeviceStream', () => ({ useDeviceStream: vi.fn() }))
 vi.mock('@/hooks/useFeature', () => ({ useFeature }))
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('next/dynamic', () => ({ default: () => () => null }))
 
 import DeviceDashboard from '@/app/DeviceDashboard'
 
+beforeEach(resetTestMocks)
 beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()

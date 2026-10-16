@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import type { Subscription } from '@/services/subscriptionService'
+import { resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
 const { getMySubscriptions } = vi.hoisted(() => ({ getMySubscriptions: vi.fn() }))
 
-vi.mock('@sjolystinnovation/app-kit/toast', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('@sjolystinnovation/app-kit/toast', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('@/services/subscriptionService', () => ({ default: { getMySubscriptions: () => getMySubscriptions() } }))
 vi.mock('@/services/shopService', () => ({ default: { getMyOrders: () => Promise.resolve([]) } }))
 vi.mock('@/services/adminService', () => ({
@@ -19,6 +20,8 @@ const sub = (over: Partial<Subscription> = {}): Subscription => ({
     vippsAgreementId: 'agr', status: 'Active', isTest: false, startDate: '2026-09-01T00:00:00Z',
     nextChargeDate: '2026-11-01T00:00:00Z', createdAt: '2026-09-01T00:00:00Z', updatedAt: '2026-09-01T00:00:00Z', ...over,
 })
+
+beforeEach(resetTestMocks)
 
 describe('Billing page price change notice', () => {
     beforeEach(() => getMySubscriptions.mockReset())

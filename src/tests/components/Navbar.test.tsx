@@ -1,17 +1,19 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { SESSION_ERRORS } from '@sjolystinnovation/app-kit/session'
+import { makeSession, resetTestMocks, setSession } from '@sjolystinnovation/app-kit/testing'
 
-let session: { data: unknown; status: string }
-vi.mock('next-auth/react', () => ({ useSession: () => session, signOut: vi.fn() }))
+vi.mock('next-auth/react', async () => (await import('@sjolystinnovation/app-kit/testing')).nextAuthMock())
 
 import Navbar from '@/app/navbar'
 
-const user = (extra: Record<string, unknown> = {}) => ({ user: { id: 'u1', name: 'ada', roles: ['Admin'] }, ...extra })
+const user = (error?: string) => makeSession({ user: { id: 'u1', name: 'ada', email: 'a@b.no', roles: ['Admin'] }, error })
+
+beforeEach(resetTestMocks)
 
 describe('navbar', () => {
     it('shows the user, the admin link and Logout while signed in', () => {
-        session = { data: user(), status: 'authenticated' }
+        setSession(user())
         render(<Navbar />)
 
         expect(screen.getByText('ada')).toBeInTheDocument()
@@ -21,7 +23,7 @@ describe('navbar', () => {
     })
 
     it.each(Object.values(SESSION_ERRORS))('shows the signed-out links once the session ended with %s', (error) => {
-        session = { data: user({ error }), status: 'authenticated' }
+        setSession(user(error))
         render(<Navbar />)
 
         expect(screen.getByText('Sign in')).toBeInTheDocument()
@@ -31,7 +33,7 @@ describe('navbar', () => {
     })
 
     it('shows the signed-out links without a session', () => {
-        session = { data: null, status: 'unauthenticated' }
+        setSession(null)
         render(<Navbar />)
 
         expect(screen.getByText('Sign in')).toBeInTheDocument()
