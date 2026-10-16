@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
 import { auth, makeSession, navigation, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
-import { SESSION_ERRORS } from '@sjolystinnovation/app-kit/session'
+import { SESSION_ERRORS, type SessionError } from '@sjolystinnovation/app-kit/session'
 import Login from '@/app/(auth)/login/page'
 
 vi.mock('next/navigation', async () => (await import('@sjolystinnovation/app-kit/testing')).nextNavigationMock())
 vi.mock('next-auth/react', async () => (await import('@sjolystinnovation/app-kit/testing')).nextAuthMock())
 
-const withError = (error?: string) => makeSession({ roles: [], error })
+const withError = (error?: SessionError) => makeSession({ roles: [], error })
 
 describe('login page', () => {
     beforeEach(resetTestMocks)
