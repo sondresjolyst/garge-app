@@ -1,7 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { COMPANY, fetchVatEnabled, formatOrgNumber } from '@/lib/company';
+import { formatOrgNumber } from '@sjolystinnovation/app-kit/api';
+import { COMPANY, fetchVatEnabled } from '@/lib/company';
 
 export default async function Footer() {
     const vatEnabled = await fetchVatEnabled();
@@ -41,7 +42,7 @@ export default async function Footer() {
                     >
                         {COMPANY.legalName}
                     </a>
-                    {' '}· Org. nr. {formatOrgNumber(COMPANY.orgNumber, vatEnabled)}
+                    {' '}· Org. nr. {formatOrgNumber({ orgNumber: COMPANY.orgNumber, vatRegistered: vatEnabled })}
                 </p>
 
             </div>

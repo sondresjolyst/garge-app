@@ -1,16 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { auth, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 import { FieldValidationError } from '@/lib/errors'
 
-const { push, register, signIn, getSession } = vi.hoisted(() => ({
-    push: vi.fn(),
+const { register } = vi.hoisted(() => ({
     register: vi.fn(),
-    signIn: vi.fn(),
-    getSession: vi.fn(() => Promise.resolve(null)),
 }))
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
-vi.mock('next-auth/react', () => ({ signIn, getSession }))
+vi.mock('next/navigation', async () => (await import('@sjolystinnovation/app-kit/testing')).nextNavigationMock())
+vi.mock('next-auth/react', async () => (await import('@sjolystinnovation/app-kit/testing')).nextAuthMock())
 vi.mock('@/services/userService', () => ({ default: { register } }))
 
 // next/image and next/link render fine in jsdom but mock them lean to avoid
@@ -22,7 +20,8 @@ import Register from '@/app/(auth)/register/page'
 
 beforeEach(() => {
     vi.clearAllMocks()
-    getSession.mockResolvedValue(null)
+    resetTestMocks()
+    auth.getSession.mockResolvedValue(null)
 })
 
 describe('Register — live client-side validation', () => {
@@ -112,7 +111,7 @@ describe('Register — typed error surfacing on submit', () => {
         expect(screen.queryByText(/\{.*email.*\}/)).not.toBeInTheDocument()
 
         // signIn is not attempted when registration fails.
-        expect(signIn).not.toHaveBeenCalled()
+        expect(auth.signIn).not.toHaveBeenCalled()
     })
 
     it('shows a generic alert message when a plain Error is thrown', async () => {
@@ -129,7 +128,7 @@ describe('Register — typed error surfacing on submit', () => {
 
     it('signs in after a successful registration', async () => {
         register.mockResolvedValueOnce({ message: 'ok' })
-        signIn.mockResolvedValueOnce({ ok: true })
+        auth.signIn.mockResolvedValueOnce({ ok: true })
         render(<Register />)
         fillValidForm()
 
@@ -137,7 +136,7 @@ describe('Register — typed error surfacing on submit', () => {
 
         await waitFor(() => expect(register).toHaveBeenCalledTimes(1))
         await waitFor(() =>
-            expect(signIn).toHaveBeenCalledWith('credentials', {
+            expect(auth.signIn).toHaveBeenCalledWith('credentials', {
                 redirect: true,
                 email: 'ada@example.com',
                 password: 'Sup3r!secret',

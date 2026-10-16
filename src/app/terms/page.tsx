@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { COMPANY, fetchVatEnabled, formatOrgNumber } from "@/lib/company";
+import { formatOrgNumber } from "@sjolystinnovation/app-kit/api";
+import { COMPANY, fetchVatEnabled } from "@/lib/company";
 
 export default async function TermsPage() {
     const vatEnabled = await fetchVatEnabled();
@@ -14,7 +15,7 @@ export default async function TermsPage() {
                     <p>The seller is:</p>
                     <ul className="list-none space-y-0.5 pl-2">
                         <li><span className="text-gray-300">Company name:</span> {COMPANY.legalName}</li>
-                        <li><span className="text-gray-300">Organisation number:</span> {formatOrgNumber(COMPANY.orgNumber, vatEnabled)}</li>
+                        <li><span className="text-gray-300">Organisation number:</span> {formatOrgNumber({ orgNumber: COMPANY.orgNumber, vatRegistered: vatEnabled })}</li>
                         <li><span className="text-gray-300">Address:</span> {COMPANY.address}</li>
                         <li><span className="text-gray-300">Email:</span> {COMPANY.email}</li>
                     </ul>

@@ -1,11 +1,12 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Suspense } from 'react'
 import { render, screen } from '@testing-library/react'
 import type { Order } from '@/services/shopService'
+import { resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
 const { getMyOrders } = vi.hoisted(() => ({ getMyOrders: vi.fn() }))
 
-vi.mock('@sjolystinnovation/app-kit/toast', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('@sjolystinnovation/app-kit/toast', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('@/services/shopService', () => ({ default: { getMyOrders: () => getMyOrders(), downloadInvoice: vi.fn() } }))
 vi.mock('@/services/subscriptionService', () => ({ default: { getMySubscriptions: () => Promise.resolve([]) } }))
 vi.mock('@/services/adminService', () => ({
@@ -20,6 +21,8 @@ const order = (over: Partial<Order>): Order => ({
     capturedInOre: 10000, refundedInOre: 2500, shippingAddress: null, shippedAt: null, hasInvoice: true, isTest: false,
     items: [], createdAt: '2026-10-01T10:00:00Z', updatedAt: '2026-10-02T10:00:00Z', ...over,
 })
+
+beforeEach(resetTestMocks)
 
 describe('Customer orders, partly refunded', () => {
     it('shows the partial refund on the billing page', async () => {

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { StrictMode } from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
 // Locks the keyed-entry loading behaviour the react-hooks refactor introduced in
 // DeviceDrawer: chartData/loadingChart/switchEvents/loadingSwitch are derived
@@ -33,7 +34,7 @@ vi.mock('@/services/sensorPhotoService', () => ({
 }))
 vi.mock('@/components/ActivitiesSection', () => ({ default: () => null }))
 vi.mock('@/hooks/useFeature', () => ({ useFeature: () => false }))
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 
 // Render the series as plain text so assertions do not depend on ApexCharts.
 vi.mock('next/dynamic', () => ({
@@ -72,6 +73,7 @@ const reading = (value: number) => ({
 
 const props = { onClose: () => { }, onRename: () => { } }
 
+beforeEach(resetTestMocks)
 beforeEach(() => {
     vi.clearAllMocks()
     getMultipleSensorsData.mockResolvedValue({ data: [reading(11)], totalCount: 1 })

@@ -1,18 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { makeSession, resetTestMocks, setSession, toastSpies } from '@sjolystinnovation/app-kit/testing'
 
-const { useFeature, getUserProfile, updatePreferences, toastSuccess, toastError } = vi.hoisted(() => ({
+const { useFeature, getUserProfile, updatePreferences } = vi.hoisted(() => ({
     useFeature: vi.fn(),
     getUserProfile: vi.fn(),
     updatePreferences: vi.fn(() => Promise.resolve({})),
-    toastSuccess: vi.fn(),
-    toastError: vi.fn(),
 }))
 
-vi.mock('next-auth/react', () => ({
-    useSession: () => ({ data: { user: { id: 'user-1' } }, status: 'authenticated' }),
-    signOut: vi.fn(),
-}))
+vi.mock('next-auth/react', async () => (await import('@sjolystinnovation/app-kit/testing')).nextAuthMock())
 vi.mock('@/services/userService', () => ({
     default: {
         getUserProfile,
@@ -37,12 +33,14 @@ vi.mock('@/hooks/useCanClaimDevice', () => ({
     useCanClaimDevice: () => ({ canClaim: true, loading: false, refresh: vi.fn(), capacity: 2, used: 1, bypass: false }),
 }))
 vi.mock('@/hooks/useFeature', () => ({ useFeature }))
-vi.mock('sonner', () => ({ toast: { success: toastSuccess, error: toastError } }))
+vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 
 import Profile from '@/app/(protected)/profile/page'
 
 beforeEach(() => {
     vi.clearAllMocks()
+    resetTestMocks()
+    setSession(makeSession())
     getUserProfile.mockResolvedValue({
         id: 'user-1',
         email: 'kari@example.com',
@@ -79,7 +77,7 @@ describe('Profile email notifications', () => {
         fireEvent.click(toggle)
 
         await waitFor(() => expect(updatePreferences).toHaveBeenCalledWith('user-1', { priceZone: 'NO3', emailNotificationsEnabled: false }))
-        await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Email notifications turned off'))
+        await waitFor(() => expect(toastSpies.success).toHaveBeenCalledWith('Email notifications turned off'))
         expect(screen.getByRole('switch', { name: 'Turn on email notifications' })).toHaveAttribute('aria-checked', 'false')
     })
 
@@ -94,9 +92,9 @@ describe('Profile email notifications', () => {
 
         fireEvent.click(toggle)
 
-        await waitFor(() => expect(toastError).toHaveBeenCalledWith(message))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith(message))
         await waitFor(() => expect(screen.getByRole('switch', { name: 'Turn off email notifications' })).toBeEnabled())
         expect(screen.getByRole('switch', { name: 'Turn off email notifications' })).toHaveAttribute('aria-checked', 'true')
-        expect(toastSuccess).not.toHaveBeenCalled()
+        expect(toastSpies.success).not.toHaveBeenCalled()
     })
 })

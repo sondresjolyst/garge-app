@@ -1,15 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { toastSpies, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
 // Mock the services the drawer imports so no real HTTP happens. The socket
 // device exercised below only touches SwitchService; the others are stubbed to
 // keep the module graph happy. Mock fns are declared with vi.hoisted so the
 // hoisted vi.mock factories can reference them.
-const { updateSwitchName, getSwitchData, toastSuccess, toastError } = vi.hoisted(() => ({
+const { updateSwitchName, getSwitchData } = vi.hoisted(() => ({
     updateSwitchName: vi.fn(() => Promise.resolve({})),
     getSwitchData: vi.fn(() => Promise.resolve([])),
-    toastSuccess: vi.fn(),
-    toastError: vi.fn(),
 }))
 
 vi.mock('@/services/switchService', () => ({
@@ -29,7 +28,7 @@ vi.mock('@/services/sensorPhotoService', () => ({
 }))
 vi.mock('@/hooks/useFeature', () => ({ useFeature: () => false }))
 
-vi.mock('sonner', () => ({ toast: { success: toastSuccess, error: toastError } }))
+vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 
 // Avoid pulling ApexCharts into jsdom; sockets don't render it anyway.
 vi.mock('next/dynamic', () => ({ default: () => () => null }))
@@ -49,6 +48,7 @@ function makeSocket(overrides: Partial<UnifiedDevice> = {}): UnifiedDevice {
     }
 }
 
+beforeEach(resetTestMocks)
 beforeEach(() => {
     vi.clearAllMocks()
 })
@@ -79,7 +79,7 @@ describe('DeviceDrawer rename', () => {
 
         // Service was asked to persist the trimmed name, and a success toast fired.
         expect(updateSwitchName).toHaveBeenCalledWith(7, 'New Socket Name')
-        await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('Socket renamed'))
+        await waitFor(() => expect(toastSpies.success).toHaveBeenCalledWith('Socket renamed'))
     })
 
     it('does not call onRename for an empty/whitespace-only name', async () => {
@@ -106,7 +106,7 @@ describe('DeviceDrawer rename', () => {
         fireEvent.change(screen.getByDisplayValue('Garage socket'), { target: { value: 'Other' } })
         fireEvent.click(screen.getByRole('button', { name: 'Save name' }))
 
-        await waitFor(() => expect(toastError).toHaveBeenCalledWith('Failed to rename'))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith('Failed to rename'))
         expect(onRename).not.toHaveBeenCalled()
         expect(device.displayName).toBe('Garage socket')
     })

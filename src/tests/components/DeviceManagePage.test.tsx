@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { DeviceManagePage, type DeviceItem, type DevicePageConfig } from '@/components/DeviceManagePage'
+import { resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('@/hooks/useCanClaimDevice', () => ({
     useCanClaimDevice: () => ({
         canClaim: true, loading: false, used: 1, capacity: 5, bypass: false, refresh: vi.fn(),
@@ -31,6 +32,7 @@ const config = (over: Partial<DevicePageConfig<Item>> = {}): DevicePageConfig<It
     ...over,
 })
 
+beforeEach(resetTestMocks)
 beforeEach(() => {
     vi.clearAllMocks()
 })

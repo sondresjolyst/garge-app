@@ -19,7 +19,3 @@ export async function fetchVatEnabled(): Promise<boolean> {
     const settings = await getPublicAppSettings();
     return Boolean(settings?.vatEnabled);
 }
-
-export function formatOrgNumber(orgNumber: string, vatEnabled: boolean) {
-    return vatEnabled ? `${orgNumber} MVA` : orgNumber;
-}

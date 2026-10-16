@@ -1,25 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import AdminService, { AppSettings, EmailStats, SecuritySettings } from '@/services/adminService'
 
-vi.mock('@/services/axiosInstance', () => ({
-    default: {
-        get: vi.fn(),
-        post: vi.fn(),
-        put: vi.fn(),
-        delete: vi.fn(),
-    },
-}))
+vi.mock('@/services/axiosInstance', async () => (await import('@sjolystinnovation/app-kit/testing')).axiosInstanceMock())
 
-import axiosInstance from '@/services/axiosInstance'
+import { axiosSpies, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
-const mockGet = axiosInstance.get as ReturnType<typeof vi.fn>
-const mockPut = axiosInstance.put as ReturnType<typeof vi.fn>
-const mockPost = axiosInstance.post as ReturnType<typeof vi.fn>
-const mockDelete = axiosInstance.delete as ReturnType<typeof vi.fn>
-
-beforeEach(() => {
-    vi.clearAllMocks()
-})
+beforeEach(resetTestMocks)
 
 describe('AdminService.getEmailStats', () => {
     const mockEmailStats: EmailStats = {
@@ -34,27 +20,27 @@ describe('AdminService.getEmailStats', () => {
     }
 
     it('returns email stats from API', async () => {
-        mockGet.mockResolvedValueOnce({ data: mockEmailStats })
+        axiosSpies.get.mockResolvedValueOnce({ data: mockEmailStats })
         const result = await AdminService.getEmailStats()
         expect(result).toEqual(mockEmailStats)
     })
 
     it('calls correct endpoint with default days=30', async () => {
-        mockGet.mockResolvedValueOnce({ data: mockEmailStats })
+        axiosSpies.get.mockResolvedValueOnce({ data: mockEmailStats })
         await AdminService.getEmailStats()
-        expect(mockGet).toHaveBeenCalledWith('/admin/email-stats', { params: { days: 30 } })
+        expect(axiosSpies.get).toHaveBeenCalledWith('/admin/email-stats', { params: { days: 30 } })
     })
 
     it('passes custom days param', async () => {
-        mockGet.mockResolvedValueOnce({ data: { ...mockEmailStats, days: 7 } })
+        axiosSpies.get.mockResolvedValueOnce({ data: { ...mockEmailStats, days: 7 } })
         await AdminService.getEmailStats(7)
-        expect(mockGet).toHaveBeenCalledWith('/admin/email-stats', { params: { days: 7 } })
+        expect(axiosSpies.get).toHaveBeenCalledWith('/admin/email-stats', { params: { days: 7 } })
     })
 
     it('passes 90 days param', async () => {
-        mockGet.mockResolvedValueOnce({ data: { ...mockEmailStats, days: 90 } })
+        axiosSpies.get.mockResolvedValueOnce({ data: { ...mockEmailStats, days: 90 } })
         await AdminService.getEmailStats(90)
-        expect(mockGet).toHaveBeenCalledWith('/admin/email-stats', { params: { days: 90 } })
+        expect(axiosSpies.get).toHaveBeenCalledWith('/admin/email-stats', { params: { days: 90 } })
     })
 })
 
@@ -64,20 +50,20 @@ describe('AdminService.getUsers', () => {
     ]
 
     it('hides deleted by default (no includeDeleted param)', async () => {
-        mockGet.mockResolvedValueOnce({ data: users })
+        axiosSpies.get.mockResolvedValueOnce({ data: users })
         const result = await AdminService.getUsers()
-        expect(mockGet).toHaveBeenCalledWith('/users', { params: undefined })
+        expect(axiosSpies.get).toHaveBeenCalledWith('/users', { params: undefined })
         expect(result).toEqual(users)
     })
 
     it('passes includeDeleted=true when requested', async () => {
-        mockGet.mockResolvedValueOnce({ data: users })
+        axiosSpies.get.mockResolvedValueOnce({ data: users })
         await AdminService.getUsers({ includeDeleted: true })
-        expect(mockGet).toHaveBeenCalledWith('/users', { params: { includeDeleted: true } })
+        expect(axiosSpies.get).toHaveBeenCalledWith('/users', { params: { includeDeleted: true } })
     })
 
     it('unwraps a $values envelope', async () => {
-        mockGet.mockResolvedValueOnce({ data: { $values: users } })
+        axiosSpies.get.mockResolvedValueOnce({ data: { $values: users } })
         const result = await AdminService.getUsers()
         expect(result).toEqual(users)
     })
@@ -85,15 +71,15 @@ describe('AdminService.getUsers', () => {
 
 describe('AdminService roles', () => {
     it('gives a role on the user-centric route', async () => {
-        mockPost.mockResolvedValue({ data: {} })
+        axiosSpies.post.mockResolvedValue({ data: {} })
         await AdminService.assignRole('u1', 'SensorAdmin')
-        expect(mockPost).toHaveBeenCalledWith('/users/u1/roles', { role: 'SensorAdmin' })
+        expect(axiosSpies.post).toHaveBeenCalledWith('/users/u1/roles', { role: 'SensorAdmin' })
     })
 
     it('takes a role on the user-centric route, encoding both parts', async () => {
-        mockDelete.mockResolvedValue({ data: {} })
+        axiosSpies.delete.mockResolvedValue({ data: {} })
         await AdminService.removeRole('u/1', 'A b')
-        expect(mockDelete).toHaveBeenCalledWith('/users/u%2F1/roles/A%20b')
+        expect(axiosSpies.delete).toHaveBeenCalledWith('/users/u%2F1/roles/A%20b')
     })
 })
 
@@ -101,29 +87,29 @@ describe('AdminService.getAppSettings', () => {
     const mockSettings: AppSettings = { cookieBannerEnabled: true, vatEnabled: true, vippsTestMode: false }
 
     it('returns app settings from API', async () => {
-        mockGet.mockResolvedValueOnce({ data: mockSettings })
+        axiosSpies.get.mockResolvedValueOnce({ data: mockSettings })
         const result = await AdminService.getAppSettings()
         expect(result).toEqual(mockSettings)
     })
 
     it('calls correct endpoint', async () => {
-        mockGet.mockResolvedValueOnce({ data: mockSettings })
+        axiosSpies.get.mockResolvedValueOnce({ data: mockSettings })
         await AdminService.getAppSettings()
-        expect(mockGet).toHaveBeenCalledWith('/admin/settings')
+        expect(axiosSpies.get).toHaveBeenCalledWith('/admin/settings')
     })
 })
 
 describe('AdminService.updateAppSettings', () => {
     it('calls PUT with correct endpoint and body', async () => {
         const updated: AppSettings = { cookieBannerEnabled: false, vatEnabled: true, vippsTestMode: false }
-        mockPut.mockResolvedValueOnce({ data: updated })
+        axiosSpies.put.mockResolvedValueOnce({ data: updated })
         const result = await AdminService.updateAppSettings({ cookieBannerEnabled: false })
-        expect(mockPut).toHaveBeenCalledWith('/admin/settings', { cookieBannerEnabled: false })
+        expect(axiosSpies.put).toHaveBeenCalledWith('/admin/settings', { cookieBannerEnabled: false })
         expect(result).toEqual(updated)
     })
 
     it('returns updated settings from response', async () => {
-        mockPut.mockResolvedValueOnce({ data: { cookieBannerEnabled: true } })
+        axiosSpies.put.mockResolvedValueOnce({ data: { cookieBannerEnabled: true } })
         const result = await AdminService.updateAppSettings({ cookieBannerEnabled: true })
         expect(result.cookieBannerEnabled).toBe(true)
     })
@@ -138,18 +124,18 @@ describe('AdminService security settings', () => {
     }
 
     it('reads from the admin-only endpoint', async () => {
-        mockGet.mockResolvedValueOnce({ data: settings })
+        axiosSpies.get.mockResolvedValueOnce({ data: settings })
 
         expect(await AdminService.getSecuritySettings()).toEqual(settings)
-        expect(mockGet).toHaveBeenCalledWith('/admin/security-settings')
+        expect(axiosSpies.get).toHaveBeenCalledWith('/admin/security-settings')
     })
 
     it('sends the threshold as a PUT body', async () => {
-        mockPut.mockResolvedValueOnce({ data: { ...settings, alertThresholdMinutes: 45 } })
+        axiosSpies.put.mockResolvedValueOnce({ data: { ...settings, alertThresholdMinutes: 45 } })
 
         const result = await AdminService.updateSecuritySettings(45)
 
-        expect(mockPut).toHaveBeenCalledWith('/admin/security-settings', { alertThresholdMinutes: 45 })
+        expect(axiosSpies.put).toHaveBeenCalledWith('/admin/security-settings', { alertThresholdMinutes: 45 })
         expect(result.alertThresholdMinutes).toBe(45)
     })
 })

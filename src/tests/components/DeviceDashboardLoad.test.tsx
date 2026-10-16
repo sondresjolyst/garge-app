@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { StrictMode } from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
+import { resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 
 // Locks the dashboard data load after the react-hooks refactor moved the whole
 // fetch-and-map into a module-level `fetchDashboardData` and made the mount
@@ -43,13 +44,14 @@ vi.mock('@/services/groupService', () => ({ default: { getAllGroups: () => getAl
 vi.mock('@/services/sensorPhotoService', () => ({ default: { get: vi.fn(() => Promise.resolve(null)) } }))
 vi.mock('@/hooks/useDeviceStream', () => ({ useDeviceStream: vi.fn() }))
 vi.mock('@/hooks/useFeature', () => ({ useFeature: () => false }))
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('next/dynamic', () => ({ default: () => () => null }))
 
 import DeviceDashboard from '@/app/DeviceDashboard'
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString()
 
+beforeEach(resetTestMocks)
 beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()

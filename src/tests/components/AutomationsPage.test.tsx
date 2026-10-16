@@ -1,16 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { makeSession, navigation, resetTestMocks, setSession } from '@sjolystinnovation/app-kit/testing'
 
-const { searchParams, createRule, updateRule, getRules } = vi.hoisted(() => ({
-    searchParams: { current: new URLSearchParams() },
+const { createRule, updateRule, getRules } = vi.hoisted(() => ({
     createRule: vi.fn(),
     updateRule: vi.fn(),
     getRules: vi.fn(),
 }))
 
-vi.mock('next/navigation', () => ({
-    useSearchParams: () => searchParams.current,
-}))
+vi.mock('next/navigation', async () => (await import('@sjolystinnovation/app-kit/testing')).nextNavigationMock())
 vi.mock('@/services/automationService', () => ({
     default: {
         getRules: () => getRules(),
@@ -37,13 +35,15 @@ vi.mock('@/services/sensorService', () => ({
 vi.mock('@/services/userService', () => ({
     default: { getUserProfile: vi.fn(() => Promise.resolve({ priceZone: 'NO2' })) },
 }))
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
-vi.mock('next-auth/react', () => ({ useSession: () => ({ data: { user: { id: 'u1' } }, status: 'authenticated' }) }))
+vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
+vi.mock('next-auth/react', async () => (await import('@sjolystinnovation/app-kit/testing')).nextAuthMock())
 
 import AutomationsPage from '@/app/(protected)/automations/page'
 
 beforeEach(() => {
     vi.clearAllMocks()
+    resetTestMocks()
+    setSession(makeSession({ user: { id: 'u1', name: 'ada', email: 'a@b.no', roles: [] } }))
     localStorage.clear()
     getRules.mockResolvedValue([])
 })
@@ -52,7 +52,7 @@ describe('AutomationsPage drafts', () => {
     const KEY = 'garge:draft:u1:automation-rule:new'
 
     const fillAndWait = async () => {
-        searchParams.current = new URLSearchParams('sensorId=7&preset=charging')
+        navigation.searchParams = new URLSearchParams('sensorId=7&preset=charging')
         render(<AutomationsPage />)
         await waitFor(() => expect(screen.getByDisplayValue('Bike battery')).toBeDisabled())
         fireEvent.change(screen.getByDisplayValue('Select a socket'), { target: { value: '11' } })
@@ -72,7 +72,7 @@ describe('AutomationsPage drafts', () => {
 
     it('drops the draft of an edited rule once it is saved, and keeps it when saving fails', async () => {
         const EDIT_KEY = 'garge:draft:u1:automation-rule:3'
-        searchParams.current = new URLSearchParams()
+        navigation.searchParams = new URLSearchParams()
         getRules.mockResolvedValue([{
             id: 3, targetType: 'relay', targetId: 11, sensorType: 'voltage', sensorId: 7, condition: '<',
             threshold: 12, action: 'on', isEnabled: true, lastTriggeredAt: null,
@@ -108,7 +108,7 @@ describe('AutomationsPage drafts', () => {
 
 describe('AutomationsPage charging preset', () => {
     it('opens the create form for the sensor with condition "<", action "on" and an empty threshold', async () => {
-        searchParams.current = new URLSearchParams('sensorId=7&preset=charging')
+        navigation.searchParams = new URLSearchParams('sensorId=7&preset=charging')
         render(<AutomationsPage />)
 
         await waitFor(() => expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true'))
@@ -122,7 +122,7 @@ describe('AutomationsPage charging preset', () => {
     })
 
     it('unlocks the sensor when starting a new rule', async () => {
-        searchParams.current = new URLSearchParams('sensorId=7&preset=charging')
+        navigation.searchParams = new URLSearchParams('sensorId=7&preset=charging')
         render(<AutomationsPage />)
 
         await waitFor(() => expect(screen.getByDisplayValue('Bike battery')).toBeDisabled())
@@ -132,7 +132,7 @@ describe('AutomationsPage charging preset', () => {
     })
 
     it('stays closed without the preset', async () => {
-        searchParams.current = new URLSearchParams('sensorId=7')
+        navigation.searchParams = new URLSearchParams('sensorId=7')
         render(<AutomationsPage />)
 
         await screen.findByText('Bike battery')

@@ -3,7 +3,7 @@ import { render, waitFor } from '@testing-library/react';
 import React from 'react';
 import { useDeviceStream } from '@/hooks/useDeviceStream';
 import { closeSessionPrompt, getSessionPromptOpen, SESSION_ERRORS } from '@sjolystinnovation/app-kit/session';
-import { getSession } from 'next-auth/react';
+import { auth, resetTestMocks } from '@sjolystinnovation/app-kit/testing';
 
 const handlers = new Map<string, (payload: unknown) => void>();
 
@@ -36,9 +36,7 @@ vi.mock('@microsoft/signalr', () => ({
     LogLevel: { Warning: 3 },
 }));
 
-vi.mock('next-auth/react', () => ({
-    getSession: vi.fn(() => Promise.resolve({ accessToken: 'test-token' })),
-}));
+vi.mock('next-auth/react', async () => (await import('@sjolystinnovation/app-kit/testing')).nextAuthMock());
 
 interface ProbeProps {
     onSwitch?: (e: unknown) => void;
@@ -51,6 +49,8 @@ const Probe: React.FC<ProbeProps> = ({ onSwitch, onSensor }) => {
 
 describe('useDeviceStream', () => {
     beforeEach(() => {
+        resetTestMocks();
+        auth.getSession.mockResolvedValue({ accessToken: 'test-token' });
         handlers.clear();
         mockConnection.on.mockClear();
         mockConnection.start.mockClear();
@@ -112,7 +112,7 @@ describe('useDeviceStream', () => {
     });
 
     describe('when the session ends', () => {
-        const session = vi.mocked(getSession);
+        const session = auth.getSession;
         const tokenFactory = async () => {
             await waitFor(() => expect(builderInstance.withUrl).toHaveBeenCalled());
             const options = builderInstance.withUrl.mock.calls.at(-1)![1] as { accessTokenFactory: () => Promise<string> };
@@ -121,8 +121,6 @@ describe('useDeviceStream', () => {
 
         beforeEach(() => closeSessionPrompt());
         afterEach(() => {
-            session.mockReset();
-            session.mockResolvedValue({ accessToken: 'test-token' } as never);
             mockConnection.start.mockReset();
             mockConnection.start.mockResolvedValue(undefined);
         });
