@@ -1,11 +1,11 @@
 import axiosInstance from '@/services/axiosInstance';
 import { UserDTO } from '@/dto/UserDTO';
-import { AxiosError } from 'axios';
 import { getSession } from 'next-auth/react';
 import { formatApiError } from '@/lib/errorMessages';
-import { parseValidationErrors } from '@/lib/apiErrors';
+import { apiFieldErrors } from '@sjolystinnovation/app-kit/api';
+import { zodFieldErrors } from '@sjolystinnovation/app-kit/validation';
 import { FieldValidationError } from '@/lib/errors';
-import { registerSchema, zodIssuesToFieldErrors } from '@/lib/validation/registerSchema';
+import { registerSchema } from '@/lib/validation/registerSchema';
 
 interface RegisterData extends LoginData {
     firstName: string;
@@ -50,17 +50,15 @@ const UserService = {
         const result = registerSchema.safeParse(data);
 
         if (!result.success) {
-            throw new FieldValidationError(zodIssuesToFieldErrors(result.error.issues));
+            throw new FieldValidationError(zodFieldErrors(result.error, { all: true }));
         }
 
         try {
             const response = await axiosInstance.post<{ message: string }>('/auth/register', data);
             return response.data;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                const fieldErrors = parseValidationErrors(error.response?.data);
-                if (fieldErrors) throw new FieldValidationError(fieldErrors);
-            }
+            const fieldErrors = apiFieldErrors(error);
+            if (fieldErrors) throw new FieldValidationError(fieldErrors);
             throw new Error(formatApiError(error, 'Failed to register'));
         }
     },

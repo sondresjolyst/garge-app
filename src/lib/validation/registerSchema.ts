@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { passwordSchema } from '@sjolystinnovation/app-kit/validation';
-import type { FieldErrors } from '@/lib/errors';
 
 /** The new-password rule the API enforces, in garge's wording. garge-api also caps the length at 128. */
 export const gargePasswordSchema = passwordSchema({
@@ -43,12 +42,3 @@ export const registerSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 
-/** Groups Zod issues into per-field message arrays keyed by the first path segment. */
-export function zodIssuesToFieldErrors(issues: z.ZodIssue[]): FieldErrors {
-    return issues.reduce((acc, issue) => {
-        const path = issue.path[0] as string;
-        if (!acc[path]) acc[path] = [];
-        acc[path].push(issue.message);
-        return acc;
-    }, {} as FieldErrors);
-}
