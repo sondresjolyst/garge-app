@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { formatApiError as formatWithKit, type StatusMessages } from '@sjolystinnovation/app-kit';
+import { formatApiError as formatWithKit, type StatusMessages } from '@sjolystinnovation/app-kit/api';
 
 const STATUS_MESSAGES: StatusMessages = {
     401: 'Not authorized.',
