@@ -90,7 +90,7 @@ describe('registerSchema', () => {
         expect(result.success).toBe(false)
         if (!result.success) {
             const fields = zodFieldErrors(result.error, { all: true })
-            expect(fields.password.length).toBeGreaterThan(1)
+            expect(fields.password?.length ?? 0).toBeGreaterThan(1)
         }
     })
 })
