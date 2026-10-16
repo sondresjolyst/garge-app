@@ -77,6 +77,17 @@
     --color-payment-secondary-hover-bg: var(--color-gray-700);
     --color-payment-secondary-text: var(--color-gray-300);
 
+    --text-auth-title: var(--text-xl);
+    --text-auth-title--line-height: var(--text-xl--line-height);
+    --font-weight-auth-title: var(--font-weight-bold);
+    --color-auth-heading: var(--color-gray-100);
+    --color-auth-text: var(--color-gray-400);
+    --color-auth-note: var(--color-sky-400);
+    --color-auth-hint: var(--color-gray-500);
+    --color-auth-link: var(--color-sky-400);
+    --color-auth-link-hover: var(--color-sky-300);
+    --font-weight-auth-link: var(--font-weight-normal);
+
     --color-state-heading: var(--color-gray-100);
     --color-state-text: var(--color-gray-400);
     --color-state-code: var(--color-gray-600);
