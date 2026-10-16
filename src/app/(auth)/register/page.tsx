@@ -10,7 +10,8 @@ import { inputClass } from '@/components/TextInput';
 import { PasswordInput } from '@sjolystinnovation/app-kit/ui';
 import { Alert } from '@sjolystinnovation/app-kit/ui';
 import { FieldValidationError, type FieldErrors } from '@/lib/errors';
-import { registerSchema, zodIssuesToFieldErrors } from '@/lib/validation/registerSchema';
+import { registerSchema } from '@/lib/validation/registerSchema';
+import { zodFieldErrors } from '@sjolystinnovation/app-kit/validation';
 
 const TERMS_VERSION = 'v1-2026-05';
 
@@ -41,7 +42,7 @@ const Register: React.FC = () => {
             if (result.success) {
                 delete next[field];
             } else {
-                const fieldErrors = zodIssuesToFieldErrors(result.error.issues);
+                const fieldErrors: FieldErrors = zodFieldErrors(result.error, { all: true });
                 if (fieldErrors[field]) next[field] = fieldErrors[field];
                 else delete next[field];
             }

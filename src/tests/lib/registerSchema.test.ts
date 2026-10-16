@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { registerSchema, zodIssuesToFieldErrors } from '@/lib/validation/registerSchema'
+import { zodFieldErrors } from '@sjolystinnovation/app-kit/validation'
+import { registerSchema } from '@/lib/validation/registerSchema'
 
 const valid = {
     firstName: 'Ada',
@@ -22,7 +23,7 @@ describe('registerSchema', () => {
         const result = registerSchema.safeParse({ ...valid, firstName: '', lastName: 'x'.repeat(51) })
         expect(result.success).toBe(false)
         if (!result.success) {
-            const fields = zodIssuesToFieldErrors(result.error.issues)
+            const fields = zodFieldErrors(result.error, { all: true })
             expect(fields.firstName).toContain('First Name is required.')
             expect(fields.lastName).toContain('Last Name must be at most 50 characters long.')
         }
@@ -31,8 +32,8 @@ describe('registerSchema', () => {
     it('needs a username of 3 to 64 characters', () => {
         const short = registerSchema.safeParse({ ...valid, userName: 'ad' })
         const long = registerSchema.safeParse({ ...valid, userName: 'a'.repeat(65) })
-        expect(short.success || zodIssuesToFieldErrors(short.error.issues).userName).toContain('Username must be at least 3 characters long.')
-        expect(long.success || zodIssuesToFieldErrors(long.error.issues).userName).toContain('Username must be at most 64 characters long.')
+        expect(short.success || zodFieldErrors(short.error, { all: true }).userName).toContain('Username must be at least 3 characters long.')
+        expect(long.success || zodFieldErrors(long.error, { all: true }).userName).toContain('Username must be at most 64 characters long.')
         expect(registerSchema.safeParse({ ...valid, userName: 'a'.repeat(64) }).success).toBe(true)
     })
 
@@ -42,7 +43,7 @@ describe('registerSchema', () => {
             const result = registerSchema.safeParse({ ...valid, userName })
             expect(result.success, `expected "${userName}" to fail`).toBe(false)
             if (!result.success) {
-                expect(zodIssuesToFieldErrors(result.error.issues).userName).toContain('Username can only use letters A-Z, digits and - . _ @ +.')
+                expect(zodFieldErrors(result.error, { all: true }).userName).toContain('Username can only use letters A-Z, digits and - . _ @ +.')
             }
         }
     })
@@ -51,7 +52,7 @@ describe('registerSchema', () => {
         const result = registerSchema.safeParse({ ...valid, email: `${'a'.repeat(250)}@x.no` })
         expect(result.success).toBe(false)
         if (!result.success) {
-            expect(zodIssuesToFieldErrors(result.error.issues).email).toContain('Email must be at most 254 characters long.')
+            expect(zodFieldErrors(result.error, { all: true }).email).toContain('Email must be at most 254 characters long.')
         }
     })
 
@@ -59,7 +60,7 @@ describe('registerSchema', () => {
         const result = registerSchema.safeParse({ ...valid, email: 'not-an-email' })
         expect(result.success).toBe(false)
         if (!result.success) {
-            expect(zodIssuesToFieldErrors(result.error.issues).email).toContain('Please enter a valid email.')
+            expect(zodFieldErrors(result.error, { all: true }).email).toContain('Please enter a valid email.')
         }
     })
 
@@ -75,7 +76,7 @@ describe('registerSchema', () => {
             const result = registerSchema.safeParse({ ...valid, password })
             expect(result.success, `expected "${password}" to fail`).toBe(false)
             if (!result.success) {
-                expect(zodIssuesToFieldErrors(result.error.issues).password).toContain(message)
+                expect(zodFieldErrors(result.error, { all: true }).password).toContain(message)
             }
         }
     })
@@ -88,7 +89,7 @@ describe('registerSchema', () => {
         const result = registerSchema.safeParse({ ...valid, password: 'a' })
         expect(result.success).toBe(false)
         if (!result.success) {
-            const fields = zodIssuesToFieldErrors(result.error.issues)
+            const fields = zodFieldErrors(result.error, { all: true })
             expect(fields.password.length).toBeGreaterThan(1)
         }
     })
