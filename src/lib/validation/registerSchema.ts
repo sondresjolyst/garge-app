@@ -2,12 +2,14 @@ import { z } from 'zod';
 import { passwordSchema } from '@sjolystinnovation/app-kit/validation';
 
 /** The new-password rule the API enforces, in garge's wording. garge-api also caps the length at 128. */
-export const gargePasswordSchema = passwordSchema({
+export const gargePasswordStrings = {
     tooShort: 'Be at least 8 characters long.',
     lowercase: 'Contain at least one lowercase letter (a-z).',
     uppercase: 'Contain at least one uppercase letter (A-Z).',
     digit: 'Contain at least one number (0-9).',
-}).max(128, 'Be at most 128 characters long.');
+};
+
+export const gargePasswordSchema = passwordSchema(gargePasswordStrings).max(128, 'Be at most 128 characters long.');
 
 /**
  * Validation rules for the registration form. Shared between the user service
