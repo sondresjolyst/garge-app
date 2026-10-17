@@ -5,7 +5,7 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 # Names the environment being built for. Anything but prod/production serves a robots.txt that
 # disallows crawling, so a test host is not indexed as a duplicate of the live site.
-ARG SITE_ENV
+ARG SITE_ENV=dev
 ENV SITE_ENV=${SITE_ENV}
 
 WORKDIR /app
@@ -26,7 +26,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-ARG SITE_ENV
+ARG SITE_ENV=dev
 ENV SITE_ENV=${SITE_ENV}
 
 COPY --from=builder --chown=node:node /app/.next/standalone ./
