@@ -35,6 +35,8 @@ vi.mock('next/dynamic', () => ({ default: () => () => null }))
 vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('@sjolystinnovation/app-kit/toast', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 vi.mock('@/components/admin/VatThresholdCard', () => ({ default: () => null }))
+vi.mock('@/components/admin/BrandingCard', () => ({ default: () => <p>branding card</p> }))
+vi.mock('@/components/admin/LegalPagesCard', () => ({ default: () => <p>legal pages card</p> }))
 vi.mock('@/services/sensorService', () => ({
     default: { reanalyzeBatteryHealth: vi.fn() },
 }))
@@ -135,6 +137,15 @@ describe('AdminPage', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Add' }))
 
         await waitFor(() => expect(assignRole).toHaveBeenCalledWith('u3', 'Default'))
+    })
+
+    it('shows the branding and legal page editors', async () => {
+        render(<AdminPage />)
+
+        expect(await screen.findByText('Branding')).toBeInTheDocument()
+        expect(screen.getByText('branding card')).toBeInTheDocument()
+        expect(screen.getByText('Legal pages')).toBeInTheDocument()
+        expect(screen.getByText('legal pages card')).toBeInTheDocument()
     })
 
     it('loads the admin data once for an admin', async () => {

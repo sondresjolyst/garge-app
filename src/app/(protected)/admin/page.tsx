@@ -10,6 +10,8 @@ import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
 import VatThresholdCard from '@/components/admin/VatThresholdCard';
 import CompanySettingsCard from '@/components/admin/CompanySettingsCard';
+import BrandingCard from '@/components/admin/BrandingCard';
+import LegalPagesCard from '@/components/admin/LegalPagesCard';
 import { StatGrid } from '@/components/StatCard';
 import { toast } from '@sjolystinnovation/app-kit/toast';
 
@@ -460,6 +462,16 @@ export default function AdminPage() {
                     {/* Company details, on SjolystInnovation.AppKit.SiteSettings */}
                     <Section title="Company">
                         <CompanySettingsCard />
+                    </Section>
+
+                    {/* Logo and favicon, on SjolystInnovation.AppKit.SiteSettings */}
+                    <Section title="Branding">
+                        <BrandingCard />
+                    </Section>
+
+                    {/* Terms, privacy and cookies, on SjolystInnovation.AppKit.SiteSettings */}
+                    <Section title="Legal pages">
+                        <LegalPagesCard />
                     </Section>
 
                     {/* Site Settings */}

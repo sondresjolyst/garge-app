@@ -6,3 +6,6 @@ export const RANGE_OPTIONS = [
 ] as const;
 
 export type RangeIndex = 0 | 1 | 2 | 3;
+
+/** The role garge-api gives administrators, as it appears in the session user's roles. */
+export const ADMIN_ROLE = 'Admin';
