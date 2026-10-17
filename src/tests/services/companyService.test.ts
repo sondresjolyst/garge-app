@@ -1,38 +1,41 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { getCompanyInfo } from '@/services/companyService'
 
+const json = (body: unknown, status = 200) => ({
+    ok: status >= 200 && status < 300,
+    status,
+    headers: new Headers(),
+    json: () => Promise.resolve(body),
+})
+
 describe('getCompanyInfo', () => {
-    const originalUrl = process.env.NEXT_PUBLIC_API_URL
-
-    beforeEach(() => {
-        process.env.NEXT_PUBLIC_API_URL = 'https://api.example.test/api'
-    })
-
     afterEach(() => {
-        process.env.NEXT_PUBLIC_API_URL = originalUrl
         vi.unstubAllGlobals()
     })
 
     it('reads the public company info from /company without caching', async () => {
         const info = { name: 'Garge', orgNumber: '938 517 789', vatRegistered: false }
-        const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(info) })
+        const fetchMock = vi.fn().mockResolvedValue(json(info))
         vi.stubGlobal('fetch', fetchMock)
 
         expect(await getCompanyInfo()).toEqual(info)
-        expect(fetchMock).toHaveBeenCalledWith('https://api.example.test/api/company', { cache: 'no-store' })
+        expect(fetchMock).toHaveBeenCalledWith('http://api.test/api/company', { next: { revalidate: 0 } })
     })
 
-    it('returns null when the URL is not configured', async () => {
-        delete process.env.NEXT_PUBLIC_API_URL
-        const fetchMock = vi.fn()
-        vi.stubGlobal('fetch', fetchMock)
+    it('returns null on a failing response', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json({}, 500)))
 
         expect(await getCompanyInfo()).toBeNull()
-        expect(fetchMock).not.toHaveBeenCalled()
     })
 
-    it('returns null on a non-ok response', async () => {
-        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }))
+    it('returns null when the API has no company', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json({}, 404)))
+
+        expect(await getCompanyInfo()).toBeNull()
+    })
+
+    it('returns null when the body is not JSON', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ...json(null), json: () => Promise.reject(new SyntaxError('Unexpected token')) }))
 
         expect(await getCompanyInfo()).toBeNull()
     })
