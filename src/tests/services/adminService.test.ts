@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import AdminService, { AppSettings, EmailStats, SecuritySettings } from '@/services/adminService'
+import { AxiosError, AxiosHeaders } from 'axios'
+import AdminService, { AppSettings, EmailStats, SecuritySettings, SiteSettings } from '@/services/adminService'
+import { FieldValidationError } from '@/lib/errors'
 
 vi.mock('@/services/axiosInstance', async () => (await import('@sjolystinnovation/app-kit/testing')).axiosInstanceMock())
 
@@ -137,5 +139,60 @@ describe('AdminService security settings', () => {
 
         expect(axiosSpies.put).toHaveBeenCalledWith('/admin/security-settings', { alertThresholdMinutes: 45 })
         expect(result.alertThresholdMinutes).toBe(45)
+    })
+})
+
+describe('AdminService site settings', () => {
+    const settings: SiteSettings = {
+        contactRecipientEmail: 'post@garge.no',
+        companyName: 'Garge',
+        companyLegalName: 'Sjølyst Innovation AS',
+        orgNumber: '938 517 789',
+        vatRegistered: true,
+        streetAddress: 'Mårvegen 21a',
+        postalCode: '4347',
+        addressLocality: 'Lye',
+        addressRegion: 'Rogaland',
+        publicEmail: 'hei@garge.no',
+        publicPhone: '+47 400 00 000',
+    }
+
+    const validationProblem = (errors: Record<string, string[]>) =>
+        new AxiosError('refused', '400', undefined, undefined,
+            { status: 400, statusText: '', headers: {}, config: { headers: new AxiosHeaders() }, data: { title: 'One or more validation errors occurred.', errors } })
+
+    it('reads the company details from /settings', async () => {
+        axiosSpies.get.mockResolvedValueOnce({ data: settings })
+
+        expect(await AdminService.getSiteSettings()).toEqual(settings)
+        expect(axiosSpies.get).toHaveBeenCalledWith('/settings')
+    })
+
+    it('saves the full body on /settings and returns what the API stored', async () => {
+        axiosSpies.put.mockResolvedValueOnce({ data: { ...settings, companyName: 'Garge AS' } })
+
+        const result = await AdminService.updateSiteSettings(settings)
+
+        expect(axiosSpies.put).toHaveBeenCalledWith('/settings', settings)
+        expect(result.companyName).toBe('Garge AS')
+    })
+
+    it('turns a validation problem into field errors keyed in camelCase', async () => {
+        axiosSpies.put.mockRejectedValueOnce(validationProblem({ OrgNumber: ['Not a valid organisation number.'], PostalCode: ['A Norwegian postal code is four digits.'] }))
+
+        const error = await AdminService.updateSiteSettings(settings).catch((e: unknown) => e)
+
+        expect(error).toBeInstanceOf(FieldValidationError)
+        expect((error as FieldValidationError).fieldErrors).toEqual({
+            orgNumber: ['Not a valid organisation number.'],
+            postalCode: ['A Norwegian postal code is four digits.'],
+        })
+    })
+
+    it('gives one message for a failure without field errors', async () => {
+        axiosSpies.put.mockRejectedValueOnce(new AxiosError('refused', '403', undefined, undefined,
+            { status: 403, statusText: '', headers: {}, config: { headers: new AxiosHeaders() }, data: '' }))
+
+        await expect(AdminService.updateSiteSettings(settings)).rejects.toThrow('Not authorized.')
     })
 })

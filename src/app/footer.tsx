@@ -2,10 +2,10 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatOrgNumber } from '@sjolystinnovation/app-kit/api';
-import { COMPANY, fetchVatEnabled } from '@/lib/company';
+import { getCompany } from '@/lib/company';
 
 export default async function Footer() {
-    const vatEnabled = await fetchVatEnabled();
+    const company = await getCompany();
     const year = new Date().getFullYear();
     return (
         <footer className="border-t border-gray-800/60 bg-gray-900/80 backdrop-blur-xl pb-32">
@@ -40,9 +40,9 @@ export default async function Footer() {
                         rel="noopener noreferrer"
                         className="hover:text-gray-400 hover:underline"
                     >
-                        {COMPANY.legalName}
+                        {company.legalName}
                     </a>
-                    {' '}· Org. nr. {formatOrgNumber({ orgNumber: COMPANY.orgNumber, vatRegistered: vatEnabled })}
+                    {' '}· Org. nr. {formatOrgNumber(company)}
                 </p>
 
             </div>

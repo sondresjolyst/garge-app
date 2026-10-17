@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { EnvelopeIcon } from "@heroicons/react/24/outline";
-import { COMPANY } from "@/lib/company";
+import { getCompany } from "@/lib/company";
 
-export default function ContactPage() {
+export default async function ContactPage() {
+    const company = await getCompany();
     return (
         <div className="max-w-7xl mx-auto px-4 py-10">
             <div className="max-w-2xl mx-auto space-y-6">
@@ -18,8 +19,8 @@ export default function ContactPage() {
                     </div>
                     <div>
                         <p className="text-xs text-gray-500 mb-0.5">Email us at</p>
-                        <a href={`mailto:${COMPANY.email}`} className="text-sm font-medium text-sky-400 hover:text-sky-300 transition-colors">
-                            {COMPANY.email}
+                        <a href={`mailto:${company.email}`} className="text-sm font-medium text-sky-400 hover:text-sky-300 transition-colors">
+                            {company.email}
                         </a>
                     </div>
                 </div>

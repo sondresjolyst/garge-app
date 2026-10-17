@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { formatOrgNumber } from "@sjolystinnovation/app-kit/api";
-import { COMPANY, fetchVatEnabled } from "@/lib/company";
+import { getCompany } from "@/lib/company";
 
 export default async function TermsPage() {
-    const vatEnabled = await fetchVatEnabled();
+    const company = await getCompany();
     return (
         <div className="max-w-2xl mx-auto px-4 py-10 space-y-6">
             <h1 className="text-3xl font-bold text-gray-100">Terms of Service</h1>
@@ -14,10 +14,10 @@ export default async function TermsPage() {
                     <h2 className="text-base font-semibold text-gray-100">1. About us (seller)</h2>
                     <p>The seller is:</p>
                     <ul className="list-none space-y-0.5 pl-2">
-                        <li><span className="text-gray-300">Company name:</span> {COMPANY.legalName}</li>
-                        <li><span className="text-gray-300">Organisation number:</span> {formatOrgNumber({ orgNumber: COMPANY.orgNumber, vatRegistered: vatEnabled })}</li>
-                        <li><span className="text-gray-300">Address:</span> {COMPANY.address}</li>
-                        <li><span className="text-gray-300">Email:</span> {COMPANY.email}</li>
+                        <li><span className="text-gray-300">Company name:</span> {company.legalName}</li>
+                        <li><span className="text-gray-300">Organisation number:</span> {formatOrgNumber(company)}</li>
+                        <li><span className="text-gray-300">Address:</span> {company.address}</li>
+                        <li><span className="text-gray-300">Email:</span> {company.email}</li>
                     </ul>
                     <p>By placing an order or activating a subscription you confirm that you are a private consumer and that you have read and accepted these terms.</p>
                 </section>

@@ -9,6 +9,7 @@ import Section from '@/components/Section';
 import LoadingDots from '@/components/LoadingDots';
 import ConfirmModal from '@/components/ConfirmModal';
 import VatThresholdCard from '@/components/admin/VatThresholdCard';
+import CompanySettingsCard from '@/components/admin/CompanySettingsCard';
 import { StatGrid } from '@/components/StatCard';
 import { toast } from '@sjolystinnovation/app-kit/toast';
 
@@ -454,6 +455,11 @@ export default function AdminPage() {
                         ) : (
                             <p className="text-xs text-gray-500">No data.</p>
                         )}
+                    </Section>
+
+                    {/* Company details, on SjolystInnovation.AppKit.SiteSettings */}
+                    <Section title="Company">
+                        <CompanySettingsCard />
                     </Section>
 
                     {/* Site Settings */}
