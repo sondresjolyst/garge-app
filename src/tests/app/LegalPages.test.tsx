@@ -23,7 +23,7 @@ describe('legal pages', () => {
         publicGet.mockResolvedValue(null)
         await Page()
 
-        expect(publicGet).toHaveBeenCalledWith(`/content/legal/${key}?locale=en`)
+        expect(publicGet).toHaveBeenCalledWith(`/content/legal/${key}?locale=en`, { tags: ['legal'] })
     })
 
     it('renders the Markdown, the title and the date the admin saved', async () => {

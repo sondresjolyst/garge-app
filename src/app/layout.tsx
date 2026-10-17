@@ -13,6 +13,7 @@ import { Toaster } from 'sonner';
 import { JetBrains_Mono } from 'next/font/google';
 import { publicGetOptional } from '@/lib/publicApi';
 import type { Branding } from '@/services/brandingService';
+import { REVALIDATE_TARGETS } from '@/lib/cacheTags';
 
 const jetMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains-mono', display: 'swap' });
 
@@ -28,7 +29,7 @@ export default async function Layout({
     children: React.ReactNode
 }) {
     // Starts the branding provider with the uploaded logo, so the first render shows it. Without the API the bundled logo shows.
-    const branding = await publicGetOptional<Branding>('/branding');
+    const branding = await publicGetOptional<Branding>('/branding', { tags: [REVALIDATE_TARGETS.branding] });
     return (
         <html lang="en" className="dark">
             <Script src='/register-sw.js' />

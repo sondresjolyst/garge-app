@@ -2,6 +2,7 @@ import { createLegalService, type LegalPage as AppKitLegalPage } from '@sjolysti
 import { LEGAL_PAGE_KEYS } from '@sjolystinnovation/app-kit/seo';
 import axiosInstance from './axiosInstance';
 import publicClient from './publicClient';
+import { REVALIDATE_TARGETS, revalidateTarget } from '@/lib/cacheTags';
 
 export const LEGAL_KEYS = LEGAL_PAGE_KEYS;
 
@@ -13,6 +14,8 @@ export type LegalPage = AppKitLegalPage<LegalKey>;
 export const LEGAL_LOCALE = 'en';
 
 /** The terms, privacy and cookies pages, from garge-api's `/content/legal`. */
-const LegalService = createLegalService<LegalKey>(axiosInstance, publicClient);
+const LegalService = createLegalService<LegalKey>(axiosInstance, publicClient, {
+    onSaved: () => revalidateTarget(REVALIDATE_TARGETS.legal),
+});
 
 export default LegalService;
