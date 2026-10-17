@@ -14,6 +14,8 @@ vi.mock('next/image', () => ({ default: () => null }))
 vi.mock('next/navigation', async () => (await import('@sjolystinnovation/app-kit/testing')).nextNavigationMock())
 vi.mock('next/link', () => ({ default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a> }))
 
+const PASSWORD_RULES = 'Use at least 8 characters, with at least one lowercase and one uppercase letter from A to Z and one digit from 0 to 9.'
+
 const toStepTwo = async () => {
     render(<ResetPassword />)
     fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: 'a@b.no' } })
@@ -40,13 +42,33 @@ describe('reset password page', () => {
         expect(resetPassword).toHaveBeenCalledWith({ email: 'kari+test@example.no', code: 'AB12CD', NewPassword: 'Password1' })
     })
 
-    it('names each rule a new password breaks, without sending it', async () => {
+    it('says what to enter on the first step', () => {
+        render(<ResetPassword />)
+
+        expect(screen.getByText('Enter your email address and we will send you a code.')).toBeInTheDocument()
+    })
+
+    it('states the password rules under the new password field', async () => {
+        await toStepTwo()
+
+        expect(screen.getByText(PASSWORD_RULES)).toBeInTheDocument()
+    })
+
+    it('refuses a password that breaks a rule with the rules, without sending it', async () => {
         await toStepTwo()
         await userEvent.type(screen.getByLabelText(/^New password/), 'PASSWORD1')
         fireEvent.submit(screen.getByLabelText(/^New password/).closest('form')!)
 
         expect(resetPassword).not.toHaveBeenCalled()
-        expect(await screen.findByText(/Contain at least one lowercase letter \(a-z\)\./)).toBeInTheDocument()
+        expect(await screen.findByText(`The password does not meet the requirements. ${PASSWORD_RULES}`)).toBeInTheDocument()
+    })
+
+    it('says the password changed once the reset is done', async () => {
+        await toStepTwo()
+        await userEvent.type(screen.getByLabelText(/^New password/), 'Password1')
+        fireEvent.submit(screen.getByLabelText(/^New password/).closest('form')!)
+
+        expect(await screen.findByText('Your password has been changed. You can sign in now.')).toBeInTheDocument()
     })
 
     it('sends a password without a special character, as the API allows', async () => {
