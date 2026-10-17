@@ -1,9 +1,8 @@
 'use client';
 
 import { LegalPagesEditor } from '@sjolystinnovation/app-kit/admin';
-import LegalService, { LEGAL_KEYS, LEGAL_LOCALE } from '@/services/legalService';
+import LegalService, { LEGAL_LOCALE } from '@/services/legalService';
 
-const KEY_LABELS = { terms: 'Terms', privacy: 'Privacy', cookies: 'Cookies' } as const;
 const LOCALES = [LEGAL_LOCALE] as const;
 const LOCALE_LABELS = { [LEGAL_LOCALE]: 'English' } as const;
 
@@ -13,8 +12,6 @@ export default function LegalPagesCard() {
         <div className="appkit-dark">
             <LegalPagesEditor
                 service={LegalService}
-                keys={LEGAL_KEYS}
-                keyLabels={KEY_LABELS}
                 locales={LOCALES}
                 localeLabels={LOCALE_LABELS}
                 strings={{ heading: 'Terms, privacy and cookies' }}
