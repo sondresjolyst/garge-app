@@ -1,48 +1,19 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn, getSession } from 'next-auth/react';
+import { getSession } from 'next-auth/react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { inputClass } from '@/components/TextInput';
-import { PasswordInput } from '@sjolystinnovation/app-kit/ui';
-import { Alert } from '@sjolystinnovation/app-kit/ui';
-import { SIGN_IN_ERRORS, isTerminalSessionError } from '@sjolystinnovation/app-kit/session';
+import { LoginPage } from '@sjolystinnovation/app-kit/session/react';
+import { isTerminalSessionError } from '@sjolystinnovation/app-kit/session';
 
 const Login: React.FC = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [apiMessage, setApiMessage] = useState('');
-    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
+    // LoginPage shows the form to anyone, so a user who is still signed in goes to the start page here.
     useEffect(() => {
         getSession().then(s => { if (s && !isTerminalSessionError(s.error)) router.push('/'); });
     }, [router]);
-
-    const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setApiMessage('');
-        setLoading(true);
-        const result = await signIn('credentials', { redirect: false, email, password });
-        if (result?.error) {
-            setApiMessage(result.error === SIGN_IN_ERRORS.unavailable
-                ? 'Sign-in is unavailable right now. Try again shortly.'
-                : 'Invalid email or password.');
-            setLoading(false);
-        } else {
-            let session = await getSession();
-            let retries = 0;
-            while (!session && retries < 5) {
-                await new Promise(res => setTimeout(res, 200));
-                session = await getSession();
-                retries++;
-            }
-            if (session) { router.push('/'); router.refresh(); }
-            else setLoading(false);
-        }
-    };
 
     return (
         <div className="min-h-[80vh] flex items-center justify-center px-4">
@@ -52,53 +23,13 @@ const Login: React.FC = () => {
                 </div>
 
                 <div className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-8 shadow-xl">
-                    <h1 className="text-xl font-bold text-gray-100 mb-1">Welcome back</h1>
-                    <p className="text-sm text-gray-400 mb-6">
-                        No account?{' '}
-                        <Link href="/register" className="text-sky-400 hover:text-sky-300 transition-colors">Create one</Link>
-                    </p>
-
-                    <form onSubmit={handleLogin} className="space-y-4">
-                        <div>
-                            <label htmlFor="email" className="block text-xs font-medium text-gray-400 mb-1.5">Email<span className="text-red-400"> *</span></label>
-                            <input
-                                id="email"
-                                className={inputClass}
-                                type="email"
-                                placeholder="you@example.com"
-                                required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </div>
-
-                        <div>
-                            <PasswordInput
-                                id="password"
-                                label="Password"
-                                placeholder="••••••••"
-                                required
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </div>
-
-                        {apiMessage && (
-                            <Alert variant="error">{apiMessage}</Alert>
-                        )}
-
-                        <Link href="/reset-password" className="block text-xs text-gray-500 hover:text-gray-300 transition-colors">
-                            Forgot your password?
-                        </Link>
-
-                        <button
-                            className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all text-sm"
-                            type="submit"
-                            disabled={loading}
-                        >
-                            {loading ? 'Signing in…' : 'Sign in'}
-                        </button>
-                    </form>
+                    <LoginPage
+                        redirectTo="/"
+                        resetHref="/reset-password"
+                        registerHref="/register"
+                        strings={{ title: 'Welcome back' }}
+                        className=""
+                    />
                 </div>
             </div>
         </div>

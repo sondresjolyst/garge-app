@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { auth, makeSession, navigation, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
 import { SESSION_ERRORS, type SessionError } from '@sjolystinnovation/app-kit/session'
 import Login from '@/app/(auth)/login/page'
@@ -22,6 +22,44 @@ describe('login page', () => {
         auth.getSession.mockResolvedValue(withError(SESSION_ERRORS.refreshRejected))
         render(<Login />)
         await new Promise((r) => setTimeout(r, 50))
+        expect(navigation.router.push).not.toHaveBeenCalled()
+    })
+
+    it('keeps the logo, the title, the register link and the forgot password link', async () => {
+        auth.getSession.mockResolvedValue(null)
+        render(<Login />)
+
+        expect(screen.getByAltText('Garge')).toBeInTheDocument()
+        expect(screen.getByRole('heading', { level: 1, name: 'Welcome back' })).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: 'Create one' })).toHaveAttribute('href', '/register')
+        expect(screen.getByRole('link', { name: 'Forgot your password?' })).toHaveAttribute('href', '/reset-password')
+        await waitFor(() => expect(auth.getSession).toHaveBeenCalled())
+    })
+
+    it('signs in and goes to the start page', async () => {
+        auth.getSession.mockResolvedValue(null)
+        auth.signIn.mockResolvedValue({ ok: true, error: null, status: 200, url: null })
+        render(<Login />)
+
+        fireEvent.change(screen.getByLabelText(/Email/), { target: { value: 'ada@garge.no' } })
+        fireEvent.change(screen.getByLabelText(/^Password/), { target: { value: 'secret' } })
+        fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+
+        await waitFor(() => expect(navigation.router.push).toHaveBeenCalledWith('/'))
+        expect(auth.signIn).toHaveBeenCalledWith('credentials', { email: 'ada@garge.no', password: 'secret', redirect: false })
+        expect(navigation.router.refresh).toHaveBeenCalled()
+    })
+
+    it('says when the credentials are wrong', async () => {
+        auth.getSession.mockResolvedValue(null)
+        auth.signIn.mockResolvedValue({ ok: false, error: 'CredentialsSignin', status: 401, url: null })
+        render(<Login />)
+
+        fireEvent.change(screen.getByLabelText(/Email/), { target: { value: 'ada@garge.no' } })
+        fireEvent.change(screen.getByLabelText(/^Password/), { target: { value: 'wrong' } })
+        fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+
+        expect(await screen.findByText('Invalid email or password.')).toBeInTheDocument()
         expect(navigation.router.push).not.toHaveBeenCalled()
     })
 })
