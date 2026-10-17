@@ -13,8 +13,10 @@ import { makeSession, resetTestMocks, setSession, toastSpies } from '@sjolystinn
 
 const {
     getStats, getUsers, getStatsHistory, getEmailStats, getAllRoles, getAppSettings,
-    getSecuritySettings, updateAppSettings, removeRole, assignRole,
+    getSecuritySettings, updateAppSettings, removeRole, assignRole, getSiteSettings, updateSiteSettings,
 } = vi.hoisted(() => ({
+    getSiteSettings: vi.fn(),
+    updateSiteSettings: vi.fn(),
     removeRole: vi.fn(),
     assignRole: vi.fn(),
     updateAppSettings: vi.fn(),
@@ -47,6 +49,8 @@ vi.mock('@/services/adminService', () => ({
         updateAppSettings: (...a: unknown[]) => updateAppSettings(...a),
         getSecuritySettings: () => getSecuritySettings(),
         updateSecuritySettings: vi.fn(),
+        getSiteSettings: () => getSiteSettings(),
+        updateSiteSettings: (...a: unknown[]) => updateSiteSettings(...a),
         assignRole: (...a: unknown[]) => assignRole(...a),
         removeRole: (...a: unknown[]) => removeRole(...a),
         deleteUser: vi.fn(),
@@ -68,6 +72,20 @@ const emailStats = (requests: number) => ({
     days: 30,
 })
 
+const siteSettings = {
+    contactRecipientEmail: 'post@garge.no',
+    companyName: 'Garge',
+    companyLegalName: 'Sjølyst Innovation AS',
+    orgNumber: '938 517 789',
+    vatRegistered: true,
+    streetAddress: 'Mårvegen 21a',
+    postalCode: '4347',
+    addressLocality: 'Lye',
+    addressRegion: '',
+    publicEmail: 'hei@garge.no',
+    publicPhone: '+47 400 00 000',
+}
+
 function signInAsAdmin() {
     setSession(makeSession({ roles: ['Admin'] }))
 }
@@ -87,6 +105,7 @@ beforeEach(() => {
     getAllRoles.mockResolvedValue(['Admin', 'Default'])
     getAppSettings.mockResolvedValue({ cookieBannerEnabled: true, vatEnabled: true, vippsTestMode: false })
     getSecuritySettings.mockResolvedValue({ alertThresholdMinutes: 25 })
+    getSiteSettings.mockResolvedValue(siteSettings)
 })
 
 const refused = (status: number, message: string) =>
@@ -219,5 +238,29 @@ describe('AdminPage VAT registration date', () => {
 
         await screen.findByLabelText('Toggle VAT')
         expect(screen.queryByLabelText('Registered from')).not.toBeInTheDocument()
+    })
+})
+
+describe('AdminPage company details', () => {
+    it('loads the company section from /settings next to the garge toggles', async () => {
+        render(<AdminPage />)
+
+        expect(await screen.findByText('Company')).toBeInTheDocument()
+        expect(await screen.findByLabelText(/Street address/)).toHaveValue('Mårvegen 21a')
+        expect(getSiteSettings).toHaveBeenCalledTimes(1)
+        // Cookie banner, VAT and Vipps stay on garge's own settings.
+        expect(await screen.findByLabelText('Toggle cookie banner')).toBeInTheDocument()
+        expect(screen.getByLabelText('Toggle VAT')).toBeInTheDocument()
+        expect(screen.getByLabelText('Toggle Vipps test mode')).toBeInTheDocument()
+    })
+
+    it('saves a toggle on /admin/settings with only the garge field', async () => {
+        updateAppSettings.mockResolvedValue({ cookieBannerEnabled: false, vatEnabled: true, vippsTestMode: false })
+        render(<AdminPage />)
+
+        fireEvent.click(await screen.findByLabelText('Toggle cookie banner'))
+
+        await waitFor(() => expect(updateAppSettings).toHaveBeenCalledWith({ cookieBannerEnabled: false }))
+        expect(updateSiteSettings).not.toHaveBeenCalled()
     })
 })

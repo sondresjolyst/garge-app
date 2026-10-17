@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { COMPANY } from "@/lib/company";
+import { getCompany } from "@/lib/company";
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+    const company = await getCompany();
     return (
         <div className="max-w-2xl mx-auto px-4 py-10 space-y-6">
             <h1 className="text-3xl font-bold text-gray-100">Privacy Policy</h1>
@@ -76,7 +77,7 @@ export default function PrivacyPage() {
                         <li><span className="text-gray-300">Correction</span> — update your name and phone number from your <Link href="/profile" className="text-sky-400 hover:text-sky-300">profile page</Link>. For email changes, <Link href="/contact" className="text-sky-400 hover:text-sky-300">contact us</Link>.</li>
                         <li><span className="text-gray-300">Object to retention</span> — turn off keeping your sensor history after your subscription ends, from your <Link href="/profile" className="text-sky-400 hover:text-sky-300">profile page</Link>. Once off, suspended devices are removed and their data deleted or anonymized 6 months after your subscription lapses.</li>
                     </ul>
-                    <p>Privacy questions and data subject requests: <a href={`mailto:${COMPANY.email}`} className="text-sky-400 hover:text-sky-300">{COMPANY.email}</a>.</p>
+                    <p>Privacy questions and data subject requests: <a href={`mailto:${company.email}`} className="text-sky-400 hover:text-sky-300">{company.email}</a>.</p>
                 </section>
 
                 <section className="space-y-2">

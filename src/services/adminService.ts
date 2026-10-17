@@ -1,4 +1,9 @@
+import { apiFieldErrors, createSettingsService, type SiteSettings } from '@sjolystinnovation/app-kit/api';
 import axiosInstance from './axiosInstance';
+import { formatApiError } from '@/lib/errorMessages';
+import { FieldValidationError } from '@/lib/errors';
+
+export type { SiteSettings };
 
 export interface AdminOrderStats {
     today: number;
@@ -66,6 +71,10 @@ export interface EmailStats {
     days: number;
 }
 
+/**
+ * Garge's own settings on `/admin/settings`. The company details live on `/settings`, served by
+ * SjolystInnovation.AppKit.SiteSettings, as SiteSettings.
+ */
 export interface AppSettings {
     cookieBannerEnabled: boolean;
     vatEnabled: boolean;
@@ -80,6 +89,8 @@ export interface SecuritySettings {
     maxAlertThresholdMinutes: number;
     wakeIntervalSeconds: number;
 }
+
+const siteSettings = createSettingsService(axiosInstance);
 
 const AdminService = {
     async getStats(opts?: { test?: boolean }): Promise<AdminStats> {
@@ -141,6 +152,27 @@ const AdminService = {
     async updateAppSettings(patch: Partial<AppSettings>): Promise<AppSettings> {
         const res = await axiosInstance.put<AppSettings>('/admin/settings', patch);
         return res.data;
+    },
+
+    /** The company details as stored, from `/settings`. */
+    getSiteSettings(): Promise<SiteSettings> {
+        return siteSettings.get();
+    },
+
+    /**
+     * Saves the full set of company details on `/settings`. A validation problem throws a
+     * FieldValidationError keyed by field in camelCase. app-kit's `createSettingsService` turns every
+     * failure into one message, so the save goes through axios here to keep the per-field errors.
+     */
+    async updateSiteSettings(data: SiteSettings): Promise<SiteSettings> {
+        try {
+            const res = await axiosInstance.put<SiteSettings>('/settings', data);
+            return res.data;
+        } catch (error: unknown) {
+            const fieldErrors = apiFieldErrors(error);
+            if (fieldErrors) throw new FieldValidationError(fieldErrors);
+            throw new Error(formatApiError(error, 'Failed to save the company details'));
+        }
     },
 
     async getSecuritySettings(): Promise<SecuritySettings> {

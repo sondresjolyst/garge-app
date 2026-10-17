@@ -1,21 +1,21 @@
-import { getPublicAppSettings } from '@/services/appSettingsService';
+import { cache } from 'react';
+import { mergeCompanyInfo, type CompanyFallback, type CompanyInfo } from '@sjolystinnovation/app-kit/api';
+import { getCompanyInfo } from '@/services/companyService';
 
+/** The company details the public pages show while the API cannot answer. */
 export const COMPANY = {
     name: 'Garge',
     legalName: 'Sjølyst Innovation AS',
     orgNumber: '938 517 789',
     address: 'Mårvegen 21a, 4347 Lye',
     email: 'sondresjoelyst@gmail.com',
-} as const;
+} as const satisfies CompanyFallback;
 
 /**
- * Fetches AppSettings.VatEnabled from the backend. Per bokføringsforskriften
- * §5-1-1 nr. 2 the "MVA" suffix must follow the organisation number on
- * sales documents when the business is registered for Norwegian VAT.
- * Single source of truth: AppSettings.VatEnabled on the backend, toggled
- * from the admin settings page.
+ * The company details for public pages: what an admin saved, read from garge-api's `/company`,
+ * with COMPANY filling any field the API left blank or could not give. `vatRegistered` decides the
+ * "MVA" suffix after the organisation number, which bokføringsforskriften §5-1-1 nr. 2 requires on
+ * sales documents once the business is registered for Norwegian VAT. Cached per request, so the
+ * footer and the page share one call.
  */
-export async function fetchVatEnabled(): Promise<boolean> {
-    const settings = await getPublicAppSettings();
-    return Boolean(settings?.vatEnabled);
-}
+export const getCompany = cache(async (): Promise<CompanyInfo> => mergeCompanyInfo(await getCompanyInfo(), COMPANY));
