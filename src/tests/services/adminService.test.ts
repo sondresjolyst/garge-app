@@ -84,6 +84,7 @@ describe('AdminService roles', () => {
     it('loads the roles an admin may give from the shared user admin route', async () => {
         axiosSpies.get.mockResolvedValueOnce({ data: ['Default', 'Admin', 'SensorAdmin'] })
         const result = await AdminService.getAllRoles()
+        expect(axiosSpies.get).toHaveBeenCalledTimes(1)
         expect(axiosSpies.get).toHaveBeenCalledWith('/users/roles')
         expect(result).toEqual(['Default', 'Admin', 'SensorAdmin'])
     })
