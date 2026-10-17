@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AxiosError, AxiosHeaders } from 'axios'
-import AdminService, { AppSettings, EmailStats, SecuritySettings, SiteSettings } from '@/services/adminService'
-import { FieldValidationError } from '@/lib/errors'
+import { apiFieldErrors } from '@sjolystinnovation/app-kit/api'
+import AdminService, { AdminUser, AppSettings, EmailStats, SecuritySettings, SiteSettings } from '@/services/adminService'
 
 vi.mock('@/services/axiosInstance', async () => (await import('@/tests/axiosMock')).axiosInstanceMock())
 
@@ -56,27 +56,51 @@ describe('AdminService.getEmailStats', () => {
 })
 
 describe('AdminService.getUsers', () => {
-    const users = [
-        { id: 'u1', userName: 'a', firstName: 'A', lastName: 'B', email: 'a@x', isDeleted: false, roles: [] },
+    const users: AdminUser[] = [
+        { id: 'u1', userName: 'a', firstName: 'A', lastName: 'B', email: 'a@x', createdAt: '2026-10-01T08:00:00Z', isDeleted: false, roles: [] },
     ]
 
-    it('hides deleted by default (no includeDeleted param)', async () => {
+    it('hides deleted by default', async () => {
         axiosSpies.get.mockResolvedValueOnce({ data: users })
         const result = await AdminService.getUsers()
-        expect(axiosSpies.get).toHaveBeenCalledWith('/users', { params: undefined })
+        expect(axiosSpies.get).toHaveBeenCalledWith('/users', { params: { includeDeleted: false } })
         expect(result).toEqual(users)
     })
 
     it('passes includeDeleted=true when requested', async () => {
         axiosSpies.get.mockResolvedValueOnce({ data: users })
-        await AdminService.getUsers({ includeDeleted: true })
+        await AdminService.getUsers(true)
         expect(axiosSpies.get).toHaveBeenCalledWith('/users', { params: { includeDeleted: true } })
     })
 
-    it('unwraps a $values envelope', async () => {
-        axiosSpies.get.mockResolvedValueOnce({ data: { $values: users } })
-        const result = await AdminService.getUsers()
-        expect(result).toEqual(users)
+    it('says the users failed to load when the API gives no reason', async () => {
+        axiosSpies.get.mockRejectedValueOnce(new AxiosError('refused', '500', undefined, undefined,
+            { status: 500, statusText: '', headers: {}, config: { headers: new AxiosHeaders() }, data: {} }))
+        await expect(AdminService.getUsers()).rejects.toThrow('Failed to load users')
+    })
+})
+
+describe('AdminService unwrapped lists', () => {
+    it('returns the devices as the API sends them', async () => {
+        const devices = [{ id: 1, discoveredBy: 'bridge', target: 'garge/x', type: 'sensor', timestamp: '2026-10-17T08:00:00Z' }]
+        axiosSpies.get.mockResolvedValueOnce({ data: devices })
+        expect(await AdminService.getDevices()).toEqual(devices)
+        expect(axiosSpies.get).toHaveBeenCalledWith('/admin/devices')
+    })
+
+    it('returns the stats history as the API sends it', async () => {
+        const history = [{ date: '2026-10-17', totalUsers: 3, totalSensors: 2, totalSwitches: 1, totalAutomations: 0 }]
+        axiosSpies.get.mockResolvedValueOnce({ data: history })
+        expect(await AdminService.getStatsHistory()).toEqual(history)
+        expect(axiosSpies.get).toHaveBeenCalledWith('/admin/stats/history')
+    })
+})
+
+describe('AdminService.deleteUser', () => {
+    it("deletes on garge-api's own admin route, encoding the id", async () => {
+        axiosSpies.delete.mockResolvedValueOnce({ data: '' })
+        await AdminService.deleteUser('u/1')
+        expect(axiosSpies.delete).toHaveBeenCalledWith('/users/u%2F1')
     })
 })
 
@@ -96,8 +120,19 @@ describe('AdminService roles', () => {
 
     it('gives a role on the user-centric route', async () => {
         axiosSpies.post.mockResolvedValue({ data: {} })
-        await AdminService.assignRole('u1', 'SensorAdmin')
+        await AdminService.addRole('u1', 'SensorAdmin')
         expect(axiosSpies.post).toHaveBeenCalledWith('/users/u1/roles', { role: 'SensorAdmin' })
+    })
+
+    it("passes on the API's reason and code when a role change is refused", async () => {
+        axiosSpies.delete.mockRejectedValueOnce(new AxiosError('refused', '409', undefined, undefined,
+            { status: 409, statusText: '', headers: {}, config: { headers: new AxiosHeaders() },
+                data: { message: 'The last admin keeps the admin role. Give someone else the role first.', code: 'lastAdmin' } }))
+
+        const error = await AdminService.removeRole('u1', 'Admin').catch((e: unknown) => e)
+
+        expect((error as Error).message).toBe('The last admin keeps the admin role. Give someone else the role first.')
+        expect((error as { errorCode?: string }).errorCode).toBe('lastAdmin')
     })
 
     it('takes a role on the user-centric route, encoding both parts', async () => {
@@ -199,22 +234,25 @@ describe('AdminService site settings', () => {
         expect(result.companyName).toBe('Garge AS')
     })
 
-    it('turns a validation problem into field errors keyed in camelCase', async () => {
+    it('keeps the field errors of a validation problem, keyed in camelCase', async () => {
         axiosSpies.put.mockRejectedValueOnce(validationProblem({ OrgNumber: ['Not a valid organisation number.'], PostalCode: ['A Norwegian postal code is four digits.'] }))
 
         const error = await AdminService.updateSiteSettings(settings).catch((e: unknown) => e)
 
-        expect(error).toBeInstanceOf(FieldValidationError)
-        expect((error as FieldValidationError).fieldErrors).toEqual({
+        expect(error).toBeInstanceOf(Error)
+        expect(apiFieldErrors(error)).toEqual({
             orgNumber: ['Not a valid organisation number.'],
             postalCode: ['A Norwegian postal code is four digits.'],
         })
     })
 
-    it('gives one message for a failure without field errors', async () => {
-        axiosSpies.put.mockRejectedValueOnce(new AxiosError('refused', '403', undefined, undefined,
-            { status: 403, statusText: '', headers: {}, config: { headers: new AxiosHeaders() }, data: '' }))
+    it('gives one message and no field errors for a failure without them', async () => {
+        axiosSpies.put.mockRejectedValueOnce(new AxiosError('refused', '500', undefined, undefined,
+            { status: 500, statusText: '', headers: {}, config: { headers: new AxiosHeaders() }, data: '' }))
 
-        await expect(AdminService.updateSiteSettings(settings)).rejects.toThrow('Not authorized.')
+        const error = await AdminService.updateSiteSettings(settings).catch((e: unknown) => e)
+
+        expect((error as Error).message).toBe('Failed to update settings')
+        expect(apiFieldErrors(error)).toBeNull()
     })
 })

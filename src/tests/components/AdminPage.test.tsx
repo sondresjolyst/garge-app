@@ -13,12 +13,12 @@ import { makeSession, resetTestMocks, setSession, toastSpies } from '@sjolystinn
 
 const {
     getStats, getUsers, getStatsHistory, getEmailStats, getAllRoles, getAppSettings,
-    getSecuritySettings, updateAppSettings, removeRole, assignRole, getSiteSettings, updateSiteSettings,
+    getSecuritySettings, updateAppSettings, removeRole, addRole, getSiteSettings, updateSiteSettings,
 } = vi.hoisted(() => ({
     getSiteSettings: vi.fn(),
     updateSiteSettings: vi.fn(),
     removeRole: vi.fn(),
-    assignRole: vi.fn(),
+    addRole: vi.fn(),
     updateAppSettings: vi.fn(),
     getStats: vi.fn(),
     getUsers: vi.fn(),
@@ -53,14 +53,13 @@ vi.mock('@/services/adminService', () => ({
         updateSecuritySettings: vi.fn(),
         getSiteSettings: () => getSiteSettings(),
         updateSiteSettings: (...a: unknown[]) => updateSiteSettings(...a),
-        assignRole: (...a: unknown[]) => assignRole(...a),
+        addRole: (...a: unknown[]) => addRole(...a),
         removeRole: (...a: unknown[]) => removeRole(...a),
         deleteUser: vi.fn(),
     },
 }))
 
 import AdminPage from '@/app/(protected)/admin/page'
-import { AxiosError, AxiosHeaders } from 'axios'
 
 // Distinct values per field so an assertion on `requests` matches one node only.
 const emailStats = (requests: number) => ({
@@ -110,16 +109,15 @@ beforeEach(() => {
     getSiteSettings.mockResolvedValue(siteSettings)
 })
 
-const refused = (status: number, message: string) =>
-    new AxiosError('refused', String(status), undefined, undefined,
-        { status, statusText: '', headers: {}, config: { headers: new AxiosHeaders() }, data: { message } })
+// What app-kit's request throws for a refused call: the API's message, and its code when it sent one.
+const refused = (message: string, errorCode?: string) => Object.assign(new Error(message), errorCode ? { errorCode } : {})
 
 const kari = { id: 'u3', userName: 'kari', firstName: 'Kari', lastName: 'N', email: 'kari@example.no', isDeleted: false, roles: ['Admin'] }
 
 describe('AdminPage', () => {
     it('takes a role by user id and shows why the API refused', async () => {
         getUsers.mockResolvedValue([kari])
-        removeRole.mockRejectedValue(refused(409, 'The last admin keeps the admin role. Give someone else the role first.'))
+        removeRole.mockRejectedValue(refused('The last admin keeps the admin role. Give someone else the role first.', 'lastAdmin'))
         render(<AdminPage />)
 
         fireEvent.click(await screen.findByTitle('Remove Admin'))
@@ -130,13 +128,50 @@ describe('AdminPage', () => {
 
     it('gives a role by user id', async () => {
         getUsers.mockResolvedValue([kari])
-        assignRole.mockResolvedValue(undefined)
+        addRole.mockResolvedValue(undefined)
         render(<AdminPage />)
 
         fireEvent.click(await screen.findByText('Add role'))
         fireEvent.click(screen.getByRole('button', { name: 'Add' }))
 
-        await waitFor(() => expect(assignRole).toHaveBeenCalledWith('u3', 'Default'))
+        await waitFor(() => expect(addRole).toHaveBeenCalledWith('u3', 'Default'))
+        await waitFor(() => expect(toastSpies.success).toHaveBeenCalledWith('Added Default to Kari'))
+        // The list reloads with the same deleted filter it had.
+        await waitFor(() => expect(getUsers).toHaveBeenCalledTimes(2))
+        expect(getUsers.mock.calls).toEqual([[false], [false]])
+    })
+
+    it('shows why the API refused a new role', async () => {
+        getUsers.mockResolvedValue([kari])
+        addRole.mockRejectedValue(refused('Unknown role.', 'unknownRole'))
+        render(<AdminPage />)
+
+        fireEvent.click(await screen.findByText('Add role'))
+        fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith('Unknown role.'))
+    })
+
+    it('falls back to its own text when a role change fails without an error', async () => {
+        getUsers.mockResolvedValue([kari])
+        removeRole.mockRejectedValue('dropped')
+        addRole.mockRejectedValue('dropped')
+        render(<AdminPage />)
+
+        fireEvent.click(await screen.findByTitle('Remove Admin'))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith('Failed to remove role'))
+
+        fireEvent.click(screen.getByText('Add role'))
+        fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith('Failed to assign role'))
+    })
+
+    it('loads the users without the deleted ones, and with them after the toggle', async () => {
+        render(<AdminPage />)
+
+        await waitFor(() => expect(getUsers).toHaveBeenCalledWith(false))
+        fireEvent.click(await screen.findByLabelText('Show deleted users'))
+        await waitFor(() => expect(getUsers).toHaveBeenLastCalledWith(true))
     })
 
     it('shows the branding and legal page editors', async () => {

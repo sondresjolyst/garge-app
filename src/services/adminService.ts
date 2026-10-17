@@ -1,16 +1,14 @@
 import {
-    apiFieldErrors,
     createAdminUsersService,
     createEmailStatsService,
     createSettingsService,
+    type AdminUser,
     type EmailStats,
     type SiteSettings,
 } from '@sjolystinnovation/app-kit/api';
 import axiosInstance from './axiosInstance';
-import { formatApiError } from '@/lib/errorMessages';
-import { FieldValidationError } from '@/lib/errors';
 
-export type { EmailStats, SiteSettings };
+export type { AdminUser, EmailStats, SiteSettings };
 
 export interface AdminOrderStats {
     today: number;
@@ -38,17 +36,6 @@ export interface AdminStats {
     // yet shipped the commerce stats.
     orders?: AdminOrderStats;
     subscriptions?: AdminSubscriptionStats;
-}
-
-export interface AdminUser {
-    id: string;
-    userName: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    /** True for soft-deleted (scrubbed) accounts. Hidden by default; shown via the "Show deleted" toggle. */
-    isDeleted: boolean;
-    roles: string[];
 }
 
 export interface StatSnapshot {
@@ -99,17 +86,13 @@ const AdminService = {
     },
 
     async getDevices(): Promise<DiscoveredDevice[]> {
-        const res = await axiosInstance.get<DiscoveredDevice[] | { $values: DiscoveredDevice[] }>('/admin/devices');
-        const data = res.data;
-        return '$values' in data ? data.$values : data;
+        const res = await axiosInstance.get<DiscoveredDevice[]>('/admin/devices');
+        return res.data;
     },
 
-    async getUsers(opts?: { includeDeleted?: boolean }): Promise<AdminUser[]> {
-        const res = await axiosInstance.get<AdminUser[] | { $values: AdminUser[] }>('/users', {
-            params: opts?.includeDeleted ? { includeDeleted: true } : undefined,
-        });
-        const data = res.data;
-        return '$values' in data ? data.$values : data;
+    /** The users, from AppKit.Auth's `GET /users`. Soft-deleted accounts only when `includeDeleted` is true. */
+    getUsers(includeDeleted = false): Promise<AdminUser[]> {
+        return userAdmin.getUsers(includeDeleted);
     },
 
     /** The roles an admin may give, from AppKit.Auth's `GET /users/roles`. */
@@ -117,22 +100,28 @@ const AdminService = {
         return userAdmin.roles();
     },
 
-    async assignRole(userId: string, roleName: string): Promise<void> {
-        await axiosInstance.post(`/users/${encodeURIComponent(userId)}/roles`, { role: roleName });
+    /** Gives the user a role, through AppKit.Auth's `POST /users/{id}/roles`. */
+    async addRole(userId: string, role: string): Promise<void> {
+        await userAdmin.addRole(userId, role);
     },
 
-    async removeRole(userId: string, roleName: string): Promise<void> {
-        await axiosInstance.delete(`/users/${encodeURIComponent(userId)}/roles/${encodeURIComponent(roleName)}`);
+    /** Takes a role from the user, through AppKit.Auth's `DELETE /users/{id}/roles/{role}`. */
+    async removeRole(userId: string, role: string): Promise<void> {
+        await userAdmin.removeRole(userId, role);
     },
 
+    /**
+     * Deletes another user's account on garge-api's own `DELETE /users/{id}`. AppKit.Auth's user
+     * admin endpoints have no admin delete, and `/users/{id}/account` only deletes the caller's own.
+     */
     async deleteUser(userId: string): Promise<void> {
-        await axiosInstance.delete(`/users/${userId}`);
+        await axiosInstance.delete(`/users/${encodeURIComponent(userId)}`);
     },
 
+    /** The daily totals for the chart, from AppKit.AdminStats's `GET /admin/stats/history`. */
     async getStatsHistory(): Promise<StatSnapshot[]> {
-        const res = await axiosInstance.get<StatSnapshot[] | { $values: StatSnapshot[] }>('/admin/stats/history');
-        const data = res.data;
-        return '$values' in data ? data.$values : data;
+        const res = await axiosInstance.get<StatSnapshot[]>('/admin/stats/history');
+        return res.data;
     },
 
     /** The Brevo stats for the last `days` days, from AppKit.Email's `GET /admin/email-stats`. */
@@ -156,19 +145,11 @@ const AdminService = {
     },
 
     /**
-     * Saves the full set of company details on `/settings`. A validation problem throws a
-     * FieldValidationError keyed by field in camelCase. app-kit's `createSettingsService` turns every
-     * failure into one message, so the save goes through axios here to keep the per-field errors.
+     * Saves the full set of company details on `/settings`. A validation problem throws an error that
+     * `apiFieldErrors` reads the per-field messages from.
      */
-    async updateSiteSettings(data: SiteSettings): Promise<SiteSettings> {
-        try {
-            const res = await axiosInstance.put<SiteSettings>('/settings', data);
-            return res.data;
-        } catch (error: unknown) {
-            const fieldErrors = apiFieldErrors(error);
-            if (fieldErrors) throw new FieldValidationError(fieldErrors);
-            throw new Error(formatApiError(error, 'Failed to save the company details'));
-        }
+    updateSiteSettings(data: SiteSettings): Promise<SiteSettings> {
+        return siteSettings.update(data);
     },
 
     async getSecuritySettings(): Promise<SecuritySettings> {
