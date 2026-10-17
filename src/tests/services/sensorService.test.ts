@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AxiosError } from 'axios'
 import SensorService from '@/services/sensorService'
-import { ApiError } from '@/lib/errors'
+import { apiErrorCode } from '@sjolystinnovation/app-kit/api'
 
 vi.mock('@/services/axiosInstance', async () => (await import('@/tests/axiosMock')).axiosInstanceMock())
 
@@ -84,23 +84,48 @@ describe('SensorService Garge Security', () => {
         expect(axiosSpies.delete).toHaveBeenCalledWith('/sensors/5/security')
     })
 
-    it('keeps the API error code when the update is rejected', async () => {
-        const axiosErr = new AxiosError('Bad Request')
-        axiosErr.response = {
-            data: { code: 'charging_automation_required', message: 'Add a charging automation first.' },
-            status: 400,
-            statusText: 'Bad Request',
-            headers: {},
-            config: { headers: {} } as never,
-        }
-        axiosSpies.patch.mockRejectedValueOnce(axiosErr)
+    const refused = (status: number, data: unknown) => {
+        const axiosErr = new AxiosError('Request failed')
+        axiosErr.response = { data, status, statusText: '', headers: {}, config: { headers: {} } as never }
+        return axiosErr
+    }
 
-        const promise = SensorService.updateSensorSecurity(5, { enabled: true })
+    const securityCalls = [
+        { name: 'getSensorSecurity', spy: () => axiosSpies.get, call: () => SensorService.getSensorSecurity(5), fallback: 'Failed to load Garge Security' },
+        { name: 'updateSensorSecurity', spy: () => axiosSpies.patch, call: () => SensorService.updateSensorSecurity(5, { enabled: true }), fallback: 'Failed to save Garge Security' },
+        { name: 'disableSensorSecurity', spy: () => axiosSpies.delete, call: () => SensorService.disableSensorSecurity(5), fallback: 'Failed to turn off Garge Security' },
+    ]
 
-        await expect(promise).rejects.toBeInstanceOf(ApiError)
-        await expect(promise).rejects.toMatchObject({
-            code: 'charging_automation_required',
-            message: 'Add a charging automation first.',
-        })
+    it.each(securityCalls)('$name keeps the API error code and message when it is refused', async ({ spy, call }) => {
+        spy().mockRejectedValueOnce(refused(400, { code: 'charging_automation_required', message: 'Add a charging automation first.' }))
+
+        const err = await call().catch((e: unknown) => e)
+
+        expect(err).toBeInstanceOf(Error)
+        expect((err as Error).message).toBe('Add a charging automation first.')
+        expect(apiErrorCode(err)).toBe('charging_automation_required')
+    })
+
+    it.each(securityCalls)("$name gives no code when the API sent none, and Garge's text for the status", async ({ spy, call }) => {
+        spy().mockRejectedValueOnce(refused(403, {}))
+
+        const err = await call().catch((e: unknown) => e)
+
+        expect((err as Error).message).toBe('Not authorized.')
+        expect(apiErrorCode(err)).toBeUndefined()
+    })
+
+    it.each(securityCalls)('$name falls back to its own text when the API says nothing', async ({ spy, call, fallback }) => {
+        spy().mockRejectedValueOnce(refused(500, {}))
+
+        await expect(call()).rejects.toThrow(fallback)
+    })
+
+    it('ignores a code that is not text, as before', async () => {
+        axiosSpies.patch.mockRejectedValueOnce(refused(400, { code: 42, message: 'Bad.' }))
+
+        const err = await SensorService.updateSensorSecurity(5, { enabled: true }).catch((e: unknown) => e)
+
+        expect(apiErrorCode(err)).toBeUndefined()
     })
 })

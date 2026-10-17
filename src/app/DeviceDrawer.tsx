@@ -10,7 +10,7 @@ import InlineEditField from '@/components/InlineEditField';
 import { TYPE_CONFIG as typeConfig, DEFAULT_TYPE as defaultType, BATTERY_STATUS_CONFIG as statusConfig } from '@/lib/typeConfig';
 import { unitForType, typeLabel } from '@/lib/typeUtils';
 import { RANGE_OPTIONS, type RangeIndex } from '@/lib/constants';
-import { ApiError } from '@/lib/errors';
+import { apiErrorCode } from '@sjolystinnovation/app-kit/api';
 import LoadingDots from '@/components/LoadingDots';
 import PhotoUploader from '@/components/PhotoUploader';
 import SensorService, { SensorData, BatteryHealthData, SensorSecurity, SensorSecurityState } from '@/services/sensorService';
@@ -316,7 +316,7 @@ function securityBanner(security: SensorSecurity): { text: string; className: st
 
 const UNSUPPORTED_HARDWARE = "This sensor's hardware does not support Garge Security";
 
-function securityErrorMessage(code: string | null): string {
+function securityErrorMessage(code: string | undefined): string {
     switch (code) {
         case 'charging_automation_required': return 'Create a charging automation for this sensor first';
         case 'no_alert_channel':             return 'Turn on push or email notifications in your profile first';
@@ -386,7 +386,7 @@ const GargeSecurityConfig: React.FC<{
             onChange(sensorId, { enabled: next.enabled, state: next.state });
             toast.success(successMessage);
         } catch (err) {
-            const code = err instanceof ApiError ? err.code : null;
+            const code = apiErrorCode(err);
             if (code === 'charging_automation_required') {
                 setSecurity({ ...security, enforcingRule: null });
             }

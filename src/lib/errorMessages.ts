@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { formatApiError as formatWithKit, type StatusMessages } from '@sjolystinnovation/app-kit/api';
 
-const STATUS_MESSAGES: StatusMessages = {
+/** Garge's wording per status, for `formatApiError` and app-kit's `request`. */
+export const STATUS_MESSAGES: StatusMessages = {
     401: 'Not authorized.',
     403: 'Not authorized.',
     404: 'Not found.',

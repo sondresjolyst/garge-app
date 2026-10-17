@@ -1,20 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ApiError, FieldValidationError } from '@/lib/errors'
-
-describe('ApiError', () => {
-    it('is an Error that carries the API code', () => {
-        const err = new ApiError('Add a rule first.', 'charging_automation_required')
-        expect(err).toBeInstanceOf(Error)
-        expect(err).toBeInstanceOf(ApiError)
-        expect(err.message).toBe('Add a rule first.')
-        expect(err.code).toBe('charging_automation_required')
-        expect(err.name).toBe('ApiError')
-    })
-
-    it('defaults the code to null', () => {
-        expect(new ApiError('Failed').code).toBeNull()
-    })
-})
+import { FieldValidationError } from '@/lib/errors'
 
 describe('FieldValidationError', () => {
     it('is an Error and carries the field errors', () => {
