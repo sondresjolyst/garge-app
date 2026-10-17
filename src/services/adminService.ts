@@ -1,9 +1,16 @@
-import { apiFieldErrors, createSettingsService, type SiteSettings } from '@sjolystinnovation/app-kit/api';
+import {
+    apiFieldErrors,
+    createAdminUsersService,
+    createEmailStatsService,
+    createSettingsService,
+    type EmailStats,
+    type SiteSettings,
+} from '@sjolystinnovation/app-kit/api';
 import axiosInstance from './axiosInstance';
 import { formatApiError } from '@/lib/errorMessages';
 import { FieldValidationError } from '@/lib/errors';
 
-export type { SiteSettings };
+export type { EmailStats, SiteSettings };
 
 export interface AdminOrderStats {
     today: number;
@@ -60,17 +67,6 @@ export interface DiscoveredDevice {
     timestamp: string;
 }
 
-export interface EmailStats {
-    requests: number;
-    delivered: number;
-    hardBounces: number;
-    softBounces: number;
-    spamReports: number;
-    blocked: number;
-    invalid: number;
-    days: number;
-}
-
 /**
  * Garge's own settings on `/admin/settings`. The company details live on `/settings`, served by
  * SjolystInnovation.AppKit.SiteSettings, as SiteSettings.
@@ -91,6 +87,8 @@ export interface SecuritySettings {
 }
 
 const siteSettings = createSettingsService(axiosInstance);
+const userAdmin = createAdminUsersService(axiosInstance);
+const emailStats = createEmailStatsService(axiosInstance);
 
 const AdminService = {
     async getStats(opts?: { test?: boolean }): Promise<AdminStats> {
@@ -114,11 +112,9 @@ const AdminService = {
         return '$values' in data ? data.$values : data;
     },
 
-    async getAllRoles(): Promise<string[]> {
-        const res = await axiosInstance.get<{ name: string }[] | { $values: { name: string }[] }>('/roles');
-        const data = res.data;
-        const list = '$values' in data ? data.$values : data;
-        return list.map(r => r.name);
+    /** The roles an admin may give, from AppKit.Auth's `GET /users/roles`. */
+    getAllRoles(): Promise<string[]> {
+        return userAdmin.roles();
     },
 
     async assignRole(userId: string, roleName: string): Promise<void> {
@@ -139,9 +135,9 @@ const AdminService = {
         return '$values' in data ? data.$values : data;
     },
 
-    async getEmailStats(days = 30): Promise<EmailStats> {
-        const res = await axiosInstance.get<EmailStats>('/admin/email-stats', { params: { days } });
-        return res.data;
+    /** The Brevo stats for the last `days` days, from AppKit.Email's `GET /admin/email-stats`. */
+    getEmailStats(days = 30): Promise<EmailStats> {
+        return emailStats.get(days);
     },
 
     async getAppSettings(): Promise<AppSettings> {
