@@ -11,6 +11,8 @@ import type { Metadata } from "next";
 import Script from 'next/script';
 import { Toaster } from 'sonner';
 import { JetBrains_Mono } from 'next/font/google';
+import { publicGetOptional } from '@/lib/publicApi';
+import type { Branding } from '@/services/brandingService';
 
 const jetMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains-mono', display: 'swap' });
 
@@ -20,11 +22,13 @@ export const metadata: Metadata = {
     manifest: '/manifest.json',
 }
 
-export default function Layout({
+export default async function Layout({
     children,
 }: {
     children: React.ReactNode
 }) {
+    // Starts the branding provider with the uploaded logo, so the first render shows it. Without the API the bundled logo shows.
+    const branding = await publicGetOptional<Branding>('/branding');
     return (
         <html lang="en" className="dark">
             <Script src='/register-sw.js' />
@@ -32,7 +36,7 @@ export default function Layout({
                 <title>Garge</title>
             </head>
             <body className={`bg-gray-900 text-gray-200 font-sans ${jetMono.variable}`}>
-                <SessionProviderWrapper>
+                <SessionProviderWrapper initialBranding={branding ?? undefined}>
                     <div className="min-h-screen flex flex-col">
                         <Navbar />
                         <main className="flex-1 pb-28">

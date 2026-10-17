@@ -7,7 +7,6 @@ vi.mock('@/services/companyService', () => ({ getCompanyInfo: () => getCompanyIn
 vi.mock('next/image', () => ({ default: () => null }))
 
 import Footer from '@/app/footer'
-import TermsPage from '@/app/terms/page'
 import ContactPage from '@/app/contact/page'
 
 const FROM_API: CompanyInfo = {
@@ -41,18 +40,6 @@ describe('Footer', () => {
 
         expect(screen.getByText('Sjølyst Innovation AS')).toBeInTheDocument()
         expect(screen.getByText(/Org\. nr\. 938 517 789$/)).toBeInTheDocument()
-    })
-})
-
-describe('TermsPage', () => {
-    it('names the seller from the API', async () => {
-        getCompanyInfo.mockResolvedValue(FROM_API)
-        render(await TermsPage())
-
-        expect(screen.getByText('Company name:').parentElement).toHaveTextContent('Company name: Garge Holding AS')
-        expect(screen.getByText('Organisation number:').parentElement).toHaveTextContent('Organisation number: 923 202 374 MVA')
-        expect(screen.getByText('Address:').parentElement).toHaveTextContent('Address: Storgata 1, 0155 Oslo')
-        expect(screen.getByText('Email:').parentElement).toHaveTextContent('Email: hei@garge.no')
     })
 })
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import BrandLogo from '@/components/BrandLogo';
 import { formatOrgNumber } from '@sjolystinnovation/app-kit/api';
 import { getCompany } from '@/lib/company';
 
@@ -13,7 +13,7 @@ export default async function Footer() {
 
                 {/* Brand */}
                 <div className="flex items-center gap-2.5">
-                    <Image src="/garge-icon-large.png" width={32} height={37} quality={75} className="h-auto w-8" alt="Garge" />
+                    <BrandLogo width={32} height={37} quality={75} className="h-auto w-8" />
                     <span className="text-sm font-semibold text-gray-300">Garge</span>
                 </div>
 

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import Image from 'next/image';
+import BrandLogo from '@/components/BrandLogo';
 import Link from 'next/link';
 import { SignalIcon, BoltIcon, CpuChipIcon, ChartBarIcon, DevicePhoneMobileIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 
@@ -79,7 +80,7 @@ export default function MarketingPage() {
             {/* Hero */}
             <section className="flex flex-col items-center text-center pt-4 pb-2 gap-6 device-card-grid">
                 <div className="fixed top-0 left-0 right-0 h-[480px] -z-10 bg-[radial-gradient(ellipse_at_50%_0%,rgba(14,165,233,0.1),transparent_70%)] pointer-events-none" />
-                <Image src="/garge-icon-large.png" width={0} height={0} style={{ height: '80px', width: 'auto' }} alt="Garge" priority unoptimized />
+                <BrandLogo width={0} height={0} className="h-20 w-auto" priority unoptimized />
                 <div>
                     <h1 className="text-5xl sm:text-7xl font-bold text-gray-100 leading-tight mb-3">
                         Know what&apos;s happening<br className="hidden sm:block" /> in your space

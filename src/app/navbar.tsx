@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import BrandLogo from '@/components/BrandLogo';
 import { signOut, useSession } from 'next-auth/react';
 import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/24/outline';
 import { isTerminalSessionError } from '@sjolystinnovation/app-kit/session';
@@ -18,7 +18,7 @@ export default function Navbar() {
             <div className="px-4 sm:px-6 py-3 flex items-center justify-between max-w-7xl mx-auto">
 
                 <Link href="/" className="flex items-center gap-2.5">
-                    <Image src="/garge-icon-large.png" width={32} height={37} quality={75} className="h-auto w-8" alt="Garge" priority/>
+                    <BrandLogo width={32} height={37} quality={75} className="h-auto w-8" priority />
                     <span className="text-sm font-semibold text-gray-100 tracking-wide hidden sm:block">Garge</span>
                 </Link>
 

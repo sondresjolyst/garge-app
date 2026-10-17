@@ -12,6 +12,10 @@
 
 /* Garge's dark look for the shared components in @sjolystinnovation/app-kit. */
 @theme {
+    /* The legal pages editor's text area rings with primary. The button and input tokens below set their own. */
+    --color-primary: var(--color-sky-500);
+    --color-primary-foreground: var(--color-white);
+
     --radius-alert: var(--radius-xl);
     --color-alert-error-bg: color-mix(in oklab, var(--color-red-500) 10%, transparent);
     --color-alert-error-border: color-mix(in oklab, var(--color-red-500) 20%, transparent);
@@ -93,6 +97,27 @@
     --color-state-code: var(--color-gray-600);
     --color-state-link: var(--color-sky-500);
     --color-state-link-hover: var(--color-sky-400);
+}
+
+/*
+ * BrandingManager, LegalPagesEditor and LegalPageView draw part of their look with fixed gray and
+ * white classes rather than theme variables. Inside .appkit-dark those palette steps take garge's
+ * dark values: white is the card color, gray-900 text turns light, and gray-200 borders turn into
+ * garge's faint gray-700 ones. The values are literal, since a step that pointed at another
+ * redefined step would read the redefined value. Theme variables such as the button and markdown
+ * colors resolve on :root and are not affected.
+ */
+.appkit-dark {
+    --color-white: color-mix(in oklab, oklch(27.8% 0.033 256.848) 60%, oklch(21% 0.034 264.665));
+    --color-gray-50: oklch(21% 0.034 264.665);
+    --color-gray-100: oklch(27.8% 0.033 256.848);
+    --color-gray-200: color-mix(in oklab, oklch(37.3% 0.034 259.733) 40%, transparent);
+    --color-gray-300: color-mix(in oklab, oklch(37.3% 0.034 259.733) 50%, transparent);
+    --color-gray-400: oklch(44.6% 0.03 256.802);
+    --color-gray-600: oklch(70.7% 0.022 261.325);
+    --color-gray-700: oklch(70.7% 0.022 261.325);
+    --color-gray-900: oklch(96.7% 0.003 264.542);
+    --color-red-50: color-mix(in oklab, oklch(63.7% 0.237 25.331) 10%, transparent);
 }
 
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
