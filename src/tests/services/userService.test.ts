@@ -1,13 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+const { publicSpies } = vi.hoisted(() => ({ publicSpies: { get: vi.fn(), post: vi.fn() } }))
+
 vi.mock('@/services/axiosInstance', async () => (await import('@/tests/axiosMock')).axiosInstanceMock())
+vi.mock('@/services/publicClient', () => ({ default: publicSpies }))
 vi.mock('next-auth/react', async () => (await import('@sjolystinnovation/app-kit/testing')).nextAuthMock())
 
 import UserService from '@/services/userService'
 import { resetTestMocks } from '@sjolystinnovation/app-kit/testing'
+import { apiErrorCode, apiFieldErrors } from '@sjolystinnovation/app-kit/api'
 import { axiosSpies, resetAxiosSpies } from '@/tests/axiosMock'
 import { FieldValidationError } from '@/lib/errors'
-import { AxiosError } from 'axios'
+import { AxiosError, AxiosHeaders } from 'axios'
 
 const validRegistration = {
     firstName: 'Ada',
@@ -23,6 +27,66 @@ const validRegistration = {
 beforeEach(() => {
     resetTestMocks()
     resetAxiosSpies()
+    publicSpies.get.mockReset()
+    publicSpies.post.mockReset()
+})
+
+const refusedWith = (status: number, data: unknown) =>
+    new AxiosError('refused', String(status), undefined, undefined,
+        { status, statusText: '', headers: {}, config: { headers: new AxiosHeaders() }, data })
+
+describe('UserService password reset', () => {
+    it('asks for a reset code on the anonymous client, without the session', async () => {
+        publicSpies.post.mockResolvedValueOnce({ data: { message: 'sent' } })
+
+        expect(await UserService.requestPasswordReset({ email: 'kari@example.no' })).toEqual({ message: 'sent' })
+        expect(publicSpies.post).toHaveBeenCalledWith('/auth/request-password-reset', { email: 'kari@example.no' })
+        expect(axiosSpies.post).not.toHaveBeenCalled()
+    })
+
+    it('sends the new password in camelCase on the anonymous client', async () => {
+        publicSpies.post.mockResolvedValueOnce({ data: { message: 'Password reset.' } })
+
+        await UserService.resetPassword({ email: 'kari@example.no', code: 'AB12CD', newPassword: 'Password1' })
+
+        expect(publicSpies.post).toHaveBeenCalledWith('/auth/reset-password', { email: 'kari@example.no', code: 'AB12CD', newPassword: 'Password1' })
+        expect(axiosSpies.post).not.toHaveBeenCalled()
+    })
+
+    // garge-app#592: the field errors and codes must reach the flow, so they show under the field.
+    it('keeps the field errors of a refused reset', async () => {
+        publicSpies.post.mockRejectedValueOnce(refusedWith(400, {
+            title: 'One or more validation errors occurred.',
+            errors: { NewPassword: ["Passwords must have at least one uppercase ('A'-'Z')."] },
+            codes: { NewPassword: ['passwordRequiresUpper'] },
+        }))
+
+        const error = await UserService.resetPassword({ email: 'kari@example.no', code: 'AB12CD', newPassword: 'password1' }).catch((e: unknown) => e)
+
+        expect(apiFieldErrors(error)).toEqual({ newPassword: ["Passwords must have at least one uppercase ('A'-'Z')."] })
+        expect((error as { fieldErrorDetails?: unknown }).fieldErrorDetails).toEqual({
+            newPassword: [{ message: "Passwords must have at least one uppercase ('A'-'Z').", code: 'passwordRequiresUpper' }],
+        })
+    })
+
+    it('keeps the code of a refused reset', async () => {
+        publicSpies.post.mockRejectedValueOnce(refusedWith(400, { message: 'Invalid or expired reset code.', code: 'invalidResetCode' }))
+
+        const error = await UserService.resetPassword({ email: 'kari@example.no', code: 'WRONG1', newPassword: 'Password1' }).catch((e: unknown) => e)
+
+        expect((error as Error).message).toBe('Invalid or expired reset code.')
+        expect(apiErrorCode(error)).toBe('invalidResetCode')
+    })
+
+    it('keeps the code of a refused code request', async () => {
+        publicSpies.post.mockRejectedValueOnce(refusedWith(400, {
+            title: 'One or more validation errors occurred.', errors: { Email: ['Required.'] }, codes: { Email: ['required'] },
+        }))
+
+        const error = await UserService.requestPasswordReset({ email: '' }).catch((e: unknown) => e)
+
+        expect(apiFieldErrors(error)).toEqual({ email: ['Required.'] })
+    })
 })
 
 describe('UserService.register', () => {
