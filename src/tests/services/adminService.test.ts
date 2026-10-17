@@ -3,11 +3,15 @@ import { AxiosError, AxiosHeaders } from 'axios'
 import AdminService, { AppSettings, EmailStats, SecuritySettings, SiteSettings } from '@/services/adminService'
 import { FieldValidationError } from '@/lib/errors'
 
-vi.mock('@/services/axiosInstance', async () => (await import('@sjolystinnovation/app-kit/testing')).axiosInstanceMock())
+vi.mock('@/services/axiosInstance', async () => (await import('@/tests/axiosMock')).axiosInstanceMock())
 
-import { axiosSpies, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
+import { resetTestMocks } from '@sjolystinnovation/app-kit/testing'
+import { axiosSpies, resetAxiosSpies } from '@/tests/axiosMock'
 
-beforeEach(resetTestMocks)
+beforeEach(() => {
+    resetTestMocks()
+    resetAxiosSpies()
+})
 
 describe('AdminService.getEmailStats', () => {
     const mockEmailStats: EmailStats = {
@@ -37,6 +41,11 @@ describe('AdminService.getEmailStats', () => {
         axiosSpies.get.mockResolvedValueOnce({ data: { ...mockEmailStats, days: 7 } })
         await AdminService.getEmailStats(7)
         expect(axiosSpies.get).toHaveBeenCalledWith('/admin/email-stats', { params: { days: 7 } })
+    })
+
+    it('passes on a failure to load the stats', async () => {
+        axiosSpies.get.mockRejectedValueOnce(new Error('network down'))
+        await expect(AdminService.getEmailStats()).rejects.toThrow('network down')
     })
 
     it('passes 90 days param', async () => {
@@ -72,6 +81,18 @@ describe('AdminService.getUsers', () => {
 })
 
 describe('AdminService roles', () => {
+    it('loads the roles an admin may give from the shared user admin route', async () => {
+        axiosSpies.get.mockResolvedValueOnce({ data: ['Default', 'Admin', 'SensorAdmin'] })
+        const result = await AdminService.getAllRoles()
+        expect(axiosSpies.get).toHaveBeenCalledWith('/users/roles')
+        expect(result).toEqual(['Default', 'Admin', 'SensorAdmin'])
+    })
+
+    it('passes on a failure to load the roles', async () => {
+        axiosSpies.get.mockRejectedValueOnce(new Error('network down'))
+        await expect(AdminService.getAllRoles()).rejects.toThrow('network down')
+    })
+
     it('gives a role on the user-centric route', async () => {
         axiosSpies.post.mockResolvedValue({ data: {} })
         await AdminService.assignRole('u1', 'SensorAdmin')

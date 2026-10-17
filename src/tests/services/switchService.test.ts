@@ -1,11 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import SwitchService from '@/services/switchService'
 
-vi.mock('@/services/axiosInstance', async () => (await import('@sjolystinnovation/app-kit/testing')).axiosInstanceMock())
+vi.mock('@/services/axiosInstance', async () => (await import('@/tests/axiosMock')).axiosInstanceMock())
 
-import { axiosSpies, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
+import { resetTestMocks } from '@sjolystinnovation/app-kit/testing'
+import { axiosSpies, resetAxiosSpies } from '@/tests/axiosMock'
 
-beforeEach(resetTestMocks)
+beforeEach(() => {
+    resetTestMocks()
+    resetAxiosSpies()
+})
 
 describe('SwitchService sharing', () => {
     it('maps the API integer permission to a string in getSwitchShares', async () => {

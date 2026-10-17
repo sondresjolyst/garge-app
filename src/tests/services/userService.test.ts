@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('@/services/axiosInstance', async () => (await import('@sjolystinnovation/app-kit/testing')).axiosInstanceMock())
+vi.mock('@/services/axiosInstance', async () => (await import('@/tests/axiosMock')).axiosInstanceMock())
 vi.mock('next-auth/react', async () => (await import('@sjolystinnovation/app-kit/testing')).nextAuthMock())
 
 import UserService from '@/services/userService'
-import { axiosSpies, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
+import { resetTestMocks } from '@sjolystinnovation/app-kit/testing'
+import { axiosSpies, resetAxiosSpies } from '@/tests/axiosMock'
 import { FieldValidationError } from '@/lib/errors'
 import { AxiosError } from 'axios'
 
@@ -19,7 +20,10 @@ const validRegistration = {
     termsVersion: 'v1',
 }
 
-beforeEach(resetTestMocks)
+beforeEach(() => {
+    resetTestMocks()
+    resetAxiosSpies()
+})
 
 describe('UserService.register', () => {
     it('throws a FieldValidationError with per-field messages on client-side validation failure', async () => {

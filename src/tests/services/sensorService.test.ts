@@ -3,11 +3,15 @@ import { AxiosError } from 'axios'
 import SensorService from '@/services/sensorService'
 import { ApiError } from '@/lib/errors'
 
-vi.mock('@/services/axiosInstance', async () => (await import('@sjolystinnovation/app-kit/testing')).axiosInstanceMock())
+vi.mock('@/services/axiosInstance', async () => (await import('@/tests/axiosMock')).axiosInstanceMock())
 
-import { axiosSpies, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
+import { resetTestMocks } from '@sjolystinnovation/app-kit/testing'
+import { axiosSpies, resetAxiosSpies } from '@/tests/axiosMock'
 
-beforeEach(resetTestMocks)
+beforeEach(() => {
+    resetTestMocks()
+    resetAxiosSpies()
+})
 
 describe('SensorService sharing', () => {
     it('maps the API integer permission to a string in getSensorShares', async () => {

@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { axiosSpies } from '@sjolystinnovation/app-kit/testing'
+import { axiosSpies } from '@/tests/axiosMock'
 
 const { revalidateTarget } = vi.hoisted(() => ({ revalidateTarget: vi.fn() }))
 vi.mock('@/lib/cacheTags', async (original) => ({
     ...(await original<typeof import('@/lib/cacheTags')>()),
     revalidateTarget,
 }))
-vi.mock('@/services/axiosInstance', async () => (await import('@sjolystinnovation/app-kit/testing')).axiosInstanceMock())
+vi.mock('@/services/axiosInstance', async () => (await import('@/tests/axiosMock')).axiosInstanceMock())
 
 import BrandingService from '@/services/brandingService'
 import LegalService from '@/services/legalService'

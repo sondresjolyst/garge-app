@@ -1,11 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createPhotoService } from '@/services/photoServiceFactory';
 
-vi.mock('@/services/axiosInstance', async () => (await import('@sjolystinnovation/app-kit/testing')).axiosInstanceMock());
+vi.mock('@/services/axiosInstance', async () => (await import('@/tests/axiosMock')).axiosInstanceMock());
 
-import { axiosSpies, resetTestMocks } from '@sjolystinnovation/app-kit/testing';
+import { resetTestMocks } from '@sjolystinnovation/app-kit/testing';
+import { axiosSpies, resetAxiosSpies } from '@/tests/axiosMock';
 
-beforeEach(resetTestMocks);
+beforeEach(() => {
+    resetTestMocks();
+    resetAxiosSpies();
+});
 
 describe('createPhotoService', () => {
     const service = createPhotoService(id => `/things/${id}/photo`);
