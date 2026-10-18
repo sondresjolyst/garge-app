@@ -206,7 +206,9 @@ describe('AdminPage', () => {
 
         await waitFor(() => expect(getEmailStats).toHaveBeenCalledWith(30))
         await waitFor(() => expect(screen.getByText('100')).toBeInTheDocument())
-        expect(screen.getByRole('heading', { name: 'Transactional email, last 30 days' })).toBeInTheDocument()
+        const heading = screen.getByRole('heading', { name: 'Transactional email, last 30 days' })
+        // The panel sits in garge's own section card, without a border of its own.
+        expect(heading.closest('section')).not.toHaveClass('border')
         expect(screen.getByRole('button', { name: '30d' })).toHaveAttribute('aria-pressed', 'true')
     })
 
@@ -227,11 +229,15 @@ describe('AdminPage', () => {
 
         fireEvent.click(screen.getByRole('button', { name: '90d' }))
         await waitFor(() => expect(getEmailStats).toHaveBeenLastCalledWith(90))
+        const before = getEmailStats.mock.calls.length
+        // A reload that takes a moment, as over the network, so the page shows its spinner in between.
+        getStats.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve({ totalUsers: 3, totalSensors: 2, totalSwitches: 1, totalAutomations: 0 }), 30)))
         fireEvent.click(await screen.findByTitle('Remove Admin'))
 
-        await waitFor(() => expect(getStats).toHaveBeenCalledTimes(2))
+        // The reload unmounts the panel, which loads again when it comes back.
+        await waitFor(() => expect(getEmailStats.mock.calls.length).toBeGreaterThan(before))
+        expect(getEmailStats.mock.calls.slice(before)).toEqual([[90]])
         await waitFor(() => expect(screen.getByRole('button', { name: '90d' })).toHaveAttribute('aria-pressed', 'true'))
-        expect(getEmailStats).not.toHaveBeenLastCalledWith(30)
     })
 
     it('refetches email stats for a new range and shows the new numbers', async () => {
