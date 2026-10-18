@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { PHASE_PRODUCTION_BUILD } from 'next/constants'
-import { publicGet, publicGetOptional, uncachedGetOptional } from '@/lib/publicApi'
+import { publicGet, publicGetOptional } from '@/lib/publicApi'
 
 const fetchMock = vi.fn()
 
@@ -60,20 +60,17 @@ describe('publicGet at runtime', () => {
     })
 })
 
-describe('the optional GETs', () => {
-    it.each([
-        ['cached', publicGetOptional],
-        ['uncached', uncachedGetOptional],
-    ] as const)('give null from the %s API when garge-api is down, at runtime too', async (_, get) => {
+describe('publicGetOptional', () => {
+    it('gives null when garge-api is down, at runtime too', async () => {
         down()
 
-        expect(await get('/company')).toBeNull()
+        expect(await publicGetOptional('/company')).toBeNull()
     })
 
-    it('reads the company details without the cache', async () => {
-        answers(200, { name: 'Garge' })
+    it('gives null when garge-api is down during next build', async () => {
+        vi.stubEnv('NEXT_PHASE', PHASE_PRODUCTION_BUILD)
+        down()
 
-        expect(await uncachedGetOptional('/company')).toEqual({ name: 'Garge' })
-        expect(fetchMock).toHaveBeenCalledWith('http://api.test/api/company', { next: { revalidate: 0 } })
+        expect(await publicGetOptional('/company')).toBeNull()
     })
 })

@@ -32,7 +32,7 @@ beforeEach(() => {
 
 describe('cache targets', () => {
     it('purges the legal pages at their own paths, since garge has no locales', () => {
-        expect(TARGET_PATHS).toEqual({ legal: ['/terms', '/privacy', '/cookies', '/sitemap.xml'], branding: [] })
+        expect(TARGET_PATHS).toEqual({ legal: ['/terms', '/privacy', '/cookies', '/sitemap.xml'], branding: [], company: [] })
     })
 })
 
@@ -65,6 +65,14 @@ describe('POST /api/revalidate', () => {
         expect(response.status).toBe(200)
         expect(revalidatePath).not.toHaveBeenCalled()
         expect(revalidateTag).toHaveBeenCalledWith('branding', { expire: 0 })
+    })
+
+    it('purges the company tag for an admin', async () => {
+        const response = await POST(post({ target: 'company' }, await cookieFor(['Admin'])))
+
+        expect(response.status).toBe(200)
+        expect(revalidatePath).not.toHaveBeenCalled()
+        expect(revalidateTag).toHaveBeenCalledWith('company', { expire: 0 })
     })
 
     it('refuses an unknown target', async () => {

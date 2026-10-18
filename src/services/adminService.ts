@@ -7,6 +7,7 @@ import {
     type SiteSettings,
 } from '@sjolystinnovation/app-kit/api';
 import axiosInstance from './axiosInstance';
+import { REVALIDATE_TARGETS, revalidateTarget } from '@/lib/cacheTags';
 
 export type { AdminUser, EmailStats, SiteSettings };
 
@@ -73,7 +74,9 @@ export interface SecuritySettings {
     wakeIntervalSeconds: number;
 }
 
-const siteSettings = createSettingsService(axiosInstance);
+const siteSettings = createSettingsService(axiosInstance, {
+    onSaved: () => revalidateTarget(REVALIDATE_TARGETS.company),
+});
 const userAdmin = createAdminUsersService(axiosInstance);
 const emailStats = createEmailStatsService(axiosInstance);
 
@@ -134,8 +137,10 @@ const AdminService = {
         return res.data;
     },
 
+    /** Saves garge's own settings. The VAT switch and its date are the company's VAT registration, so they purge the company target. */
     async updateAppSettings(patch: Partial<AppSettings>): Promise<AppSettings> {
         const res = await axiosInstance.put<AppSettings>('/admin/settings', patch);
+        if ('vatEnabled' in patch || 'vatRegisteredFrom' in patch) await revalidateTarget(REVALIDATE_TARGETS.company);
         return res.data;
     },
 

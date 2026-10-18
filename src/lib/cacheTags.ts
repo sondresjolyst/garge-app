@@ -7,6 +7,8 @@ const revalidateTargets = defineRevalidateTargets({
         legal: { pages: ['/terms', '/privacy', '/cookies'], root: ['/sitemap.xml'] },
         // Every page renders branding through the layout, and so does /icon. The tag reaches them all.
         branding: {},
+        // The footer on every page shows the company details, and /contact does too. The tag reaches them all.
+        company: {},
     },
 });
 
