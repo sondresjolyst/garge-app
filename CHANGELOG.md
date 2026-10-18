@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.0](https://github.com/sondresjolyst/garge-app/compare/v1.23.0...v1.24.0) (2026-10-18)
+
+
+### Features
+
+* **devices:** connect the device stream with a hub ticket ([#606](https://github.com/sondresjolyst/garge-app/issues/606)) ([d2fce6a](https://github.com/sondresjolyst/garge-app/commit/d2fce6a3cebac91940b9cc650e8a832ca37eb65c))
+
 ## [1.23.0](https://github.com/sondresjolyst/garge-app/compare/v1.22.1...v1.23.0) (2026-10-18)
 
 
