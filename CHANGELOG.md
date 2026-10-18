@@ -1,5 +1,61 @@
 # Changelog
 
+## [1.23.0](https://github.com/sondresjolyst/garge-app/compare/v1.22.1...v1.23.0) (2026-10-18)
+
+
+### Features
+
+* **admin:** branding and legal pages through app-kit ([#588](https://github.com/sondresjolyst/garge-app/issues/588)) ([3b5f9ed](https://github.com/sondresjolyst/garge-app/commit/3b5f9ed5eca6a887f12b0dc328967d206e24682b)), closes [#583](https://github.com/sondresjolyst/garge-app/issues/583)
+* **admin:** company details through SiteSettings ([#585](https://github.com/sondresjolyst/garge-app/issues/585)) ([8595c28](https://github.com/sondresjolyst/garge-app/commit/8595c28928df811a303cc68a241a35e144e9fe56))
+* **admin:** give and take roles on the user-centric routes ([#577](https://github.com/sondresjolyst/garge-app/issues/577)) ([f382f17](https://github.com/sondresjolyst/garge-app/commit/f382f1706880bdef8dc96e2292e9dbe599c090f0))
+* **admin:** move to app-kit 1.0.1 and its user, reset password and company services ([#600](https://github.com/sondresjolyst/garge-app/issues/600)) ([2793cac](https://github.com/sondresjolyst/garge-app/commit/2793caca7f6ef70c67abacad3c1ddd6d86815fc3)), closes [#592](https://github.com/sondresjolyst/garge-app/issues/592)
+* **admin:** show the email stats with app-kit's EmailStatsPanel and its period picker ([#605](https://github.com/sondresjolyst/garge-app/issues/605)) ([49286d5](https://github.com/sondresjolyst/garge-app/commit/49286d5f753eae96e517f8caa99262a72fd82573))
+* **admin:** show turnover against the VAT threshold ([#552](https://github.com/sondresjolyst/garge-app/issues/552)) ([d810468](https://github.com/sondresjolyst/garge-app/commit/d8104685b55c763b85e1578406fd05c592c3f9e3))
+* **auth:** move the login page onto app-kit's LoginPage ([#587](https://github.com/sondresjolyst/garge-app/issues/587)) ([c85be0f](https://github.com/sondresjolyst/garge-app/commit/c85be0f6aa62c30d6eaa2a17ff716e1589ce4ccd)), closes [#580](https://github.com/sondresjolyst/garge-app/issues/580)
+* **auth:** open the reset page on the last step from an emailed link ([#576](https://github.com/sondresjolyst/garge-app/issues/576)) ([ab9b918](https://github.com/sondresjolyst/garge-app/commit/ab9b918922d9e973d7999a7a7f37884c9fbe0102))
+* **forms:** keep drafts of automation rules and plans so a reload or ended session loses nothing ([#572](https://github.com/sondresjolyst/garge-app/issues/572)) ([d959ccd](https://github.com/sondresjolyst/garge-app/commit/d959ccd187609b346b90485a3cef98bc29ca40a5))
+* move sign-in, the API client and the session prompt to app-kit ([#545](https://github.com/sondresjolyst/garge-app/issues/545)) ([1164b27](https://github.com/sondresjolyst/garge-app/commit/1164b279c6d4601f3a69ea61dc33dfb9a1b38e66))
+* **pricing:** show prices as stored, with VAT included when on ([#551](https://github.com/sondresjolyst/garge-app/issues/551)) ([14f1a13](https://github.com/sondresjolyst/garge-app/commit/14f1a138442f73b1ae34e11cb8250173052793d9))
+* **seo:** serve robots.txt from app-kit, blocking crawlers outside production ([#563](https://github.com/sondresjolyst/garge-app/issues/563)) ([c9ff47e](https://github.com/sondresjolyst/garge-app/commit/c9ff47e44371d87f2f6dc1d2216da67784e3483b))
+* **shop:** show partly captured and partly refunded orders ([#566](https://github.com/sondresjolyst/garge-app/issues/566)) ([5f3b961](https://github.com/sondresjolyst/garge-app/commit/5f3b9611400a42751204a079c9196d2baa282dea))
+* **subscriptions:** let admins refund a subscription charge ([#574](https://github.com/sondresjolyst/garge-app/issues/574)) ([6ac889c](https://github.com/sondresjolyst/garge-app/commit/6ac889c07611654dc6f6877435fc7a73c8008533))
+* **subscriptions:** schedule price increases with notice and show them on billing ([#565](https://github.com/sondresjolyst/garge-app/issues/565)) ([3791cf9](https://github.com/sondresjolyst/garge-app/commit/3791cf98ae36050dd9f925bc34fda57127155dde))
+* **ui:** add an error page and use NotFoundState from app-kit ([#556](https://github.com/sondresjolyst/garge-app/issues/556)) ([fc574fc](https://github.com/sondresjolyst/garge-app/commit/fc574fc94d85353e079a9025e5a2fc444b92a67e))
+* **vat:** let admins set the VAT registration date ([#573](https://github.com/sondresjolyst/garge-app/issues/573)) ([1b2f836](https://github.com/sondresjolyst/garge-app/commit/1b2f836c99d042675936b4410b6ba1d0089757d6))
+
+
+### Bug Fixes
+
+* **admin:** let the company settings form save a blank public phone ([#603](https://github.com/sondresjolyst/garge-app/issues/603)) ([71ce4f5](https://github.com/sondresjolyst/garge-app/commit/71ce4f548d2f096d1e8166188715b1a176038b47)), closes [#591](https://github.com/sondresjolyst/garge-app/issues/591)
+* **auth:** keep the session prompt on signed-in pages and show why a code was refused ([#569](https://github.com/sondresjolyst/garge-app/issues/569)) ([7892284](https://github.com/sondresjolyst/garge-app/commit/78922848ad823e57818b9bfe82ce0b13739c0842))
+* **auth:** treat an ended session as signed out in the proxy and on the login page ([#568](https://github.com/sondresjolyst/garge-app/issues/568)) ([340edee](https://github.com/sondresjolyst/garge-app/commit/340edee34ea82677f2d6c53a8f9df070df7feaa6))
+* **build:** build the legal pages and sitemap when garge-api is down ([#601](https://github.com/sondresjolyst/garge-app/issues/601)) ([428c0d3](https://github.com/sondresjolyst/garge-app/commit/428c0d304915a4543a27d1db979708b2b3ff15c4))
+* **cache:** cache the company details and purge them on admin saves, so public pages are static again ([#604](https://github.com/sondresjolyst/garge-app/issues/604)) ([1b2394f](https://github.com/sondresjolyst/garge-app/commit/1b2394fd8d7b6f363607a98cab5ebd676b4202b8)), closes [#602](https://github.com/sondresjolyst/garge-app/issues/602)
+* **csp:** stop zod from trying eval, which the content security policy blocks ([#570](https://github.com/sondresjolyst/garge-app/issues/570)) ([1d32172](https://github.com/sondresjolyst/garge-app/commit/1d32172edb28cada77c36d7e56f64e1397653e8c))
+* **devices:** open the sign-in again prompt when the live device stream finds the session ended ([#571](https://github.com/sondresjolyst/garge-app/issues/571)) ([72abc19](https://github.com/sondresjolyst/garge-app/commit/72abc19aa36893a07780ff84b910a1df7e7fbbc2))
+* **docker:** default SITE_ENV to dev so a build without it is not crawled ([#586](https://github.com/sondresjolyst/garge-app/issues/586)) ([e88a976](https://github.com/sondresjolyst/garge-app/commit/e88a976268b7478b93cf88928dc97ae87ba5004b))
+* keep error toasts quiet while the re-sign-in prompt is open ([#546](https://github.com/sondresjolyst/garge-app/issues/546)) ([6bd941d](https://github.com/sondresjolyst/garge-app/commit/6bd941dbd84239a19cab616b2cb72f0b6009c2af))
+* **layout:** drop unused fonts and size the logo in CSS ([#555](https://github.com/sondresjolyst/garge-app/issues/555)) ([fe5b96d](https://github.com/sondresjolyst/garge-app/commit/fe5b96d114563e9b6f15e50f6761d45b4e91c846))
+* use app-kit for admin access, session renewal, quiet error toasts and the register and reset rules ([#547](https://github.com/sondresjolyst/garge-app/issues/547)) ([c1e166e](https://github.com/sondresjolyst/garge-app/commit/c1e166e3e34ca7256e4ab29ea47d0085a97bda0f))
+
+
+### Dependencies
+
+* **app-kit:** update @sjolystinnovation/app-kit to 0.16.0 ([#575](https://github.com/sondresjolyst/garge-app/issues/575)) ([258fa0e](https://github.com/sondresjolyst/garge-app/commit/258fa0e8a27117f5b276f70d0e01d116e7664fa7))
+* **docker:** bump `node` from 26.10.0-slim to 26.11.1-slim ([#594](https://github.com/sondresjolyst/garge-app/issues/594)) ([7381511](https://github.com/sondresjolyst/garge-app/commit/73815113a3ab7cfaa7b9ab1ec6cdd8be048dee2c))
+* **npm:** bump @types/node from 26.6.3 to 26.6.4 in the types group ([#560](https://github.com/sondresjolyst/garge-app/issues/560)) ([3b719a4](https://github.com/sondresjolyst/garge-app/commit/3b719a4fee6450e14e24e6cbcbbc2447bfbad6e8))
+* **npm:** bump @types/node from 26.6.4 to 26.6.5 in the types group ([#599](https://github.com/sondresjolyst/garge-app/issues/599)) ([d470faa](https://github.com/sondresjolyst/garge-app/commit/d470faa240d9c5e6959265baf055e366be878d3b))
+* **npm:** bump `apexcharts` from 7.6.0 to 7.6.1 ([#540](https://github.com/sondresjolyst/garge-app/issues/540)) ([402c7bb](https://github.com/sondresjolyst/garge-app/commit/402c7bbf61924f395744c959be21962eab49a04d))
+* **npm:** bump `apexcharts` from 7.6.1 to 7.8.0 ([#561](https://github.com/sondresjolyst/garge-app/issues/561)) ([a5c045d](https://github.com/sondresjolyst/garge-app/commit/a5c045d3cb41c403a0a0aac574fe07d890879afa))
+* **npm:** bump `sharp` from 0.35.4 to 0.35.5 ([#542](https://github.com/sondresjolyst/garge-app/issues/542)) ([8bbdef1](https://github.com/sondresjolyst/garge-app/commit/8bbdef18618691f119ade424b54d6ff6174c251a))
+* **npm:** bump `source-map-js` from 1.2.1 to 1.2.2 ([#543](https://github.com/sondresjolyst/garge-app/issues/543)) ([8deab18](https://github.com/sondresjolyst/garge-app/commit/8deab187457b57d19b49bad3393348ffb64a3921))
+* **npm:** bump eslint-config-next from 16.3.6 to 16.3.7 in the next group ([#538](https://github.com/sondresjolyst/garge-app/issues/538)) ([a046a1b](https://github.com/sondresjolyst/garge-app/commit/a046a1b84c463ded1e5181ca9dc7dbbbc0a8f29c))
+* **npm:** bump eslint-config-next from 16.3.7 to 16.3.8 in the next group ([#557](https://github.com/sondresjolyst/garge-app/issues/557)) ([a69ce89](https://github.com/sondresjolyst/garge-app/commit/a69ce89078ae18bea9701d872c1a9029b6db3aed))
+* **npm:** bump postcss from 8.5.28 to 8.5.29 in the tailwind group ([#598](https://github.com/sondresjolyst/garge-app/issues/598)) ([ef6ae7e](https://github.com/sondresjolyst/garge-app/commit/ef6ae7e8e141e789173ab70235580a158a560476))
+* **npm:** bump the next group across 1 directory with 2 updates ([#595](https://github.com/sondresjolyst/garge-app/issues/595)) ([b3c76f2](https://github.com/sondresjolyst/garge-app/commit/b3c76f2abfd5a24c6497fa34e5a8365c833f1d00))
+* **npm:** bump the testing group across 1 directory with 2 updates ([#597](https://github.com/sondresjolyst/garge-app/issues/597)) ([e700155](https://github.com/sondresjolyst/garge-app/commit/e7001554982355d3a6e064fd81e571ee82587e31))
+* **npm:** bump vitest from 5.0.2 to 5.0.3 in the testing group ([#559](https://github.com/sondresjolyst/garge-app/issues/559)) ([b0bebc7](https://github.com/sondresjolyst/garge-app/commit/b0bebc79e93bf878ddfe33617aeeccd004f2462e))
+
 ## [1.22.1](https://github.com/sondresjolyst/garge-app/compare/v1.22.0...v1.22.1) (2026-10-04)
 
 
