@@ -19,7 +19,7 @@ export const companySettingsSchema = z
         addressLocality: optional(100),
         addressRegion: optional(100),
         publicEmail: email,
-        publicPhone: required(40),
+        publicPhone: optional(40),
     })
     .refine(s => s.postalCode === '' || s.addressLocality !== '', {
         path: ['addressLocality'],
