@@ -18,9 +18,3 @@ export const { publicGet, publicGetOptional } = createPublicApi(apiUrl, {
     revalidate: PUBLIC_REVALIDATE_SECONDS,
     nullOnFailureDuringBuild: true,
 });
-
-/**
- * The same GETs without the cache, for what a save outside the revalidate targets changes, such as
- * the company details that the VAT toggle in Site Settings also sets.
- */
-export const { publicGetOptional: uncachedGetOptional } = createPublicApi(apiUrl, { revalidate: 0 });

@@ -13,13 +13,13 @@ describe('getCompanyInfo', () => {
         vi.unstubAllGlobals()
     })
 
-    it('reads the public company info from /company without caching', async () => {
+    it('reads the public company info from /company, cached under the company tag', async () => {
         const info = { name: 'Garge', orgNumber: '938 517 789', vatRegistered: false }
         const fetchMock = vi.fn().mockResolvedValue(json(info))
         vi.stubGlobal('fetch', fetchMock)
 
         expect(await getCompanyInfo()).toEqual(info)
-        expect(fetchMock).toHaveBeenCalledWith('http://api.test/api/company', { next: { revalidate: 0 } })
+        expect(fetchMock).toHaveBeenCalledWith('http://api.test/api/company', { next: { revalidate: 300, tags: ['company'] } })
     })
 
     it('returns null on a failing response', async () => {
