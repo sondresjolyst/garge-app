@@ -4,6 +4,8 @@ import { useEffect, useRef } from 'react';
 import { HttpError, HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { getSession } from 'next-auth/react';
 import { isTerminalSessionError, openSessionPrompt } from '@sjolystinnovation/app-kit/session';
+import { isAxiosError } from 'axios';
+import DeviceHubService from '@/services/deviceHubService';
 
 export interface SwitchEvent {
     id: number;
@@ -72,15 +74,21 @@ export function useDeviceStream(handlers: Handlers): void {
 
             connection = new HubConnectionBuilder()
                 .withUrl(hubUrl, {
-                    // Reconnects ask for the token again, so a session that ended meanwhile brings up
-                    // the prompt instead of failing quietly.
+                    // The hub gets a short-lived ticket from garge-api, never the session token. Every
+                    // start and reconnect asks for a fresh one, so a session that ended meanwhile brings
+                    // up the prompt instead of failing quietly.
                     accessTokenFactory: async () => {
-                        const session = await getSession();
+                        const session = await getSession({ broadcast: false });
                         if (!session || isTerminalSessionError(session.error)) {
                             openSessionPrompt();
-                            return '';
+                            throw new Error('The session has ended.');
                         }
-                        return session.accessToken ?? '';
+                        try {
+                            return await DeviceHubService.getTicket();
+                        } catch (err) {
+                            if (isAxiosError(err) && err.response?.status === 401) openSessionPrompt();
+                            throw err;
+                        }
                     },
                 })
                 .withAutomaticReconnect()
