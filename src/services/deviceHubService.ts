@@ -2,7 +2,7 @@ import axiosInstance from '@/services/axiosInstance';
 
 /**
  * A ticket from POST /hub-tickets. It opens one connection to the device hub
- * and expires after `expiresIn` seconds (about a minute).
+ * and expires after `expiresIn` seconds, which is about a minute.
  */
 export interface DeviceHubTicket {
     ticket: string;
