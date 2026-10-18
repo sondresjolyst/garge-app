@@ -97,6 +97,13 @@
     --color-state-code: var(--color-gray-600);
     --color-state-link: var(--color-sky-500);
     --color-state-link-hover: var(--color-sky-400);
+
+    /* The email stats panel on the admin page. The picked period takes the primary button colors. */
+    --color-admin-title: var(--color-gray-200);
+    --color-admin-tab: var(--color-gray-400);
+    --color-admin-tab-hover: var(--color-gray-200);
+    --color-admin-stat-label: var(--color-gray-400);
+    --color-admin-stat-value: var(--color-gray-100);
 }
 
 /*
