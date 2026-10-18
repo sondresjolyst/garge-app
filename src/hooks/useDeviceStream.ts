@@ -78,7 +78,7 @@ export function useDeviceStream(handlers: Handlers): void {
                     // start and reconnect asks for a fresh one, so a session that ended meanwhile brings
                     // up the prompt instead of failing quietly.
                     accessTokenFactory: async () => {
-                        const session = await getSession();
+                        const session = await getSession({ broadcast: false });
                         if (!session || isTerminalSessionError(session.error)) {
                             openSessionPrompt();
                             throw new Error('The session has ended.');
