@@ -9,8 +9,15 @@ export const PUBLIC_REVALIDATE_SECONDS = 300;
 
 const apiUrl = requireEnv('NEXT_PUBLIC_API_URL', process.env.NEXT_PUBLIC_API_URL);
 
-/** Cached GETs against garge-api's anonymous endpoints, for server components and route handlers. */
-export const { publicGet, publicGetOptional } = createPublicApi(apiUrl, { revalidate: PUBLIC_REVALIDATE_SECONDS });
+/**
+ * Cached GETs against garge-api's anonymous endpoints, for server components and route handlers.
+ * A failed fetch during next build gives null with a warning, so the legal pages and the sitemap
+ * build without the API and fill in on their first revalidate.
+ */
+export const { publicGet, publicGetOptional } = createPublicApi(apiUrl, {
+    revalidate: PUBLIC_REVALIDATE_SECONDS,
+    nullOnFailureDuringBuild: true,
+});
 
 /**
  * The same GETs without the cache, for what a save outside the revalidate targets changes, such as
