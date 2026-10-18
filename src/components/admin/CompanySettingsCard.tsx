@@ -32,7 +32,7 @@ const FIELDS: FieldSpec[] = [
     { name: 'addressLocality', label: 'Place', span: 'sm:col-span-1' },
     { name: 'addressRegion', label: 'County' },
     { name: 'publicEmail', label: 'Public email', type: 'email', required: true },
-    { name: 'publicPhone', label: 'Public phone', type: 'tel', required: true },
+    { name: 'publicPhone', label: 'Public phone', type: 'tel' },
     { name: 'contactRecipientEmail', label: 'Contact form recipient', type: 'email', required: true, hint: 'Where contact form messages go. Not shown publicly.' },
 ];
 

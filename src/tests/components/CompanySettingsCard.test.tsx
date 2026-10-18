@@ -114,6 +114,28 @@ describe('CompanySettingsCard', () => {
         expect(updateSiteSettings).not.toHaveBeenCalled()
     })
 
+    it('saves a blank public phone', async () => {
+        render(<CompanySettingsCard />)
+        fireEvent.change(await screen.findByLabelText(/Public phone/), { target: { value: '  ' } })
+
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+        await waitFor(() => expect(updateSiteSettings).toHaveBeenCalledWith({ ...STORED, publicPhone: '' }))
+        expect(screen.getByText('Public phone').querySelector('span')).toBeNull()
+        expect(screen.getByText('Public email').querySelector('span')).toHaveTextContent('*')
+    })
+
+    it('still refuses a public phone over 40 characters', async () => {
+        render(<CompanySettingsCard />)
+        fireEvent.change(await screen.findByLabelText(/Public phone/), { target: { value: '1'.repeat(41) } })
+
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+        expect(await screen.findByText('At most 40 characters.')).toBeInTheDocument()
+        expect(field(/Public phone/)).toHaveAttribute('aria-invalid', 'true')
+        expect(updateSiteSettings).not.toHaveBeenCalled()
+    })
+
     it('clears a field error once the field changes', async () => {
         render(<CompanySettingsCard />)
         fireEvent.change(await screen.findByLabelText(/Company name/), { target: { value: '' } })
