@@ -7,8 +7,8 @@ import { makeSession, resetTestMocks, setSession, toastSpies } from '@sjolystinn
 // changed:
 // - the main load runs once for an admin, driven by statsTestRef rather than a
 //   statsTest dependency, so flipping Live/Test does not refetch everything
-// - emailStats / emailStatsLoading are derived from an entry keyed by the day
-//   range, including the failure path (spinner must stop)
+// - the email stats show in app-kit's EmailStatsPanel with garge's period picker,
+//   and the picked days survive the full reload after a role change
 // - a non-admin is redirected and loads nothing
 
 const {
@@ -206,6 +206,38 @@ describe('AdminPage', () => {
 
         await waitFor(() => expect(getEmailStats).toHaveBeenCalledWith(30))
         await waitFor(() => expect(screen.getByText('100')).toBeInTheDocument())
+        const heading = screen.getByRole('heading', { name: 'Transactional email, last 30 days' })
+        // The panel sits in garge's own section card, without a border of its own.
+        expect(heading.closest('section')).not.toHaveClass('border')
+        expect(screen.getByRole('button', { name: '30d' })).toHaveAttribute('aria-pressed', 'true')
+    })
+
+    it('shows each email count on its own row', async () => {
+        render(<AdminPage />)
+        await waitFor(() => expect(screen.getByText('100')).toBeInTheDocument())
+
+        const rows = [['Sent', '100'], ['Delivered', '1'], ['Hard bounces', '2'], ['Soft bounces', '3'], ['Blocked', '5'], ['Spam reports', '4'], ['Invalid', '6']]
+        const shown = screen.getAllByRole('term').map(dt => [dt.textContent, dt.nextElementSibling?.textContent])
+        expect(shown).toEqual(rows)
+    })
+
+    it('keeps the picked email stats days through the reload after a role change', async () => {
+        getUsers.mockResolvedValue([kari])
+        removeRole.mockResolvedValue(undefined)
+        render(<AdminPage />)
+        await waitFor(() => expect(screen.getByText('100')).toBeInTheDocument())
+
+        fireEvent.click(screen.getByRole('button', { name: '90d' }))
+        await waitFor(() => expect(getEmailStats).toHaveBeenLastCalledWith(90))
+        const before = getEmailStats.mock.calls.length
+        // A reload that takes a moment, as over the network, so the page shows its spinner in between.
+        getStats.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve({ totalUsers: 3, totalSensors: 2, totalSwitches: 1, totalAutomations: 0 }), 30)))
+        fireEvent.click(await screen.findByTitle('Remove Admin'))
+
+        // The reload unmounts the panel, which loads again when it comes back.
+        await waitFor(() => expect(getEmailStats.mock.calls.length).toBeGreaterThan(before))
+        expect(getEmailStats.mock.calls.slice(before)).toEqual([[90]])
+        await waitFor(() => expect(screen.getByRole('button', { name: '90d' })).toHaveAttribute('aria-pressed', 'true'))
     })
 
     it('refetches email stats for a new range and shows the new numbers', async () => {
@@ -219,12 +251,13 @@ describe('AdminPage', () => {
         await waitFor(() => expect(screen.getByText('77')).toBeInTheDocument())
     })
 
-    it('stops the email stats spinner when the fetch fails', async () => {
+    it('says the email stats are unavailable when the fetch fails, without a toast', async () => {
         getEmailStats.mockRejectedValue(new Error('brevo down'))
         render(<AdminPage />)
 
-        await waitFor(() => expect(getEmailStats).toHaveBeenCalledTimes(1))
-        // The panel must settle rather than spin forever; a second range still works.
+        expect(await screen.findByText('Unavailable.')).toBeInTheDocument()
+        expect(toastSpies.error).not.toHaveBeenCalled()
+        // The panel settles rather than waiting forever, and a second range still works.
         getEmailStats.mockResolvedValueOnce(emailStats(42))
         fireEvent.click(screen.getByText('7d'))
         await waitFor(() => expect(screen.getByText('42')).toBeInTheDocument())

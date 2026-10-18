@@ -14,15 +14,19 @@ import BrandingCard from '@/components/admin/BrandingCard';
 import LegalPagesCard from '@/components/admin/LegalPagesCard';
 import { StatGrid } from '@/components/StatCard';
 import { toast } from '@sjolystinnovation/app-kit/toast';
+import { EmailStatsPanel } from '@sjolystinnovation/app-kit/admin';
 
 const TimeSeriesChart = dynamic(() => import('@/components/TimeSeriesChart'), { ssr: false });
-import AdminService, { AdminStats, AdminUser, StatSnapshot, EmailStats, AppSettings, SecuritySettings } from '@/services/adminService';
+import AdminService, { AdminStats, AdminUser, StatSnapshot, AppSettings, SecuritySettings } from '@/services/adminService';
 import SensorService from '@/services/sensorService';
 import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import { Toggle } from '@sjolystinnovation/app-kit/ui';
 import { osloDateInput } from '@/lib/dateUtils';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
+
+const emailStatsService = { get: (days?: number) => AdminService.getEmailStats(days) };
+const EMAIL_STATS_PERIODS = [7, 30, 90] as const;
 
 const isValidThreshold = (value: string, limits: SecuritySettings): boolean => {
     const minutes = Number(value);
@@ -50,7 +54,7 @@ export default function AdminPage() {
     const [roleLoading, setRoleLoading] = useState(false);
     const [allRoles, setAllRoles] = useState<string[]>([]);
 
-    const [emailStatsEntry, setEmailStatsEntry] = useState<{ days: number; stats: EmailStats | null } | null>(null);
+    // Kept here rather than in the panel, so the picked days survive the reload after a role change.
     const [emailStatsDays, setEmailStatsDays] = useState(30);
 
     const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
@@ -122,27 +126,6 @@ export default function AdminPage() {
             setUsersLoading(false);
         }
     }, []);
-
-    // Derived from the loaded entry, so no spinner flag is set from the effect.
-    const emailStats = emailStatsEntry?.days === emailStatsDays ? emailStatsEntry.stats : null;
-    const emailStatsLoading = isAdmin && emailStatsEntry?.days !== emailStatsDays;
-
-    useEffect(() => {
-        if (!isAdmin) return;
-        let active = true;
-        (async () => {
-            try {
-                const es = await AdminService.getEmailStats(emailStatsDays);
-                if (active) setEmailStatsEntry({ days: emailStatsDays, stats: es });
-            } catch {
-                if (!active) return;
-                // Record the attempt so the panel stops showing a spinner.
-                setEmailStatsEntry({ days: emailStatsDays, stats: null });
-                toast.error('Failed to load email stats');
-            }
-        })();
-        return () => { active = false; };
-    }, [isAdmin, emailStatsDays]);
 
     // Initial load only. The test/live and deleted-users toggles refetch through
     // their own handlers, and mutations call `load` directly.
@@ -423,39 +406,15 @@ export default function AdminPage() {
 
                     {/* Email Stats */}
                     <Section title="Email (Brevo)">
-                        <div className="flex items-center justify-between mb-3">
-                            <p className="text-xs text-gray-500">Transactional email stats</p>
-                            <div className="flex gap-1">
-                                {([7, 30, 90] as const).map(d => (
-                                    <button
-                                        key={d}
-                                        onClick={() => setEmailStatsDays(d)}
-                                        className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${
-                                            emailStatsDays === d
-                                                ? 'bg-sky-600 text-white'
-                                                : 'bg-gray-700/60 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
-                                        }`}
-                                    >
-                                        {d}d
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        {emailStatsLoading ? (
-                            <LoadingDots height="h-16" />
-                        ) : emailStats ? (
-                            <StatGrid items={[
-                                { label: 'Sent', value: emailStats.requests },
-                                { label: 'Delivered', value: emailStats.delivered },
-                                { label: 'Hard bounces', value: emailStats.hardBounces },
-                                { label: 'Soft bounces', value: emailStats.softBounces },
-                                { label: 'Blocked', value: emailStats.blocked },
-                                { label: 'Spam reports', value: emailStats.spamReports },
-                                { label: 'Invalid', value: emailStats.invalid },
-                            ]} />
-                        ) : (
-                            <p className="text-xs text-gray-500">No data.</p>
-                        )}
+                        <EmailStatsPanel
+                            service={emailStatsService}
+                            days={emailStatsDays}
+                            onDaysChange={setEmailStatsDays}
+                            periods={EMAIL_STATS_PERIODS}
+                            separateCounts
+                            strings={{ title: 'Transactional email, last {days} days', periodOption: '{days}d' }}
+                            className=""
+                        />
                     </Section>
 
                     {/* Company details, on SjolystInnovation.AppKit.SiteSettings */}
