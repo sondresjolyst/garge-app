@@ -1,8 +1,7 @@
 import axiosInstance from '@/services/axiosInstance';
 import { AxiosError } from 'axios';
-import { formatApiError } from '@/lib/errorMessages';
-import { parseErrorCode } from '@/lib/apiErrors';
-import { ApiError } from '@/lib/errors';
+import { request } from '@sjolystinnovation/app-kit/api';
+import { formatApiError, STATUS_MESSAGES } from '@/lib/errorMessages';
 
 export interface Sensor {
     id: number;
@@ -263,30 +262,17 @@ const SensorService = {
         }
     },
 
-    async getSensorSecurity(id: number): Promise<SensorSecurity> {
-        try {
-            const response = await axiosInstance.get<SensorSecurity>(`/sensors/${id}/security`);
-            return response.data;
-        } catch (error: unknown) {
-            throw new ApiError(formatApiError(error, 'Failed to load Garge Security'), parseErrorCode(error));
-        }
+    // A refusal carries the API's code for apiErrorCode, such as charging_automation_required.
+    getSensorSecurity(id: number): Promise<SensorSecurity> {
+        return request(() => axiosInstance.get<SensorSecurity>(`/sensors/${id}/security`), 'Failed to load Garge Security', STATUS_MESSAGES);
     },
 
-    async updateSensorSecurity(id: number, settings: { enabled: boolean }): Promise<SensorSecurity> {
-        try {
-            const response = await axiosInstance.patch<SensorSecurity>(`/sensors/${id}/security`, settings);
-            return response.data;
-        } catch (error: unknown) {
-            throw new ApiError(formatApiError(error, 'Failed to save Garge Security'), parseErrorCode(error));
-        }
+    updateSensorSecurity(id: number, settings: { enabled: boolean }): Promise<SensorSecurity> {
+        return request(() => axiosInstance.patch<SensorSecurity>(`/sensors/${id}/security`, settings), 'Failed to save Garge Security', STATUS_MESSAGES);
     },
 
     async disableSensorSecurity(id: number): Promise<void> {
-        try {
-            await axiosInstance.delete(`/sensors/${id}/security`);
-        } catch (error: unknown) {
-            throw new ApiError(formatApiError(error, 'Failed to turn off Garge Security'), parseErrorCode(error));
-        }
+        await request(() => axiosInstance.delete(`/sensors/${id}/security`), 'Failed to turn off Garge Security', STATUS_MESSAGES);
     },
 
     async unclaimSensor(id: number): Promise<{ message: string }> {

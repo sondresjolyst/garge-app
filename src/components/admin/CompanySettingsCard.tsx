@@ -3,9 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from '@sjolystinnovation/app-kit/toast';
 import { zodFieldErrors } from '@sjolystinnovation/app-kit/validation';
+import { apiFieldErrors } from '@sjolystinnovation/app-kit/api';
 import AdminService, { type SiteSettings } from '@/services/adminService';
 import { inputClass } from '@/components/TextInput';
-import { FieldValidationError, type FieldErrors } from '@/lib/errors';
+import type { FieldErrors } from '@/lib/errors';
 import { companySettingsSchema, type CompanySettingsForm } from '@/lib/validation/companySettingsSchema';
 
 type Field = keyof CompanySettingsForm;
@@ -115,10 +116,11 @@ export default function CompanySettingsCard() {
             setForm(stored);
             toast.success('Company details saved');
         } catch (err) {
-            if (err instanceof FieldValidationError) {
-                setErrors(err.fieldErrors);
+            const fieldErrors = apiFieldErrors(err);
+            if (fieldErrors) {
+                setErrors(fieldErrors);
                 // A problem on a field the form does not show, such as the org number VAT needs, still gets said.
-                const other = Object.entries(err.fieldErrors).find(([field]) => !FIELD_NAMES.has(field));
+                const other = Object.entries(fieldErrors).find(([field]) => !FIELD_NAMES.has(field));
                 toast.error(other?.[1][0] ?? 'Check the highlighted fields');
             } else {
                 toast.error(err instanceof Error && err.message ? err.message : 'Failed to save the company details');

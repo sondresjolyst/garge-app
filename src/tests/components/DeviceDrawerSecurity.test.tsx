@@ -34,7 +34,8 @@ vi.mock('next/dynamic', () => ({ default: () => () => null }))
 import DeviceDrawer from '@/app/DeviceDrawer'
 import type { UnifiedDevice } from '@/app/DeviceDashboard'
 import type { SensorSecurity } from '@/services/sensorService'
-import { ApiError } from '@/lib/errors'
+// What app-kit's request throws when the API refuses with a code.
+const refusal = (message: string, errorCode: string) => Object.assign(new Error(message), { errorCode })
 
 function makeVoltage(): UnifiedDevice {
     return {
@@ -191,7 +192,7 @@ describe('DeviceDrawer Garge Security', () => {
     // The bridge can learn the hardware between the load and the click.
     it('stops offering the toggle when the API refuses for unsupported hardware', async () => {
         getSensorSecurity.mockResolvedValue(makeSecurity({ capable: null }))
-        updateSensorSecurity.mockRejectedValue(new ApiError('Not supported.', 'unsupported_hardware'))
+        updateSensorSecurity.mockRejectedValue(refusal('Not supported.', 'unsupported_hardware'))
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
 
         const toggle = await screen.findByRole('switch', { name: 'Turn on Garge Security' })
@@ -232,7 +233,7 @@ describe('DeviceDrawer Garge Security', () => {
     })
 
     it('shows a specific toast and stays off when the API requires a charging automation', async () => {
-        updateSensorSecurity.mockRejectedValue(new ApiError('Add a charging automation first.', 'charging_automation_required'))
+        updateSensorSecurity.mockRejectedValue(refusal('Add a charging automation first.', 'charging_automation_required'))
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
 
         const toggle = await screen.findByRole('switch', { name: 'Turn on Garge Security' })
@@ -247,7 +248,7 @@ describe('DeviceDrawer Garge Security', () => {
     // The API refuses a charging threshold that cannot produce a usable battery floor,
     // so the toggle must say what to change rather than just "failed to save".
     it('tells the user to fix the charging threshold when the API refuses it', async () => {
-        updateSensorSecurity.mockRejectedValue(new ApiError('Out of range.', 'invalid_charging_threshold'))
+        updateSensorSecurity.mockRejectedValue(refusal('Out of range.', 'invalid_charging_threshold'))
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
 
         const toggle = await screen.findByRole('switch', { name: 'Turn on Garge Security' })
@@ -259,7 +260,7 @@ describe('DeviceDrawer Garge Security', () => {
     })
 
     it('tells the user to turn on notifications when there is no alert channel', async () => {
-        updateSensorSecurity.mockRejectedValue(new ApiError('No alert channel.', 'no_alert_channel'))
+        updateSensorSecurity.mockRejectedValue(refusal('No alert channel.', 'no_alert_channel'))
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
 
         const toggle = await screen.findByRole('switch', { name: 'Turn on Garge Security' })
@@ -267,6 +268,18 @@ describe('DeviceDrawer Garge Security', () => {
         fireEvent.click(toggle)
 
         await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith('Turn on push or email notifications in your profile first'))
+    })
+
+    it('says the save failed when the refusal has no code', async () => {
+        updateSensorSecurity.mockRejectedValue(new Error('Something broke.'))
+        render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
+
+        const toggle = await screen.findByRole('switch', { name: 'Turn on Garge Security' })
+        await waitFor(() => expect(toggle).toBeEnabled())
+        fireEvent.click(toggle)
+
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith('Failed to save Garge Security'))
+        expect(screen.getByRole('switch', { name: 'Turn on Garge Security' })).toHaveAttribute('aria-checked', 'false')
     })
 
     it('is read-only for users who do not own the sensor', async () => {
@@ -283,7 +296,7 @@ describe('DeviceDrawer Garge Security', () => {
 
     // The API is the only judge of what qualifies, so a refusal is what surfaces the CTA.
     it('surfaces the charging CTA when the API refuses for want of a rule', async () => {
-        updateSensorSecurity.mockRejectedValue(new ApiError('Add a charging automation first.', 'charging_automation_required'))
+        updateSensorSecurity.mockRejectedValue(refusal('Add a charging automation first.', 'charging_automation_required'))
         render(<DeviceDrawer device={makeVoltage()} onClose={() => {}} onRename={() => {}} />)
 
         const toggle = await screen.findByRole('switch', { name: 'Turn on Garge Security' })

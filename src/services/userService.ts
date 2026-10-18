@@ -1,8 +1,9 @@
 import axiosInstance from '@/services/axiosInstance';
+import publicClient from '@/services/publicClient';
 import { UserDTO } from '@/dto/UserDTO';
 import { getSession } from 'next-auth/react';
 import { formatApiError } from '@/lib/errorMessages';
-import { apiFieldErrors } from '@sjolystinnovation/app-kit/api';
+import { apiFieldErrors, createUserService } from '@sjolystinnovation/app-kit/api';
 import { zodFieldErrors } from '@sjolystinnovation/app-kit/validation';
 import { FieldValidationError } from '@/lib/errors';
 import { registerSchema } from '@/lib/validation/registerSchema';
@@ -25,6 +26,9 @@ export interface DataRetention {
     optOut: boolean;
     optedOutAt: string | null;
 }
+
+// Password reset on AppKit.Auth's anonymous endpoints. A refusal keeps the API's field errors and code.
+const { requestPasswordReset, resetPassword } = createUserService(axiosInstance, publicClient);
 
 const UserService = {
     async getUserProfile(): Promise<UserDTO> {
@@ -81,23 +85,9 @@ const UserService = {
         }
     },
 
-    async requestPasswordReset(data: { email: string }): Promise<{ message: string }> {
-        try {
-            const response = await axiosInstance.post<{ message: string }>('/auth/request-password-reset', data);
-            return response.data;
-        } catch (error: unknown) {
-            throw new Error(formatApiError(error, 'Failed to request password reset code'));
-        }
-    },
+    requestPasswordReset,
 
-    async resetPassword(data: { email: string, code: string, NewPassword: string }): Promise<{ message: string }> {
-        try {
-            const response = await axiosInstance.post<{ message: string }>('/auth/reset-password', data);
-            return response.data;
-        } catch (error: unknown) {
-            throw new Error(formatApiError(error, 'Failed to reset password'));
-        }
-    },
+    resetPassword,
 
     async updatePreferences(userId: string, data: {
         priceZone: string;

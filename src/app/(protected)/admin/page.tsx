@@ -21,7 +21,6 @@ import SensorService from '@/services/sensorService';
 import { formatNok } from '@sjolystinnovation/app-kit/payments';
 import { Toggle } from '@sjolystinnovation/app-kit/ui';
 import { osloDateInput } from '@/lib/dateUtils';
-import { formatApiError } from '@/lib/errorMessages';
 
 type StatKey = 'totalUsers' | 'totalSensors' | 'totalSwitches' | 'totalAutomations';
 
@@ -81,7 +80,7 @@ export default function AdminPage() {
         try {
             const [s, u, h] = await Promise.all([
                 AdminService.getStats({ test: statsTest }),
-                AdminService.getUsers({ includeDeleted: showDeletedRef.current }),
+                AdminService.getUsers(showDeletedRef.current),
                 AdminService.getStatsHistory(),
             ]);
             setStats(s);
@@ -116,7 +115,7 @@ export default function AdminPage() {
         setUserPage(0);
         setUsersLoading(true);
         try {
-            setUsers(await AdminService.getUsers({ includeDeleted }));
+            setUsers(await AdminService.getUsers(includeDeleted));
         } catch {
             toast.error('Failed to reload users');
         } finally {
@@ -154,7 +153,7 @@ export default function AdminPage() {
             try {
                 const [s, u, h] = await Promise.all([
                     AdminService.getStats({ test: statsTestRef.current }),
-                    AdminService.getUsers({ includeDeleted: showDeletedRef.current }),
+                    AdminService.getUsers(showDeletedRef.current),
                     AdminService.getStatsHistory(),
                 ]);
                 if (!active) return;
@@ -253,13 +252,13 @@ export default function AdminPage() {
         if (!selectedRole) return;
         setRoleLoading(true);
         try {
-            await AdminService.assignRole(user.id, selectedRole);
+            await AdminService.addRole(user.id, selectedRole);
             toast.success(`Added ${selectedRole} to ${user.firstName}`);
             setAddRoleFor(null);
             setSelectedRole('');
             await load();
         } catch (err) {
-            toast.error(formatApiError(err, 'Failed to assign role'));
+            toast.error(err instanceof Error ? err.message : 'Failed to assign role');
         } finally {
             setRoleLoading(false);
         }
@@ -272,7 +271,7 @@ export default function AdminPage() {
             await load();
         } catch (err) {
             // The API refuses to take the admin role from yourself or from the last admin, and says why.
-            toast.error(formatApiError(err, 'Failed to remove role'));
+            toast.error(err instanceof Error ? err.message : 'Failed to remove role');
         }
     };
 

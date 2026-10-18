@@ -13,7 +13,7 @@ const ResetPasswordForm: React.FC = () => {
     return (
         <ResetPasswordFlow
             requestReset={AuthService.requestPasswordReset}
-            reset={({ email, code, newPassword }) => AuthService.resetPassword({ email, code, NewPassword: newPassword })}
+            reset={AuthService.resetPassword}
             loginHref="/login"
             initialEmail={params.get('email') ?? ''}
             initialCode={params.get('code') ?? ''}

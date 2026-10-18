@@ -2,7 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { resetTestMocks, toastSpies } from '@sjolystinnovation/app-kit/testing'
 import type { SiteSettings } from '@/services/adminService'
-import { FieldValidationError } from '@/lib/errors'
+
+// What app-kit's request throws for a validation problem: one message, with the field messages kept.
+const validationFailure = (fieldErrors: Record<string, string[]>) =>
+    Object.assign(new Error('One or more validation errors occurred.'), {
+        fieldErrors,
+        fieldErrorDetails: Object.fromEntries(Object.entries(fieldErrors).map(([k, v]) => [k, v.map(message => ({ message }))])),
+    })
 
 const { getSiteSettings, updateSiteSettings } = vi.hoisted(() => ({
     getSiteSettings: vi.fn(),
@@ -73,7 +79,7 @@ describe('CompanySettingsCard', () => {
     })
 
     it('shows the API validation problems beside their fields', async () => {
-        updateSiteSettings.mockRejectedValue(new FieldValidationError({
+        updateSiteSettings.mockRejectedValue(validationFailure({
             orgNumber: ['An organisation number is required when the business is VAT registered.'],
         }))
         render(<CompanySettingsCard />)
@@ -87,7 +93,7 @@ describe('CompanySettingsCard', () => {
     })
 
     it('says a problem on a field it does not show', async () => {
-        updateSiteSettings.mockRejectedValue(new FieldValidationError({ vatRegistered: ['Not allowed.'] }))
+        updateSiteSettings.mockRejectedValue(validationFailure({ vatRegistered: ['Not allowed.'] }))
         render(<CompanySettingsCard />)
         fireEvent.change(await screen.findByLabelText(/County/), { target: { value: 'Agder' } })
 

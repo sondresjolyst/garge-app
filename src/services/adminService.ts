@@ -1,9 +1,14 @@
-import { apiFieldErrors, createSettingsService, type SiteSettings } from '@sjolystinnovation/app-kit/api';
+import {
+    createAdminUsersService,
+    createEmailStatsService,
+    createSettingsService,
+    type AdminUser,
+    type EmailStats,
+    type SiteSettings,
+} from '@sjolystinnovation/app-kit/api';
 import axiosInstance from './axiosInstance';
-import { formatApiError } from '@/lib/errorMessages';
-import { FieldValidationError } from '@/lib/errors';
 
-export type { SiteSettings };
+export type { AdminUser, EmailStats, SiteSettings };
 
 export interface AdminOrderStats {
     today: number;
@@ -33,17 +38,6 @@ export interface AdminStats {
     subscriptions?: AdminSubscriptionStats;
 }
 
-export interface AdminUser {
-    id: string;
-    userName: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    /** True for soft-deleted (scrubbed) accounts. Hidden by default; shown via the "Show deleted" toggle. */
-    isDeleted: boolean;
-    roles: string[];
-}
-
 export interface StatSnapshot {
     date: string;
     totalUsers: number;
@@ -58,17 +52,6 @@ export interface DiscoveredDevice {
     target: string;
     type: string;
     timestamp: string;
-}
-
-export interface EmailStats {
-    requests: number;
-    delivered: number;
-    hardBounces: number;
-    softBounces: number;
-    spamReports: number;
-    blocked: number;
-    invalid: number;
-    days: number;
 }
 
 /**
@@ -91,6 +74,8 @@ export interface SecuritySettings {
 }
 
 const siteSettings = createSettingsService(axiosInstance);
+const userAdmin = createAdminUsersService(axiosInstance);
+const emailStats = createEmailStatsService(axiosInstance);
 
 const AdminService = {
     async getStats(opts?: { test?: boolean }): Promise<AdminStats> {
@@ -101,47 +86,47 @@ const AdminService = {
     },
 
     async getDevices(): Promise<DiscoveredDevice[]> {
-        const res = await axiosInstance.get<DiscoveredDevice[] | { $values: DiscoveredDevice[] }>('/admin/devices');
-        const data = res.data;
-        return '$values' in data ? data.$values : data;
-    },
-
-    async getUsers(opts?: { includeDeleted?: boolean }): Promise<AdminUser[]> {
-        const res = await axiosInstance.get<AdminUser[] | { $values: AdminUser[] }>('/users', {
-            params: opts?.includeDeleted ? { includeDeleted: true } : undefined,
-        });
-        const data = res.data;
-        return '$values' in data ? data.$values : data;
-    },
-
-    async getAllRoles(): Promise<string[]> {
-        const res = await axiosInstance.get<{ name: string }[] | { $values: { name: string }[] }>('/roles');
-        const data = res.data;
-        const list = '$values' in data ? data.$values : data;
-        return list.map(r => r.name);
-    },
-
-    async assignRole(userId: string, roleName: string): Promise<void> {
-        await axiosInstance.post(`/users/${encodeURIComponent(userId)}/roles`, { role: roleName });
-    },
-
-    async removeRole(userId: string, roleName: string): Promise<void> {
-        await axiosInstance.delete(`/users/${encodeURIComponent(userId)}/roles/${encodeURIComponent(roleName)}`);
-    },
-
-    async deleteUser(userId: string): Promise<void> {
-        await axiosInstance.delete(`/users/${userId}`);
-    },
-
-    async getStatsHistory(): Promise<StatSnapshot[]> {
-        const res = await axiosInstance.get<StatSnapshot[] | { $values: StatSnapshot[] }>('/admin/stats/history');
-        const data = res.data;
-        return '$values' in data ? data.$values : data;
-    },
-
-    async getEmailStats(days = 30): Promise<EmailStats> {
-        const res = await axiosInstance.get<EmailStats>('/admin/email-stats', { params: { days } });
+        const res = await axiosInstance.get<DiscoveredDevice[]>('/admin/devices');
         return res.data;
+    },
+
+    /** The users, from AppKit.Auth's `GET /users`. Soft-deleted accounts only when `includeDeleted` is true. */
+    getUsers(includeDeleted = false): Promise<AdminUser[]> {
+        return userAdmin.getUsers(includeDeleted);
+    },
+
+    /** The roles an admin may give, from AppKit.Auth's `GET /users/roles`. */
+    getAllRoles(): Promise<string[]> {
+        return userAdmin.roles();
+    },
+
+    /** Gives the user a role, through AppKit.Auth's `POST /users/{id}/roles`. */
+    async addRole(userId: string, role: string): Promise<void> {
+        await userAdmin.addRole(userId, role);
+    },
+
+    /** Takes a role from the user, through AppKit.Auth's `DELETE /users/{id}/roles/{role}`. */
+    async removeRole(userId: string, role: string): Promise<void> {
+        await userAdmin.removeRole(userId, role);
+    },
+
+    /**
+     * Deletes another user's account on garge-api's own `DELETE /users/{id}`. AppKit.Auth's user
+     * admin endpoints have no admin delete, and `/users/{id}/account` only deletes the caller's own.
+     */
+    async deleteUser(userId: string): Promise<void> {
+        await axiosInstance.delete(`/users/${encodeURIComponent(userId)}`);
+    },
+
+    /** The daily totals for the chart, from AppKit.AdminStats's `GET /admin/stats/history`. */
+    async getStatsHistory(): Promise<StatSnapshot[]> {
+        const res = await axiosInstance.get<StatSnapshot[]>('/admin/stats/history');
+        return res.data;
+    },
+
+    /** The Brevo stats for the last `days` days, from AppKit.Email's `GET /admin/email-stats`. */
+    getEmailStats(days = 30): Promise<EmailStats> {
+        return emailStats.get(days);
     },
 
     async getAppSettings(): Promise<AppSettings> {
@@ -160,19 +145,11 @@ const AdminService = {
     },
 
     /**
-     * Saves the full set of company details on `/settings`. A validation problem throws a
-     * FieldValidationError keyed by field in camelCase. app-kit's `createSettingsService` turns every
-     * failure into one message, so the save goes through axios here to keep the per-field errors.
+     * Saves the full set of company details on `/settings`. A validation problem throws an error that
+     * `apiFieldErrors` reads the per-field messages from.
      */
-    async updateSiteSettings(data: SiteSettings): Promise<SiteSettings> {
-        try {
-            const res = await axiosInstance.put<SiteSettings>('/settings', data);
-            return res.data;
-        } catch (error: unknown) {
-            const fieldErrors = apiFieldErrors(error);
-            if (fieldErrors) throw new FieldValidationError(fieldErrors);
-            throw new Error(formatApiError(error, 'Failed to save the company details'));
-        }
+    updateSiteSettings(data: SiteSettings): Promise<SiteSettings> {
+        return siteSettings.update(data);
     },
 
     async getSecuritySettings(): Promise<SecuritySettings> {
