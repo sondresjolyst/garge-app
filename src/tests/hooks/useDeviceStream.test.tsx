@@ -4,6 +4,7 @@ import React from 'react';
 import { useDeviceStream } from '@/hooks/useDeviceStream';
 import { closeSessionPrompt, getSessionPromptOpen, SESSION_ERRORS } from '@sjolystinnovation/app-kit/session';
 import { auth, resetTestMocks } from '@sjolystinnovation/app-kit/testing';
+import { AxiosError, AxiosHeaders } from 'axios';
 
 const handlers = new Map<string, (payload: unknown) => void>();
 
@@ -36,6 +37,15 @@ vi.mock('@microsoft/signalr', () => ({
     LogLevel: { Warning: 3 },
 }));
 
+const { getTicket } = vi.hoisted(() => ({ getTicket: vi.fn() }));
+vi.mock('@/services/deviceHubService', () => ({ default: { getTicket } }));
+
+/** An axios failure with the given status, like the API client rejects with. */
+function apiFailure(status: number): AxiosError {
+    const config = { headers: new AxiosHeaders() };
+    return new AxiosError('failed', String(status), config, undefined, { status, statusText: '', data: {}, headers: {}, config });
+}
+
 vi.mock('next-auth/react', async () => (await import('@sjolystinnovation/app-kit/testing')).nextAuthMock());
 
 interface ProbeProps {
@@ -51,6 +61,8 @@ describe('useDeviceStream', () => {
     beforeEach(() => {
         resetTestMocks();
         auth.getSession.mockResolvedValue({ accessToken: 'test-token' });
+        getTicket.mockReset();
+        getTicket.mockResolvedValueOnce('ticket-1').mockResolvedValueOnce('ticket-2');
         handlers.clear();
         mockConnection.on.mockClear();
         mockConnection.start.mockClear();
@@ -125,11 +137,21 @@ describe('useDeviceStream', () => {
             mockConnection.start.mockResolvedValue(undefined);
         });
 
-        it('hands out the token without a prompt while the session is healthy', async () => {
+        it('hands out a hub ticket, not the session token, while the session is healthy', async () => {
             render(<Probe onSwitch={() => { }} />);
 
-            expect(await (await tokenFactory())()).toBe('test-token');
+            expect(await (await tokenFactory())()).toBe('ticket-1');
+            expect(getTicket).toHaveBeenCalledTimes(1);
             expect(getSessionPromptOpen()).toBe(false);
+        });
+
+        it('asks for a fresh ticket every time, so a reconnect never reuses one', async () => {
+            render(<Probe onSwitch={() => { }} />);
+            const factory = await tokenFactory();
+
+            expect(await factory()).toBe('ticket-1');
+            expect(await factory()).toBe('ticket-2');
+            expect(getTicket).toHaveBeenCalledTimes(2);
         });
 
         it.each(Object.values(SESSION_ERRORS))('opens the prompt instead of connecting after %s', async (error) => {
@@ -137,7 +159,8 @@ describe('useDeviceStream', () => {
             const factory = await tokenFactory();
             session.mockResolvedValue({ accessToken: 'stale', error } as never);
 
-            expect(await factory()).toBe('');
+            await expect(factory()).rejects.toThrow();
+            expect(getTicket).not.toHaveBeenCalled();
             expect(getSessionPromptOpen()).toBe(true);
         });
 
@@ -146,8 +169,29 @@ describe('useDeviceStream', () => {
             const factory = await tokenFactory();
             session.mockResolvedValue(null as never);
 
-            expect(await factory()).toBe('');
+            await expect(factory()).rejects.toThrow();
+            expect(getTicket).not.toHaveBeenCalled();
             expect(getSessionPromptOpen()).toBe(true);
+        });
+
+        it('opens the prompt when the ticket request answers 401', async () => {
+            render(<Probe onSwitch={() => { }} />);
+            const factory = await tokenFactory();
+            getTicket.mockReset();
+            getTicket.mockRejectedValue(apiFailure(401));
+
+            await expect(factory()).rejects.toThrow();
+            expect(getSessionPromptOpen()).toBe(true);
+        });
+
+        it('keeps the prompt closed when the ticket request fails for another reason', async () => {
+            render(<Probe onSwitch={() => { }} />);
+            const factory = await tokenFactory();
+            getTicket.mockReset();
+            getTicket.mockRejectedValue(apiFailure(500));
+
+            await expect(factory()).rejects.toThrow();
+            expect(getSessionPromptOpen()).toBe(false);
         });
 
         it('opens the prompt when the hub refuses the connection with a 401 and the session has ended', async () => {
