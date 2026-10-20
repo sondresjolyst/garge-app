@@ -1,6 +1,6 @@
 import type { LegalPageViewStrings } from '@sjolystinnovation/app-kit/legal';
 
-/** Writes the date a legal page last changed as day, month name and year, such as 17 October 2026. */
+/** Writes the dates of the legal pages and their saved versions with the day before the month, such as 17 October 2026. */
 export const LEGAL_DATE_LOCALE = 'en-GB';
 
 /** Garge's text around a legal page. The link back keeps the wording the pages had before. */
