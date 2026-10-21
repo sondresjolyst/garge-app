@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.24.1](https://github.com/sondresjolyst/garge-app/compare/v1.24.0...v1.24.1) (2026-10-21)
+
+
+### Dependencies
+
+* **npm:** bump @sjolystinnovation/app-kit to 1.3.0 ([#610](https://github.com/sondresjolyst/garge-app/issues/610)) ([b09f04f](https://github.com/sondresjolyst/garge-app/commit/b09f04ff4b8e7780bc18e57b79d5698c5baa3d42))
+* **npm:** bump `follow-redirects` from 1.16.0 to 1.16.1 ([#611](https://github.com/sondresjolyst/garge-app/issues/611)) ([193413e](https://github.com/sondresjolyst/garge-app/commit/193413e44f53f6be5d2f9f77fe8b7b93c8e7c23a))
+* **npm:** bump `vite` from 8.0.16 to 8.3.5 ([#613](https://github.com/sondresjolyst/garge-app/issues/613)) ([2825704](https://github.com/sondresjolyst/garge-app/commit/2825704afcaaa2c6a3ce9085a970703995872510))
+
 ## [1.24.0](https://github.com/sondresjolyst/garge-app/compare/v1.23.0...v1.24.0) (2026-10-18)
 
 
