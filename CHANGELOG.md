@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.24.2](https://github.com/sondresjolyst/garge-app/compare/v1.24.1...v1.24.2) (2026-10-22)
+
+
+### Bug Fixes
+
+* **shop:** state in the cart that Garge delivers only in Norway ([#614](https://github.com/sondresjolyst/garge-app/issues/614)) ([4d002d0](https://github.com/sondresjolyst/garge-app/commit/4d002d09d7fa25a727e9819c31754dfbce5332ca))
+
+
+### Dependencies
+
+* **npm:** bump next to 16.4.2 ([#616](https://github.com/sondresjolyst/garge-app/issues/616)) ([6a9323e](https://github.com/sondresjolyst/garge-app/commit/6a9323e236456f2efb6ac2493d9529a04f27c0bc))
+
 ## [1.24.1](https://github.com/sondresjolyst/garge-app/compare/v1.24.0...v1.24.1) (2026-10-21)
 
 
