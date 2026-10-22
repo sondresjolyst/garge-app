@@ -226,7 +226,7 @@ export default function CartDrawer({
                             {submitting ? 'Redirecting…' : 'Continue to Vipps'}
                         </button>
                         <p className="text-[11px] text-gray-600 text-center">
-                            By continuing you accept our{' '}
+                            We deliver only in Norway. By continuing you accept our{' '}
                             <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-sky-500 hover:text-sky-400 transition-colors">Terms of Service</Link>.
                         </p>
                     </div>

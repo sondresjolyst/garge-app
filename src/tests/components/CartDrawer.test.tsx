@@ -80,3 +80,12 @@ describe('CartDrawer phone seeding', () => {
         expect(phoneField().value).toBe('91234567')
     })
 })
+
+describe('CartDrawer checkout notice', () => {
+    // Angrerettloven § 17 wants delivery limits stated at the latest when the order starts.
+    it('states the delivery area next to the terms link', () => {
+        renderDrawer()
+        expect(screen.getByText(/We deliver only in Norway\./)).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', '/terms')
+    })
+})
