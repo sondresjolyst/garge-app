@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { CheckIcon } from '@heroicons/react/24/outline';
-import { normalizeNoPhone } from '@/lib/phone';
+import { normalizeNoPhone } from '@sjolystinnovation/app-kit/validation';
 import Modal from '@/components/Modal';
 
 export interface PaymentPhoneModalProps {

@@ -8,7 +8,7 @@ import LoadingDots from '@/components/LoadingDots';
 import TestPill from '@/components/TestPill';
 import { toast } from '@sjolystinnovation/app-kit/toast';
 import SubscriptionService, { AdminSubscription, SubscriptionInvoice } from '@/services/subscriptionService';
-import { formatNok } from '@sjolystinnovation/app-kit/payments';
+import { formatNok, parseKroner } from '@sjolystinnovation/app-kit/payments';
 import { formatDate } from '@/lib/dateUtils';
 import { statusColor } from '@/lib/statusUtils';
 import { formatApiError } from '@/lib/errorMessages';
@@ -63,8 +63,8 @@ export default function AdminSubscriptionsPage() {
         if (!refundTarget) return;
         const { subId, invoice } = refundTarget;
         const left = invoice.amountInOre - invoice.refundedInOre;
-        const amountInOre = Math.round(parseFloat(refundNok.replace(',', '.')) * 100);
-        if (!Number.isFinite(amountInOre) || amountInOre < 1 || amountInOre > left) {
+        const amountInOre = parseKroner(refundNok);
+        if (amountInOre === null || amountInOre < 1 || amountInOre > left) {
             toast.error(`Enter an amount between ${formatNok(1)} and ${formatNok(left)}.`);
             return;
         }

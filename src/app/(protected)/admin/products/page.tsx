@@ -10,7 +10,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from '@sjolystinnovation/app-kit/toast';
 import ProductService, { Product, CreateProductPayload, UpdateProductPayload } from '@/services/productService';
 import MarkdownEditor from '@/components/MarkdownEditor';
-import { formatNok } from '@sjolystinnovation/app-kit/payments';
+import { formatNok, parseKroner } from '@sjolystinnovation/app-kit/payments';
 import PriceChangePanel from '@/components/admin/PriceChangePanel';
 import { formatApiError } from '@/lib/errorMessages';
 import { Alert } from '@sjolystinnovation/app-kit/ui';
@@ -93,8 +93,8 @@ export default function AdminProductsPage() {
     }
 
     async function handleSave() {
-        const priceInOre = Math.round(parseFloat(form.priceNok) * 100);
-        if (!form.name.trim() || isNaN(priceInOre) || priceInOre < 1) {
+        const priceInOre = parseKroner(form.priceNok);
+        if (!form.name.trim() || priceInOre === null || priceInOre < 1) {
             toast.error('Name and valid price required');
             return;
         }
@@ -251,14 +251,13 @@ export default function AdminProductsPage() {
                                     <div className="relative flex-1">
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">NOK</span>
                                         <input
-                                            type="number"
+                                            type="text"
+                                            inputMode="decimal"
                                             value={form.priceNok}
                                             onChange={e => setForm(f => ({ ...f, priceNok: e.target.value }))}
                                             placeholder="Price customers pay"
                                             aria-label="Price customers pay, VAT included when VAT is on"
                                             title="Price customers pay, VAT included when VAT is on"
-                                            step="0.01"
-                                            min="0.01"
                                             className="w-full bg-gray-900/60 border border-gray-700/60 rounded-lg pl-11 pr-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60"
                                         />
                                     </div>
