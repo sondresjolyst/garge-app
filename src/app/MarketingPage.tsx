@@ -46,7 +46,7 @@ const faqs = [
     },
     {
         q: 'How do I add a device to my account?',
-        a: 'Go to your Profile page and enter the registration code printed on your device under "Add a device". The sensor will appear in your dashboard immediately.',
+        a: 'Open your dashboard, click "Add a device" and then "Get pairing code". Plug in your device and connect your phone to the Wi-Fi network with the same name as printed on the device ("Garge …"). The setup page opens by itself. If it does not, go to http://192.168.4.1. Choose your home Wi-Fi, enter its password and the pairing code, and press Connect. The device then shows up in the app, ready to be named. The code works for 15 minutes. If the setup network is gone, hold the button on the device for 5 seconds. Have you been given a device code, for example when taking over a device? Enter it under "Have a device code?" instead.',
     },
     {
         q: 'Can I access my data remotely?',
