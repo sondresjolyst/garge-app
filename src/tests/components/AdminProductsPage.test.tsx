@@ -58,7 +58,7 @@ describe('AdminProductsPage', () => {
         await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith(expect.stringContaining('Schedule a price change')))
     })
 
-    it.each([['59', 5900], ['59.50', 5950], ['0.29', 29]])('saves %s kr as %i ore', async (value, ore) => {
+    it.each([['59', 5900], ['59.50', 5950], ['59,50', 5950], ['0.29', 29]])('saves %s kr as %i ore', async (value, ore) => {
         updateProduct.mockResolvedValue(product)
         render(<AdminProductsPage />)
 

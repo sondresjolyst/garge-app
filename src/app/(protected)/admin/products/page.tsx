@@ -251,14 +251,13 @@ export default function AdminProductsPage() {
                                     <div className="relative flex-1">
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">NOK</span>
                                         <input
-                                            type="number"
+                                            type="text"
+                                            inputMode="decimal"
                                             value={form.priceNok}
                                             onChange={e => setForm(f => ({ ...f, priceNok: e.target.value }))}
                                             placeholder="Price customers pay"
                                             aria-label="Price customers pay, VAT included when VAT is on"
                                             title="Price customers pay, VAT included when VAT is on"
-                                            step="0.01"
-                                            min="0.01"
                                             className="w-full bg-gray-900/60 border border-gray-700/60 rounded-lg pl-11 pr-3 py-2 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-sky-500/60"
                                         />
                                     </div>
