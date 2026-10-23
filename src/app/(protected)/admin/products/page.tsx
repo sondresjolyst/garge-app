@@ -10,7 +10,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { toast } from '@sjolystinnovation/app-kit/toast';
 import ProductService, { Product, CreateProductPayload, UpdateProductPayload } from '@/services/productService';
 import MarkdownEditor from '@/components/MarkdownEditor';
-import { formatNok } from '@sjolystinnovation/app-kit/payments';
+import { formatNok, parseKroner } from '@sjolystinnovation/app-kit/payments';
 import PriceChangePanel from '@/components/admin/PriceChangePanel';
 import { formatApiError } from '@/lib/errorMessages';
 import { Alert } from '@sjolystinnovation/app-kit/ui';
@@ -93,8 +93,8 @@ export default function AdminProductsPage() {
     }
 
     async function handleSave() {
-        const priceInOre = Math.round(parseFloat(form.priceNok) * 100);
-        if (!form.name.trim() || isNaN(priceInOre) || priceInOre < 1) {
+        const priceInOre = parseKroner(form.priceNok);
+        if (!form.name.trim() || priceInOre === null || priceInOre < 1) {
             toast.error('Name and valid price required');
             return;
         }

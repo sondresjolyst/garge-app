@@ -58,6 +58,28 @@ describe('AdminProductsPage', () => {
         await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith(expect.stringContaining('Schedule a price change')))
     })
 
+    it.each([['59', 5900], ['59.50', 5950], ['0.29', 29]])('saves %s kr as %i ore', async (value, ore) => {
+        updateProduct.mockResolvedValue(product)
+        render(<AdminProductsPage />)
+
+        fireEvent.click(await screen.findByTitle('Edit'))
+        fireEvent.change(screen.getByLabelText(/Price customers pay/), { target: { value } })
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+        await waitFor(() => expect(updateProduct).toHaveBeenCalledWith(7, expect.objectContaining({ priceInOre: ore })))
+    })
+
+    it.each(['', '0', 'abc'])('refuses the price "%s" without calling the API', async (value) => {
+        render(<AdminProductsPage />)
+
+        fireEvent.click(await screen.findByTitle('Edit'))
+        fireEvent.change(screen.getByLabelText(/Price customers pay/), { target: { value } })
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith('Name and valid price required'))
+        expect(updateProduct).not.toHaveBeenCalled()
+    })
+
     it('opens and closes the price changes of a plan', async () => {
         render(<AdminProductsPage />)
 

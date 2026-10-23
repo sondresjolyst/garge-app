@@ -13,7 +13,7 @@ import ShopItemPhotoService from '@/services/shopItemPhotoService';
 import PhotoUploader from '@/components/PhotoUploader';
 import type { Photo } from '@/services/photoServiceFactory';
 import MarkdownEditor from '@/components/MarkdownEditor';
-import { formatNok } from '@sjolystinnovation/app-kit/payments';
+import { formatNok, parseKroner } from '@sjolystinnovation/app-kit/payments';
 
 const emptyForm = { name: '', description: '', priceNok: '', stock: '-1' };
 
@@ -83,9 +83,9 @@ export default function AdminShopPage() {
     }
 
     async function handleSave() {
-        const priceInOre = Math.round(parseFloat(form.priceNok) * 100);
+        const priceInOre = parseKroner(form.priceNok);
         const stockCount = parseInt(form.stock, 10);
-        if (!form.name.trim() || isNaN(priceInOre) || priceInOre < 1) {
+        if (!form.name.trim() || priceInOre === null || priceInOre < 1) {
             toast.error('Name and valid price required');
             return;
         }
