@@ -1,3 +1,4 @@
+import { parseKroner } from '@sjolystinnovation/app-kit/payments';
 import { z } from 'zod';
 
 /** The least notice a price increase gets, as garge-api enforces it. */
@@ -22,8 +23,14 @@ export function priceChangeSchema(currentPriceInOre: number, now: Date = new Dat
         newPrice: z
             .string()
             .trim()
-            .regex(/^\d+([.,]\d{1,2})?$/, 'Enter a price in kroner, for example 59 or 59.50.')
-            .transform(v => Math.round(Number(v.replace(',', '.')) * 100))
+            .transform((v, ctx) => {
+                const ore = parseKroner(v);
+                if (ore === null) {
+                    ctx.addIssue({ code: 'custom', message: 'Enter a price in kroner, for example 59 or 59.50.' });
+                    return z.NEVER;
+                }
+                return ore;
+            })
             .pipe(z
                 .number()
                 .int()

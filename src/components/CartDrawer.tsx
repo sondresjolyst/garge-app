@@ -7,7 +7,7 @@ import { CartLine, cartTotalInOre, removeLine, setLineQty } from '@/lib/cart';
 import { ShopItem } from '@/services/shopService';
 import { VAT_LABEL } from '@/lib/pricing';
 import { formatNok } from '@sjolystinnovation/app-kit/payments';
-import { normalizeNoPhone } from '@/lib/phone';
+import { normalizeNoPhone } from '@sjolystinnovation/app-kit/validation';
 import Drawer from '@/components/Drawer';
 
 export interface CartDrawerProps {

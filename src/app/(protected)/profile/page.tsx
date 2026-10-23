@@ -7,7 +7,7 @@ import { UserDTO } from '@/dto/UserDTO';
 import SensorService from '@/services/sensorService';
 import SwitchService from '@/services/switchService';
 import { ChevronRightIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { normalizeNoPhone } from '@/lib/phone';
+import { normalizeNoPhone } from '@sjolystinnovation/app-kit/validation';
 import { isPushSupported, isPushSubscribed, subscribeToPush, unsubscribeFromPush, sendTestNotification } from '@/services/pushNotificationService';
 import { useCanClaimDevice } from '@/hooks/useCanClaimDevice';
 import { useFeature } from '@/hooks/useFeature';
