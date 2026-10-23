@@ -647,7 +647,7 @@ const DeviceDashboard: React.FC = () => {
                         </div>
                         <div className="space-y-2.5 mb-8">
                             {[
-                                { step: '1', title: 'Add a device', desc: 'Enter the device code from your sensor or socket' },
+                                { step: '1', title: 'Add a device', desc: 'Get a pairing code and enter it on the device setup page' },
                                 { step: '2', title: 'Organize into groups', desc: 'Group devices by vehicle or location' },
                                 { step: '3', title: 'Set up automations', desc: 'Automatically control sockets based on sensor readings' },
                             ].map(item => (
