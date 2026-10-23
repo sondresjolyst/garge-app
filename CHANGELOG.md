@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.3](https://github.com/sondresjolyst/garge-app/compare/v1.24.2...v1.24.3) (2026-10-23)
+
+
+### Bug Fixes
+
+* **admin:** parse comma prices with app-kit 1.4.0 and use node 26.12.1 ([#617](https://github.com/sondresjolyst/garge-app/issues/617)) ([c431211](https://github.com/sondresjolyst/garge-app/commit/c43121187e8f408d41dee98dcfabc152a0e2e0b4))
+
 ## [1.24.2](https://github.com/sondresjolyst/garge-app/compare/v1.24.1...v1.24.2) (2026-10-22)
 
 
