@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.24.4](https://github.com/sondresjolyst/garge-app/compare/v1.24.3...v1.24.4) (2026-10-25)
+
+
+### Dependencies
+
+* **npm:** bump `postcss` from 8.5.29 to 8.5.30 ([#625](https://github.com/sondresjolyst/garge-app/issues/625)) ([3df5ec3](https://github.com/sondresjolyst/garge-app/commit/3df5ec30716e1fe656bb8a23cf5ef86e3dcbc8bf))
+* **npm:** bump `undici` from 8.12.2 to 8.12.3 ([#628](https://github.com/sondresjolyst/garge-app/issues/628)) ([f78cf22](https://github.com/sondresjolyst/garge-app/commit/f78cf223535048a720aac7e14d8c5cdadb2734c3))
+* **npm:** bump `zod` from 4.6.5 to 4.6.7 ([#626](https://github.com/sondresjolyst/garge-app/issues/626)) ([73be775](https://github.com/sondresjolyst/garge-app/commit/73be775357602ae4b84426fc3b54992b8b610f47))
+* **npm:** bump the react group with 2 updates ([#622](https://github.com/sondresjolyst/garge-app/issues/622)) ([c262964](https://github.com/sondresjolyst/garge-app/commit/c2629642c3b28f3b04d9c7963c840f76142a2ace))
+* **npm:** bump the testing group with 3 updates ([#624](https://github.com/sondresjolyst/garge-app/issues/624)) ([f1d4916](https://github.com/sondresjolyst/garge-app/commit/f1d49160b417e74baa4c861108c7bd947aaf6da1))
+
 ## [1.24.3](https://github.com/sondresjolyst/garge-app/compare/v1.24.2...v1.24.3) (2026-10-23)
 
 
