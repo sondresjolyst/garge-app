@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn, getSession } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import AuthService from '@/services/userService';
 import { getTermsVersion } from '@/services/legalService';
 import BrandLogo from '@/components/BrandLogo';
@@ -37,9 +37,16 @@ const Register: React.FC = () => {
     const [termsLoadFailed, setTermsLoadFailed] = useState(false);
     const router = useRouter();
 
+    // The session comes from the provider's own read, so a first visit sends a single session request
+    // and the sign-in after registering keeps the CSRF cookie it was given.
+    const { status } = useSession();
+    // The first settled session decides, so a visitor who is already signed in goes to the profile once.
+    const [signedInOnArrival, setSignedInOnArrival] = useState<boolean | null>(null);
+    if (signedInOnArrival === null && status !== 'loading') setSignedInOnArrival(status === 'authenticated');
+
     useEffect(() => {
-        getSession().then(s => { if (s) router.push('/profile'); });
-    }, [router]);
+        if (signedInOnArrival) router.push('/profile');
+    }, [signedInOnArrival, router]);
 
     // Sets the loaded version, or the failure, unless the page has moved on.
     const fetchTermsVersion = useCallback((isCurrent: () => boolean) => getTermsVersion().then(
