@@ -64,8 +64,7 @@ src/
 ├── hooks/        # SignalR and client state
 ├── dto/          # request and response shapes
 ├── lib/          # fetch wrappers, formatting, push helpers
-├── types/        # shared types
-└── proxy.ts      # request rewrites
+└── types/        # shared types
 ```
 
 ## Deployment
