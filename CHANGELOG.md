@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.0](https://github.com/sondresjolyst/garge-app/compare/v1.24.5...v1.25.0) (2026-10-25)
+
+
+### Features
+
+* **vat:** send the current terms version on register and edit outside sales per month ([#633](https://github.com/sondresjolyst/garge-app/issues/633)) ([6cd4697](https://github.com/sondresjolyst/garge-app/commit/6cd4697274372d3d1f7dd09b0fd95488b3f9fec0))
+
 ## [1.24.5](https://github.com/sondresjolyst/garge-app/compare/v1.24.4...v1.24.5) (2026-10-25)
 
 
