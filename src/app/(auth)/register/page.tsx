@@ -6,6 +6,7 @@ import { signIn, useSession } from 'next-auth/react';
 import AuthService from '@/services/userService';
 import { getTermsVersion } from '@/services/legalService';
 import BrandLogo from '@/components/BrandLogo';
+import LoadingDots from '@/components/LoadingDots';
 import Link from 'next/link';
 import { inputClass } from '@/components/TextInput';
 import { PasswordInput } from '@sjolystinnovation/app-kit/ui';
@@ -40,13 +41,15 @@ const Register: React.FC = () => {
     // The session comes from the provider's own read, so a first visit sends a single session request
     // and the sign-in after registering keeps the CSRF cookie it was given.
     const { status } = useSession();
-    // The first settled session decides, so a visitor who is already signed in goes to the profile once.
-    const [signedInOnArrival, setSignedInOnArrival] = useState<boolean | null>(null);
-    if (signedInOnArrival === null && status !== 'loading') setSignedInOnArrival(status === 'authenticated');
+    // The first settled session decides what the page shows, so a visitor who is already signed in
+    // never sees the form. The sign-in after registering is left to handleRegister.
+    const [view, setView] = useState<'form' | 'profile' | null>(null);
+    if (view === null && status !== 'loading') setView(status === 'authenticated' ? 'profile' : 'form');
 
+    // replace, so Back does not return to a page that only redirects again.
     useEffect(() => {
-        if (signedInOnArrival) router.push('/profile');
-    }, [signedInOnArrival, router]);
+        if (view === 'profile') router.replace('/profile');
+    }, [view, router]);
 
     // Sets the loaded version, or the failure, unless the page has moved on.
     const fetchTermsVersion = useCallback((isCurrent: () => boolean) => getTermsVersion().then(
@@ -138,101 +141,106 @@ const Register: React.FC = () => {
                 </div>
 
                 <div className="bg-gray-800/60 backdrop-blur-xl border border-gray-700/40 rounded-2xl p-8 shadow-xl">
-                    <h1 className="text-xl font-bold text-gray-100 mb-1">Create account</h1>
-                    <p className="text-sm text-gray-400 mb-6">
-                        Already have one?{' '}
-                        <Link href="/login" className="text-sky-400 hover:text-sky-300 transition-colors">Sign in</Link>
-                    </p>
-
-                    <form onSubmit={handleRegister} className="space-y-4">
-                        <div>
-                            <label className="block text-xs font-medium text-gray-400 mb-1.5">Username</label>
-                            <input className={inputClass} type="text" placeholder="username" value={userName} onChange={e => handleFieldChange('userName', setUserName, e.target.value)} onBlur={() => handleFieldBlur('userName')} />
-                            {errors.userName?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1.5">First name</label>
-                                <input className={inputClass} type="text" placeholder="First" value={firstName} onChange={e => handleFieldChange('firstName', setFirstName, e.target.value)} onBlur={() => handleFieldBlur('firstName')} />
-                                {errors.firstName?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1.5">Last name</label>
-                                <input className={inputClass} type="text" placeholder="Last" value={lastName} onChange={e => handleFieldChange('lastName', setLastName, e.target.value)} onBlur={() => handleFieldBlur('lastName')} />
-                                {errors.lastName?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-medium text-gray-400 mb-1.5">Email</label>
-                            <input className={inputClass} type="email" placeholder="you@example.com" value={email} onChange={e => handleFieldChange('email', setEmail, e.target.value)} onBlur={() => handleFieldBlur('email')} />
-                            {errors.email?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
-                        </div>
-
-                        <div>
-                            <PasswordInput
-                                label="Password"
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={e => handleFieldChange('password', setPassword, e.target.value)}
-                                onBlur={() => handleFieldBlur('password')}
-                            />
-                            {errors.password?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
-                        </div>
-
-                        {apiMessage && (
-                            <Alert variant="error">{apiMessage}</Alert>
-                        )}
-
-                        <label className="flex items-start gap-2.5 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={confirmAge16Plus}
-                                onChange={e => setConfirmAge16Plus(e.target.checked)}
-                                className="mt-0.5 h-4 w-4 rounded border-gray-600 bg-gray-800 text-sky-500 focus:ring-sky-500 focus:ring-offset-gray-900 flex-shrink-0"
-                            />
-                            <span className="text-xs text-gray-400 leading-relaxed">
-                                I confirm I am 16 or older.
-                            </span>
-                        </label>
-
-                        <label className="flex items-start gap-2.5 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={agreedToTerms}
-                                onChange={e => setAgreedToTerms(e.target.checked)}
-                                className="mt-0.5 h-4 w-4 rounded border-gray-600 bg-gray-800 text-sky-500 focus:ring-sky-500 focus:ring-offset-gray-900 flex-shrink-0"
-                            />
-                            <span className="text-xs text-gray-400 leading-relaxed">
-                                I have read and agree to the{' '}
-                                <Link href="/terms" className="text-sky-400 hover:text-sky-300 transition-colors">Terms of Service</Link>
-                                {' '}and{' '}
-                                <Link href="/privacy" className="text-sky-400 hover:text-sky-300 transition-colors">Privacy Policy</Link>
-                            </span>
-                        </label>
-
-                        <button
-                            className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all text-sm"
-                            type="submit"
-                            disabled={loading || !agreedToTerms || !confirmAge16Plus || termsVersion === null}
-                            aria-describedby={termsVersion === null ? 'register-terms-status' : undefined}
-                        >
-                            {loading ? 'Creating account…' : 'Create account'}
-                        </button>
-                        {termsVersion === null && (
-                            <p id="register-terms-status" role="status" className="text-xs text-gray-400 text-center">
-                                {termsLoadFailed ? (
-                                    <>
-                                        Could not load the terms.{' '}
-                                        <button type="button" onClick={loadTermsVersion} className="text-sky-400 hover:text-sky-300 transition-colors">
-                                            Try again
-                                        </button>
-                                    </>
-                                ) : 'Loading the terms…'}
+                    {/* The form waits for the session check, so a signed-in visitor does not see it flash. */}
+                    {view !== 'form' ? <LoadingDots height="h-131.5" /> : (
+                        <>
+                            <h1 className="text-xl font-bold text-gray-100 mb-1">Create account</h1>
+                            <p className="text-sm text-gray-400 mb-6">
+                                Already have one?{' '}
+                                <Link href="/login" className="text-sky-400 hover:text-sky-300 transition-colors">Sign in</Link>
                             </p>
-                        )}
-                    </form>
+
+                            <form onSubmit={handleRegister} className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-400 mb-1.5">Username</label>
+                                    <input className={inputClass} type="text" placeholder="username" value={userName} onChange={e => handleFieldChange('userName', setUserName, e.target.value)} onBlur={() => handleFieldBlur('userName')} />
+                                    {errors.userName?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-400 mb-1.5">First name</label>
+                                        <input className={inputClass} type="text" placeholder="First" value={firstName} onChange={e => handleFieldChange('firstName', setFirstName, e.target.value)} onBlur={() => handleFieldBlur('firstName')} />
+                                        {errors.firstName?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-400 mb-1.5">Last name</label>
+                                        <input className={inputClass} type="text" placeholder="Last" value={lastName} onChange={e => handleFieldChange('lastName', setLastName, e.target.value)} onBlur={() => handleFieldBlur('lastName')} />
+                                        {errors.lastName?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-400 mb-1.5">Email</label>
+                                    <input className={inputClass} type="email" placeholder="you@example.com" value={email} onChange={e => handleFieldChange('email', setEmail, e.target.value)} onBlur={() => handleFieldBlur('email')} />
+                                    {errors.email?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
+                                </div>
+
+                                <div>
+                                    <PasswordInput
+                                        label="Password"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={e => handleFieldChange('password', setPassword, e.target.value)}
+                                        onBlur={() => handleFieldBlur('password')}
+                                    />
+                                    {errors.password?.map((err, i) => <p key={i} className="text-xs text-red-400 mt-1">{err}</p>)}
+                                </div>
+
+                                {apiMessage && (
+                                    <Alert variant="error">{apiMessage}</Alert>
+                                )}
+
+                                <label className="flex items-start gap-2.5 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={confirmAge16Plus}
+                                        onChange={e => setConfirmAge16Plus(e.target.checked)}
+                                        className="mt-0.5 h-4 w-4 rounded border-gray-600 bg-gray-800 text-sky-500 focus:ring-sky-500 focus:ring-offset-gray-900 flex-shrink-0"
+                                    />
+                                    <span className="text-xs text-gray-400 leading-relaxed">
+                                        I confirm I am 16 or older.
+                                    </span>
+                                </label>
+
+                                <label className="flex items-start gap-2.5 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={agreedToTerms}
+                                        onChange={e => setAgreedToTerms(e.target.checked)}
+                                        className="mt-0.5 h-4 w-4 rounded border-gray-600 bg-gray-800 text-sky-500 focus:ring-sky-500 focus:ring-offset-gray-900 flex-shrink-0"
+                                    />
+                                    <span className="text-xs text-gray-400 leading-relaxed">
+                                        I have read and agree to the{' '}
+                                        <Link href="/terms" className="text-sky-400 hover:text-sky-300 transition-colors">Terms of Service</Link>
+                                        {' '}and{' '}
+                                        <Link href="/privacy" className="text-sky-400 hover:text-sky-300 transition-colors">Privacy Policy</Link>
+                                    </span>
+                                </label>
+
+                                <button
+                                    className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all text-sm"
+                                    type="submit"
+                                    disabled={loading || !agreedToTerms || !confirmAge16Plus || termsVersion === null}
+                                    aria-describedby={termsVersion === null ? 'register-terms-status' : undefined}
+                                >
+                                    {loading ? 'Creating account…' : 'Create account'}
+                                </button>
+                                {termsVersion === null && (
+                                    <p id="register-terms-status" role="status" className="text-xs text-gray-400 text-center">
+                                        {termsLoadFailed ? (
+                                            <>
+                                                Could not load the terms.{' '}
+                                                <button type="button" onClick={loadTermsVersion} className="text-sky-400 hover:text-sky-300 transition-colors">
+                                                    Try again
+                                                </button>
+                                            </>
+                                        ) : 'Loading the terms…'}
+                                    </p>
+                                )}
+                            </form>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

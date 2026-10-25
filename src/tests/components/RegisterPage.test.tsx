@@ -31,26 +31,57 @@ beforeEach(() => {
 })
 
 describe('Register session check', () => {
-    it('sends a signed-in visitor to the profile', async () => {
+    it('holds the form back while the session loads', () => {
+        setSession('loading')
+        render(<Register />)
+        expect(screen.queryByRole('heading', { name: 'Create account' })).not.toBeInTheDocument()
+        expect(screen.queryByRole('button', { name: 'Create account' })).not.toBeInTheDocument()
+        expect(navigation.router.replace).not.toHaveBeenCalled()
+    })
+
+    it('sends a signed-in visitor to the profile once without rendering the form', async () => {
         setSession(makeSession({ roles: [] }))
         render(<Register />)
-        await waitFor(() => expect(navigation.router.push).toHaveBeenCalledWith('/profile'))
-        expect(navigation.router.push).toHaveBeenCalledTimes(1)
-    })
-
-    it('keeps a visitor without a session on the page', async () => {
-        render(<Register />)
-        expect(await screen.findByRole('button', { name: 'Create account' })).toBeInTheDocument()
+        await waitFor(() => expect(navigation.router.replace).toHaveBeenCalledWith('/profile'))
+        expect(navigation.router.replace).toHaveBeenCalledTimes(1)
         expect(navigation.router.push).not.toHaveBeenCalled()
+        expect(screen.queryByRole('button', { name: 'Create account' })).not.toBeInTheDocument()
     })
 
-    it('waits for the session to settle before deciding', () => {
+    it('goes to the profile once the loading session turns out signed in', () => {
         setSession('loading')
         const { rerender } = render(<Register />)
-        expect(navigation.router.push).not.toHaveBeenCalled()
         setSession(makeSession({ roles: [] }))
         rerender(<Register />)
-        expect(navigation.router.push).toHaveBeenCalledWith('/profile')
+        expect(navigation.router.replace).toHaveBeenCalledWith('/profile')
+        expect(screen.queryByRole('button', { name: 'Create account' })).not.toBeInTheDocument()
+    })
+
+    it('shows the form to a signed-out visitor', async () => {
+        render(<Register />)
+        expect(await screen.findByRole('button', { name: 'Create account' })).toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: 'Create account' })).toBeInTheDocument()
+        expect(navigation.router.replace).not.toHaveBeenCalled()
+        expect(navigation.router.push).not.toHaveBeenCalled()
+    })
+
+    it('keeps the form when the session changes after it is shown', async () => {
+        const { rerender } = render(<Register />)
+        expect(await screen.findByRole('button', { name: 'Create account' })).toBeInTheDocument()
+        setSession(makeSession({ roles: [] }))
+        rerender(<Register />)
+        expect(screen.getByRole('button', { name: 'Create account' })).toBeInTheDocument()
+        expect(navigation.router.replace).not.toHaveBeenCalled()
+    })
+
+    it('loads the terms version while the session loads', async () => {
+        setSession('loading')
+        const { rerender } = render(<Register />)
+        await waitFor(() => expect(getTermsVersion).toHaveBeenCalled())
+        setSession(null)
+        rerender(<Register />)
+        expect(await screen.findByRole('button', { name: 'Create account' })).toBeInTheDocument()
+        expect(screen.queryByText('Loading the terms…')).not.toBeInTheDocument()
     })
 
     it('sends no session read of its own, the provider reads the session', async () => {
