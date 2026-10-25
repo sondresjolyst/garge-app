@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.5](https://github.com/sondresjolyst/garge-app/compare/v1.24.4...v1.24.5) (2026-10-25)
+
+
+### Bug Fixes
+
+* **auth:** remove the proxy auth gate so protected layouts are the only auth gate ([#630](https://github.com/sondresjolyst/garge-app/issues/630)) ([3c168c0](https://github.com/sondresjolyst/garge-app/commit/3c168c03c65401e9a2da4066b8de59d25eee763d))
+
 ## [1.24.4](https://github.com/sondresjolyst/garge-app/compare/v1.24.3...v1.24.4) (2026-10-25)
 
 
