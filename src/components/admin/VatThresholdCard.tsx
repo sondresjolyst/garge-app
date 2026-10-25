@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from '@sjolystinnovation/app-kit/toast';
-import { formatNok } from '@sjolystinnovation/app-kit/payments';
+import { formatNok, kroner } from '@sjolystinnovation/app-kit/payments';
+import { PencilSquareIcon } from '@heroicons/react/24/outline';
 import VatService, { VatThreshold } from '@/services/vatService';
 import { FieldValidationError } from '@/lib/errors';
 import {
@@ -50,6 +51,8 @@ export default function VatThresholdCard() {
     const [busy, setBusy] = useState(false);
     const [version, setVersion] = useState(0);
     const amountRef = useRef<HTMLInputElement>(null);
+    // The chosen month for the first load, which runs once and must not restart when the month changes.
+    const monthRef = useRef(month);
 
     useEffect(() => {
         let active = true;
@@ -58,8 +61,8 @@ export default function VatThresholdCard() {
                 const s = await VatService.getThreshold();
                 if (!active) return;
                 setStatus(s);
-                // The first load fills the amount for the current month. Later loads keep what is typed.
-                if (version === 0) setAmount(storedAmount(s, currentMonth(new Date())));
+                // The first load fills the amount for the chosen month. Later loads keep what is typed.
+                if (version === 0) setAmount(storedAmount(s, monthRef.current));
             } catch (e) {
                 if (active) toast.error(e instanceof Error ? e.message : 'Failed to load the VAT threshold');
             }
@@ -93,6 +96,7 @@ export default function VatThresholdCard() {
     const chooseMonth = (chosen: string) => {
         // The amount field shows what is stored for the chosen month, so the admin edits rather than adds.
         setMonth(chosen);
+        monthRef.current = chosen;
         setAmount(storedAmount(status, chosen));
         setOutsideErrors({});
     };
@@ -121,8 +125,13 @@ export default function VatThresholdCard() {
                 ? `Sales outside Garge removed for ${monthName(parsedMonth.data)}`
                 : `Sales outside Garge saved for ${monthName(parsedMonth.data)}`);
         } catch (err) {
-            if (err instanceof FieldValidationError && (err.fieldErrors.month || err.fieldErrors.amountInOre)) {
-                setOutsideErrors({ month: err.fieldErrors.month?.[0], amount: err.fieldErrors.amountInOre?.[0] });
+            if (err instanceof FieldValidationError) {
+                const { month: monthErrors, amountInOre: amountErrors, ...other } = err.fieldErrors;
+                setOutsideErrors({ month: monthErrors?.[0], amount: amountErrors?.[0] });
+                // A field error without a field on screen shows its own message, never "Validation failed".
+                const otherMessage = Object.values(other).flat()[0];
+                if (otherMessage) toast.error(otherMessage);
+                else if (!monthErrors?.length && !amountErrors?.length) toast.error('Failed to save the sales outside Garge');
             } else {
                 toast.error(err instanceof Error ? err.message : 'Something went wrong');
             }
@@ -176,7 +185,7 @@ export default function VatThresholdCard() {
                     ) : (
                         <>
                             Turnover passed 50 000 kr with sales outside Garge on {formatDate(status.crossedAt!)}.
-                            Register for VAT, then turn VAT on. VAT is owed on every sale in Garge after that, taken out of the price paid.
+                            Register for VAT, then turn VAT on. VAT is owed on every sale in Garge from that day, taken out of the price paid.
                         </>
                     )}
                 </div>
@@ -241,40 +250,41 @@ export default function VatThresholdCard() {
                     </button>
                 </form>
 
-                {/* A narrow phone scrolls the table sideways instead of clipping the Edit buttons. */}
-                <div className="overflow-x-auto">
-                    <table className="w-full min-w-max text-xs">
-                        <caption className="sr-only">Sales in and outside Garge per month, oldest first</caption>
-                        <thead>
-                            <tr className="text-left text-gray-500">
-                                <th scope="col" className="py-1.5 pr-2 font-medium">Month</th>
-                                <th scope="col" className="py-1.5 pr-2 text-right font-medium">In Garge</th>
-                                <th scope="col" className="py-1.5 pr-2 text-right font-medium">Outside Garge</th>
-                                <th scope="col" className="py-1.5"><span className="sr-only">Edit</span></th>
+                {/* The month is the edit button and a phone drops the NOK prefix from the cells, so all columns fit at 390px. */}
+                <table className="w-full text-xs">
+                    <caption className="sr-only">Sales in and outside Garge per month, oldest first. Choose a month to edit its sales outside Garge.</caption>
+                    <thead>
+                        <tr className="text-left text-gray-500">
+                            <th scope="col" className="py-1.5 pr-2 font-medium">Month</th>
+                            <th scope="col" className="py-1.5 pr-2 text-right font-medium">In Garge<span className="sm:hidden">, NOK</span></th>
+                            <th scope="col" className="py-1.5 text-right font-medium">Outside Garge<span className="sm:hidden">, NOK</span></th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800">
+                        {status.months.map(m => (
+                            <tr key={m.month} className={m.month === month ? 'bg-gray-800/40' : undefined}>
+                                <th scope="row" className="py-1.5 pr-2 text-left font-normal whitespace-nowrap">
+                                    <button
+                                        type="button"
+                                        onClick={() => editMonth(m.month)}
+                                        disabled={busy}
+                                        aria-label={`Edit sales outside Garge for ${monthName(m.month)}`}
+                                        className="inline-flex items-center gap-1 text-sky-400 hover:text-sky-300 disabled:opacity-50"
+                                    >
+                                        {monthName(m.month)}
+                                        <PencilSquareIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                                    </button>
+                                </th>
+                                <td className="py-1.5 pr-2 text-right tabular-nums text-gray-400 whitespace-nowrap">
+                                    <span className="max-sm:sr-only">NOK </span>{kroner(m.salesInOre)}
+                                </td>
+                                <td className="py-1.5 text-right tabular-nums text-gray-400 whitespace-nowrap">
+                                    <span className="max-sm:sr-only">NOK </span>{kroner(m.outsideInOre)}
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-800">
-                            {status.months.map(m => (
-                                <tr key={m.month} className={m.month === month ? 'bg-gray-800/40' : undefined}>
-                                    <th scope="row" className="py-1.5 pr-2 text-left font-normal text-gray-300 whitespace-nowrap">{monthName(m.month)}</th>
-                                    <td className="py-1.5 pr-2 text-right tabular-nums text-gray-400 whitespace-nowrap">{formatNok(m.salesInOre)}</td>
-                                    <td className="py-1.5 pr-2 text-right tabular-nums text-gray-400 whitespace-nowrap">{formatNok(m.outsideInOre)}</td>
-                                    <td className="py-1.5 text-right">
-                                        <button
-                                            type="button"
-                                            onClick={() => editMonth(m.month)}
-                                            disabled={busy}
-                                            aria-label={`Edit sales outside Garge for ${monthName(m.month)}`}
-                                            className="text-sky-400 hover:text-sky-300 disabled:opacity-50"
-                                        >
-                                            Edit
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                        ))}
+                    </tbody>
+                </table>
             </div>
 
             {status.owed.length > 0 && (

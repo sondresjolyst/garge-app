@@ -153,7 +153,7 @@ describe('VatThresholdCard', () => {
         fireEvent.change(amount, { target: { value: '12500.50' } })
         fireEvent.click(screen.getByRole('button', { name: 'Save sales outside Garge' }))
         await waitFor(() => expect(setOutsideSales).toHaveBeenCalledWith('2026-09', 1_250_050))
-        expect(await screen.findByText('NOK 12500,50')).toBeInTheDocument()
+        await waitFor(() => expect(screen.getByRole('row', { name: /Sept? 2026/ })).toHaveTextContent('NOK 12500,50'))
         expect(toastSpies.success).toHaveBeenCalledWith(expect.stringMatching(/^Sales outside Garge saved for Sept? 2026$/))
     })
 
@@ -230,6 +230,35 @@ describe('VatThresholdCard', () => {
         await waitFor(() => expect(screen.queryByText(/Register for VAT/)).not.toBeInTheDocument())
         expect(screen.getByText(/82 % of the VAT registration threshold/)).toBeInTheDocument()
         expect(getThreshold).toHaveBeenCalledTimes(1)
+    })
+
+    it('shows the message of a field error that has no field on screen', async () => {
+        getThreshold.mockResolvedValue(base)
+        setOutsideSales.mockRejectedValue(new FieldValidationError({ request: ['The request body is not valid.'] }))
+        render(<VatThresholdCard />)
+        fireEvent.change(await screen.findByLabelText('Sales outside Garge'), { target: { value: '100' } })
+        fireEvent.click(screen.getByRole('button', { name: 'Save sales outside Garge' }))
+        await waitFor(() => expect(toastSpies.error).toHaveBeenCalledWith('The request body is not valid.'))
+        expect(toastSpies.error).not.toHaveBeenCalledWith('Validation failed')
+    })
+
+    it('says the VAT is owed from the day of an outside-only crossing', async () => {
+        getThreshold.mockResolvedValue({ ...base, turnoverInOre: 5_100_000, crossingInvoiceId: null, crossedAt: '2026-09-30T10:00:00Z' })
+        render(<VatThresholdCard />)
+        expect(await screen.findByText(/VAT is owed on every sale in Garge from that day/)).toBeInTheDocument()
+    })
+
+    it('renders without months', async () => {
+        getThreshold.mockResolvedValue({ ...base, months: [] })
+        render(<VatThresholdCard />)
+        expect(await screen.findByLabelText('Month')).toHaveValue('2026-10')
+        expect(within(screen.getByRole('table')).getAllByRole('row')).toHaveLength(1)
+    })
+
+    it('fills the amount of the current month on the first load', async () => {
+        getThreshold.mockResolvedValue({ ...base, months: base.months.map(m => m.month === '2026-10' ? { ...m, outsideInOre: 12_345 } : m) })
+        render(<VatThresholdCard />)
+        await waitFor(() => expect(screen.getByLabelText('Sales outside Garge')).toHaveValue('123.45'))
     })
 
     it('shows other refused saves in a toast', async () => {

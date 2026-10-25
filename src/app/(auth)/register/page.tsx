@@ -15,6 +15,9 @@ import { registerSchema } from '@/lib/validation/registerSchema';
 import { zodFieldErrors } from '@sjolystinnovation/app-kit/validation';
 import { apiErrorCode } from '@sjolystinnovation/app-kit/api';
 
+/** The fields that show their own errors under their input. */
+const FIELDS_WITH_INPUT = new Set(['userName', 'firstName', 'lastName', 'email', 'password']);
+
 const TERMS_CHANGED_MESSAGE = 'The terms have changed. Read the new terms and accept them again.';
 
 const Register: React.FC = () => {
@@ -46,14 +49,14 @@ const Register: React.FC = () => {
 
     useEffect(() => {
         let current = true;
-        void fetchTermsVersion(() => current);
+        fetchTermsVersion(() => current);
         return () => { current = false; };
     }, [fetchTermsVersion]);
 
     const loadTermsVersion = () => {
         setTermsVersion(null);
         setTermsLoadFailed(false);
-        void fetchTermsVersion(() => true);
+        fetchTermsVersion(() => true);
     };
 
     // Live client-side validation: re-check a field once the user has touched it,
@@ -103,11 +106,14 @@ const Register: React.FC = () => {
         } catch (error: unknown) {
             if (error instanceof FieldValidationError) {
                 setErrors(error.fieldErrors);
+                // A field without its own input, such as termsVersion or acceptTerms, shows in the alert instead.
+                const leftover = Object.entries(error.fieldErrors).find(([field, messages]) => !FIELDS_WITH_INPUT.has(field) && messages.length > 0);
+                setApiMessage(leftover ? leftover[1][0] : '');
             } else if (apiErrorCode(error) === 'termsChanged') {
                 // The user has to read and accept the new terms, and the next submit sends their version.
                 setAgreedToTerms(false);
                 setApiMessage(TERMS_CHANGED_MESSAGE);
-                void loadTermsVersion();
+                loadTermsVersion();
             } else if (error instanceof Error) {
                 setApiMessage(error.message);
             } else {
@@ -212,7 +218,7 @@ const Register: React.FC = () => {
                                 {termsLoadFailed ? (
                                     <>
                                         Could not load the terms.{' '}
-                                        <button type="button" onClick={() => void loadTermsVersion()} className="text-sky-400 hover:text-sky-300 transition-colors">
+                                        <button type="button" onClick={loadTermsVersion} className="text-sky-400 hover:text-sky-300 transition-colors">
                                             Try again
                                         </button>
                                     </>

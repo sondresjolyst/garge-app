@@ -18,8 +18,16 @@ describe('VatService.setOutsideSales', () => {
         const threshold = { turnoverInOre: 0, months: [] }
         axiosSpies.put.mockResolvedValueOnce({ data: threshold })
 
-        expect(await VatService.setOutsideSales('2026-09', 1_250_050)).toBe(threshold)
+        expect(await VatService.setOutsideSales('2026-09', 1_250_050)).toEqual(threshold)
         expect(axiosSpies.put).toHaveBeenCalledWith('/admin/vat/outside-sales', { month: '2026-09', amountInOre: 1_250_050 })
+    })
+
+    it('gives an empty months list when an answer leaves it out', async () => {
+        axiosSpies.get.mockResolvedValueOnce({ data: { turnoverInOre: 0 } })
+        axiosSpies.put.mockResolvedValueOnce({ data: { turnoverInOre: 0, months: null } })
+
+        expect((await VatService.getThreshold()).months).toEqual([])
+        expect((await VatService.setOutsideSales('2026-09', 0)).months).toEqual([])
     })
 
     it('turns the field errors of a refused save into a FieldValidationError', async () => {

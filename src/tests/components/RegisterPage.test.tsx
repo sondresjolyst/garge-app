@@ -79,20 +79,20 @@ describe('Register — live client-side validation', () => {
     })
 })
 
-describe('Register — typed error surfacing on submit', () => {
-    /** Waits for the terms version, fills the form with valid values and ticks both required consent boxes. */
-    async function fillValidForm() {
-        await waitFor(() => expect(screen.queryByText('Loading the terms…')).not.toBeInTheDocument())
-        fireEvent.change(screen.getByPlaceholderText('username'), { target: { value: 'ada' } })
-        fireEvent.change(screen.getByPlaceholderText('First'), { target: { value: 'Ada' } })
-        fireEvent.change(screen.getByPlaceholderText('Last'), { target: { value: 'Lovelace' } })
-        fireEvent.change(screen.getByPlaceholderText('you@example.com'), { target: { value: 'ada@example.com' } })
-        fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'Sup3r!secret' } })
-        const [age, terms] = screen.getAllByRole('checkbox')
-        fireEvent.click(age)
-        fireEvent.click(terms)
-    }
+/** Waits for the terms version, fills the form with valid values and ticks both required consent boxes. */
+async function fillValidForm() {
+    await waitFor(() => expect(screen.queryByText('Loading the terms…')).not.toBeInTheDocument())
+    fireEvent.change(screen.getByPlaceholderText('username'), { target: { value: 'ada' } })
+    fireEvent.change(screen.getByPlaceholderText('First'), { target: { value: 'Ada' } })
+    fireEvent.change(screen.getByPlaceholderText('Last'), { target: { value: 'Lovelace' } })
+    fireEvent.change(screen.getByPlaceholderText('you@example.com'), { target: { value: 'ada@example.com' } })
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'Sup3r!secret' } })
+    const [age, terms] = screen.getAllByRole('checkbox')
+    fireEvent.click(age)
+    fireEvent.click(terms)
+}
 
+describe('Register — typed error surfacing on submit', () => {
     it('renders per-field errors from a FieldValidationError, not a raw JSON string', async () => {
         register.mockRejectedValueOnce(
             new FieldValidationError({
@@ -120,6 +120,36 @@ describe('Register — typed error surfacing on submit', () => {
 
         // signIn is not attempted when registration fails.
         expect(auth.signIn).not.toHaveBeenCalled()
+    })
+
+    it.each([
+        ['termsVersion', 'The terms version is required.'],
+        ['acceptTerms', 'You must accept the terms.'],
+        ['confirmAge16Plus', 'You must be 16 or older.'],
+        ['somethingNew', 'Something new is wrong.'],
+    ])('shows a field error for %s, which has no input, in the alert', async (field, message) => {
+        register.mockRejectedValueOnce(new FieldValidationError({ email: ['Email already taken.'], [field]: [message] }))
+        render(<Register />)
+        await fillValidForm()
+
+        fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
+
+        expect(await screen.findByText(message)).toBeInTheDocument()
+        expect(screen.getByText('Email already taken.')).toBeInTheDocument()
+    })
+
+    it('clears the alert when every field error has its own input', async () => {
+        register
+            .mockRejectedValueOnce(new FieldValidationError({ acceptTerms: ['You must accept the terms.'] }))
+            .mockRejectedValueOnce(new FieldValidationError({ email: ['Email already taken.'] }))
+        render(<Register />)
+        await fillValidForm()
+        fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
+        expect(await screen.findByText('You must accept the terms.')).toBeInTheDocument()
+
+        fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
+        expect(await screen.findByText('Email already taken.')).toBeInTheDocument()
+        expect(screen.queryByText('You must accept the terms.')).not.toBeInTheDocument()
     })
 
     it('shows a generic alert message when a plain Error is thrown', async () => {
@@ -154,18 +184,6 @@ describe('Register — typed error surfacing on submit', () => {
 })
 
 describe('Register terms version', () => {
-    async function fillValidForm() {
-        await waitFor(() => expect(screen.queryByText('Loading the terms…')).not.toBeInTheDocument())
-        fireEvent.change(screen.getByPlaceholderText('username'), { target: { value: 'ada' } })
-        fireEvent.change(screen.getByPlaceholderText('First'), { target: { value: 'Ada' } })
-        fireEvent.change(screen.getByPlaceholderText('Last'), { target: { value: 'Lovelace' } })
-        fireEvent.change(screen.getByPlaceholderText('you@example.com'), { target: { value: 'ada@example.com' } })
-        fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'Sup3r!secret' } })
-        const [age, terms] = screen.getAllByRole('checkbox')
-        fireEvent.click(age)
-        fireEvent.click(terms)
-    }
-
     const termsChanged = () => Object.assign(
         new Error('The terms have changed. Read the new terms and accept them again.'),
         { errorCode: 'termsChanged' },

@@ -22,7 +22,8 @@ export type LegalPage = AppKitLegalPage<LegalKey>;
 
 /**
  * The version of the current terms, which registration sends back when the user accepts them.
- * A missing terms page gives NO_TERMS_VERSION. Any other failure throws, so the form waits.
+ * Any 404 gives NO_TERMS_VERSION, since garge-api answers 404 when there is no terms page and then
+ * accepts any version. Any other failure throws, so the form waits.
  */
 export async function getTermsVersion(): Promise<string> {
     try {
