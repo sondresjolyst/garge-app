@@ -1,5 +1,7 @@
 import axiosInstance from '@/services/axiosInstance';
 import { formatApiError } from '@/lib/errorMessages';
+import { apiFieldErrors } from '@sjolystinnovation/app-kit/api';
+import { FieldValidationError } from '@/lib/errors';
 
 export interface VatOwedSale {
     invoiceId: number;
@@ -11,15 +13,24 @@ export interface VatOwedSale {
     replacementInvoiceId: number | null;
 }
 
+/** One calendar month of turnover, `month` as yyyy-MM. */
+export interface VatMonth {
+    month: string;
+    salesInOre: number;
+    outsideInOre: number;
+}
+
 export interface VatThreshold {
     turnoverInOre: number;
-    otherTurnoverInOre: number;
     thresholdInOre: number;
     vatEnabled: boolean;
+    /** Null while crossedAt is set when sales outside Garge alone passed the threshold. */
     crossingInvoiceId: number | null;
     crossedAt: string | null;
     owedVatInOre: number;
     owed: VatOwedSale[];
+    /** The last 13 months, oldest first. */
+    months: VatMonth[];
 }
 
 async function download(path: string, fileName: string, failure: string): Promise<void> {
@@ -47,11 +58,14 @@ const VatService = {
         }
     },
 
-    async setOtherTurnover(otherTurnoverInOre: number): Promise<void> {
+    /** Sets the sales outside Garge for one month. 0 removes the month. Answers with the new threshold. */
+    async setOutsideSales(month: string, amountInOre: number): Promise<VatThreshold> {
         try {
-            await axiosInstance.put('/admin/vat/other-turnover', { otherTurnoverInOre });
+            return (await axiosInstance.put<VatThreshold>('/admin/vat/outside-sales', { month, amountInOre })).data;
         } catch (error: unknown) {
-            throw new Error(formatApiError(error, 'Failed to save other turnover'));
+            const fieldErrors = apiFieldErrors(error);
+            if (fieldErrors) throw new FieldValidationError(fieldErrors);
+            throw new Error(formatApiError(error, 'Failed to save the sales outside Garge'));
         }
     },
 
