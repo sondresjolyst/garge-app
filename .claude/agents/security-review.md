@@ -10,7 +10,7 @@ You are a security reviewer for garge-app, a Next.js 16 App Router frontend.
 ### Authentication and route protection
 - All routes under `(protected)` must be covered by the layout's auth guard. Verify no route accidentally sits outside this group.
 - Check that `useSession()` is used correctly in client components — never trust client-side session data alone for sensitive actions; the API enforces auth server-side.
-- Confirm that `middleware.ts` correctly intercepts unauthenticated requests to protected paths.
+- Confirm that `ProtectedGate` in `src/app/(protected)/layout.tsx` sends signed-out visitors to the login page, and that `RoleGate` in `src/app/(protected)/admin/layout.tsx` keeps non-admins out. There is no request proxy, by design.
 - next-auth callbacks: ensure `jwt` and `session` callbacks do not expose sensitive fields (e.g., raw passwords, internal IDs that should be opaque).
 
 ### Axios and API communication
