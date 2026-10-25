@@ -285,6 +285,20 @@ describe('Register — typed error surfacing on submit', () => {
         expect(navigation.router.refresh).not.toHaveBeenCalled()
     })
 
+    it('sends the user to sign in by hand when the sign-in gives no answer', async () => {
+        register.mockResolvedValueOnce({ message: 'ok' })
+        auth.signIn.mockResolvedValueOnce(undefined)
+        render(<Register />)
+        await fillValidForm()
+
+        fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
+
+        await waitFor(() => expect(navigation.router.push).toHaveBeenCalledWith('/login'))
+        expect(auth.signIn).toHaveBeenCalledTimes(1)
+        expect(navigation.router.push).toHaveBeenCalledTimes(1)
+        expect(navigation.router.refresh).not.toHaveBeenCalled()
+    })
+
     it('sends the user to sign in by hand when the sign-in is refused for CSRF twice', async () => {
         register.mockResolvedValueOnce({ message: 'ok' })
         auth.signIn.mockResolvedValueOnce(csrfRefusal).mockResolvedValueOnce(csrfRefusal)
