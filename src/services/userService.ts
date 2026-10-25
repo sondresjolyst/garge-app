@@ -3,7 +3,7 @@ import publicClient from '@/services/publicClient';
 import { UserDTO } from '@/dto/UserDTO';
 import { getSession } from 'next-auth/react';
 import { formatApiError } from '@/lib/errorMessages';
-import { apiFieldErrors, createUserService } from '@sjolystinnovation/app-kit/api';
+import { apiErrorCode, apiFieldErrors, createUserService } from '@sjolystinnovation/app-kit/api';
 import { zodFieldErrors } from '@sjolystinnovation/app-kit/validation';
 import { FieldValidationError } from '@/lib/errors';
 import { registerSchema } from '@/lib/validation/registerSchema';
@@ -63,7 +63,9 @@ const UserService = {
         } catch (error: unknown) {
             const fieldErrors = apiFieldErrors(error);
             if (fieldErrors) throw new FieldValidationError(fieldErrors);
-            throw new Error(formatApiError(error, 'Failed to register'));
+            // A refusal such as termsChanged keeps the API's code for apiErrorCode.
+            const errorCode = apiErrorCode(error);
+            throw Object.assign(new Error(formatApiError(error, 'Failed to register')), errorCode ? { errorCode } : {});
         }
     },
 

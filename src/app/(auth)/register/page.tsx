@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn, getSession } from 'next-auth/react';
 import AuthService from '@/services/userService';
+import { getTermsVersion } from '@/services/legalService';
 import BrandLogo from '@/components/BrandLogo';
 import Link from 'next/link';
 import { inputClass } from '@/components/TextInput';
@@ -12,8 +13,12 @@ import { Alert } from '@sjolystinnovation/app-kit/ui';
 import { FieldValidationError, type FieldErrors } from '@/lib/errors';
 import { registerSchema } from '@/lib/validation/registerSchema';
 import { zodFieldErrors } from '@sjolystinnovation/app-kit/validation';
+import { apiErrorCode } from '@sjolystinnovation/app-kit/api';
 
-const TERMS_VERSION = 'v1-2026-05';
+/** The fields that show their own errors under their input. */
+const FIELDS_WITH_INPUT = new Set(['userName', 'firstName', 'lastName', 'email', 'password']);
+
+const TERMS_CHANGED_MESSAGE = 'The terms have changed. Read the new terms and accept them again.';
 
 const Register: React.FC = () => {
     const [userName, setUserName] = useState('');
@@ -27,11 +32,32 @@ const Register: React.FC = () => {
     const [touched, setTouched] = useState<Record<string, boolean>>({});
     const [apiMessage, setApiMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    // The version of the terms the user reads now. Registration sends it back, so it has to load first.
+    const [termsVersion, setTermsVersion] = useState<string | null>(null);
+    const [termsLoadFailed, setTermsLoadFailed] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
         getSession().then(s => { if (s) router.push('/profile'); });
     }, [router]);
+
+    // Sets the loaded version, or the failure, unless the page has moved on.
+    const fetchTermsVersion = useCallback((isCurrent: () => boolean) => getTermsVersion().then(
+        version => { if (isCurrent()) setTermsVersion(version); },
+        () => { if (isCurrent()) setTermsLoadFailed(true); },
+    ), []);
+
+    useEffect(() => {
+        let current = true;
+        fetchTermsVersion(() => current);
+        return () => { current = false; };
+    }, [fetchTermsVersion]);
+
+    const loadTermsVersion = () => {
+        setTermsVersion(null);
+        setTermsLoadFailed(false);
+        fetchTermsVersion(() => true);
+    };
 
     // Live client-side validation: re-check a field once the user has touched it,
     // so password-rule feedback appears before the server round trip.
@@ -64,14 +90,14 @@ const Register: React.FC = () => {
 
     const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!agreedToTerms || !confirmAge16Plus) return;
+        if (!agreedToTerms || !confirmAge16Plus || termsVersion === null) return;
         setLoading(true);
         try {
             await AuthService.register({
                 userName, firstName, lastName, email, password,
                 confirmAge16Plus,
                 acceptTerms: agreedToTerms,
-                termsVersion: TERMS_VERSION,
+                termsVersion,
             });
             setErrors({});
             const result = await signIn('credentials', { redirect: true, email, password });
@@ -80,6 +106,14 @@ const Register: React.FC = () => {
         } catch (error: unknown) {
             if (error instanceof FieldValidationError) {
                 setErrors(error.fieldErrors);
+                // A field without its own input, such as termsVersion or acceptTerms, shows in the alert instead.
+                const leftover = Object.entries(error.fieldErrors).find(([field, messages]) => !FIELDS_WITH_INPUT.has(field) && messages.length > 0);
+                setApiMessage(leftover ? leftover[1][0] : '');
+            } else if (apiErrorCode(error) === 'termsChanged') {
+                // The user has to read and accept the new terms, and the next submit sends their version.
+                setAgreedToTerms(false);
+                setApiMessage(TERMS_CHANGED_MESSAGE);
+                loadTermsVersion();
             } else if (error instanceof Error) {
                 setApiMessage(error.message);
             } else {
@@ -174,10 +208,23 @@ const Register: React.FC = () => {
                         <button
                             className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all text-sm"
                             type="submit"
-                            disabled={loading || !agreedToTerms || !confirmAge16Plus}
+                            disabled={loading || !agreedToTerms || !confirmAge16Plus || termsVersion === null}
+                            aria-describedby={termsVersion === null ? 'register-terms-status' : undefined}
                         >
                             {loading ? 'Creating account…' : 'Create account'}
                         </button>
+                        {termsVersion === null && (
+                            <p id="register-terms-status" role="status" className="text-xs text-gray-400 text-center">
+                                {termsLoadFailed ? (
+                                    <>
+                                        Could not load the terms.{' '}
+                                        <button type="button" onClick={loadTermsVersion} className="text-sky-400 hover:text-sky-300 transition-colors">
+                                            Try again
+                                        </button>
+                                    </>
+                                ) : 'Loading the terms…'}
+                            </p>
+                        )}
                     </form>
                 </div>
             </div>

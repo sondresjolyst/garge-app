@@ -15,7 +15,7 @@ beforeEach(() => {
     publicGet.mockReset()
     publicGet.mockImplementation(async (path: string) => {
         const key = /^\/content\/legal\/(\w+)\?locale=en$/.exec(path)?.[1]
-        return key && saved[key] ? { key, locale: 'en', title: key, bodyMarkdown: '', updatedAt: saved[key] } : null
+        return key && saved[key] ? { key, locale: 'en', title: key, bodyMarkdown: '', updatedAt: saved[key], version: 'v1' } : null
     })
 })
 

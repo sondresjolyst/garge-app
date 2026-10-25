@@ -131,6 +131,26 @@ describe('UserService.register', () => {
             }
         }
     })
+
+    it('keeps the termsChanged code of a refused registration', async () => {
+        axiosSpies.post.mockRejectedValueOnce(refusedWith(409, {
+            code: 'termsChanged', message: 'The terms have changed. Read the new terms and accept them again.',
+        }))
+
+        const error = await UserService.register(validRegistration).catch((e: unknown) => e)
+
+        expect(error).not.toBeInstanceOf(FieldValidationError)
+        expect(apiErrorCode(error)).toBe('termsChanged')
+    })
+
+    it('gives no code for a refusal without one', async () => {
+        axiosSpies.post.mockRejectedValueOnce(refusedWith(500, {}))
+
+        const error = await UserService.register(validRegistration).catch((e: unknown) => e)
+
+        expect(error).toBeInstanceOf(Error)
+        expect(apiErrorCode(error)).toBeUndefined()
+    })
 })
 
 describe('UserService.updatePreferences', () => {

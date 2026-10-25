@@ -12,8 +12,8 @@ import LegalPagesCard from '@/components/admin/LegalPagesCard'
 
 beforeEach(() => {
     listAll.mockReset().mockResolvedValue([
-        { key: 'terms', locale: 'en', title: 'Terms of Service', bodyMarkdown: '## 1. About us', updatedAt: '2026-10-17T08:00:00Z' },
-        { key: 'cookies', locale: 'en', title: 'Cookie Policy', bodyMarkdown: '## What are cookies?', updatedAt: '2026-10-17T08:00:00Z' },
+        { key: 'terms', locale: 'en', title: 'Terms of Service', bodyMarkdown: '## 1. About us', updatedAt: '2026-10-17T08:00:00Z', version: 'v-2026-10-17' },
+        { key: 'cookies', locale: 'en', title: 'Cookie Policy', bodyMarkdown: '## What are cookies?', updatedAt: '2026-10-17T08:00:00Z', version: 'v-2026-10-17' },
     ])
     save.mockReset().mockResolvedValue(undefined)
     listRevisions.mockReset().mockResolvedValue([])

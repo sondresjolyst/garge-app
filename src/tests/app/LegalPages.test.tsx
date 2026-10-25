@@ -10,7 +10,7 @@ import PrivacyPage from '@/app/privacy/page'
 import CookiesPage from '@/app/cookies/page'
 
 const page = (key: LegalPage['key'], title: string, bodyMarkdown: string): LegalPage =>
-    ({ key, locale: 'en', title, bodyMarkdown, updatedAt: '2026-10-17T08:00:00Z' })
+    ({ key, locale: 'en', title, bodyMarkdown, updatedAt: '2026-10-17T08:00:00Z', version: 'v-2026-10-17' })
 
 beforeEach(() => publicGet.mockReset())
 
