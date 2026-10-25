@@ -12,17 +12,37 @@ const withError = (error?: SessionError) => makeSession({ roles: [], error })
 describe('login page', () => {
     beforeEach(resetTestMocks)
 
-    it('sends a signed-in user to the start page', async () => {
+    it('sends a signed-in user to the profile without showing the form', async () => {
         auth.getSession.mockResolvedValue(withError())
         render(<Login />)
-        await waitFor(() => expect(navigation.router.push).toHaveBeenCalledWith('/'))
+        await waitFor(() => expect(navigation.router.replace).toHaveBeenCalledWith('/profile'))
+        expect(navigation.router.push).not.toHaveBeenCalled()
+        expect(screen.queryByRole('heading', { name: 'Welcome back' })).not.toBeInTheDocument()
+    })
+
+    it('shows the form only once the session check has settled', async () => {
+        let settle: (value: null) => void = () => { }
+        auth.getSession.mockReturnValue(new Promise((resolve) => { settle = resolve }))
+        render(<Login />)
+
+        expect(screen.queryByRole('heading', { name: 'Welcome back' })).not.toBeInTheDocument()
+        settle(null)
+        expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
     })
 
     it('stays on the login page when the session has ended', async () => {
         auth.getSession.mockResolvedValue(withError(SESSION_ERRORS.refreshRejected))
         render(<Login />)
-        await new Promise((r) => setTimeout(r, 50))
+        expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
+        expect(navigation.router.replace).not.toHaveBeenCalled()
         expect(navigation.router.push).not.toHaveBeenCalled()
+    })
+
+    it('shows the form when the session check fails', async () => {
+        auth.getSession.mockRejectedValue(new Error('network'))
+        render(<Login />)
+        expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
+        expect(navigation.router.replace).not.toHaveBeenCalled()
     })
 
     it('keeps the logo, the title, the register link and the forgot password link', async () => {
@@ -30,22 +50,22 @@ describe('login page', () => {
         render(<Login />)
 
         expect(screen.getByAltText('Garge')).toBeInTheDocument()
-        expect(screen.getByRole('heading', { level: 1, name: 'Welcome back' })).toBeInTheDocument()
+        expect(await screen.findByRole('heading', { level: 1, name: 'Welcome back' })).toBeInTheDocument()
         expect(screen.getByRole('link', { name: 'Create one' })).toHaveAttribute('href', '/register')
         expect(screen.getByRole('link', { name: 'Forgot your password?' })).toHaveAttribute('href', '/reset-password')
         await waitFor(() => expect(auth.getSession).toHaveBeenCalled())
     })
 
-    it('signs in and goes to the start page', async () => {
+    it('signs in and goes to the profile', async () => {
         auth.getSession.mockResolvedValue(null)
         auth.signIn.mockResolvedValue({ ok: true, error: null, status: 200, url: null })
         render(<Login />)
 
-        fireEvent.change(screen.getByLabelText(/Email/), { target: { value: 'ada@garge.no' } })
+        fireEvent.change(await screen.findByLabelText(/Email/), { target: { value: 'ada@garge.no' } })
         fireEvent.change(screen.getByLabelText(/^Password/), { target: { value: 'secret' } })
         fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
 
-        await waitFor(() => expect(navigation.router.push).toHaveBeenCalledWith('/'))
+        await waitFor(() => expect(navigation.router.push).toHaveBeenCalledWith('/profile'))
         expect(auth.signIn).toHaveBeenCalledWith('credentials', { email: 'ada@garge.no', password: 'secret', redirect: false })
         expect(navigation.router.refresh).toHaveBeenCalled()
     })
@@ -55,7 +75,7 @@ describe('login page', () => {
         auth.signIn.mockResolvedValue({ ok: false, error: 'CredentialsSignin', status: 401, url: null })
         render(<Login />)
 
-        fireEvent.change(screen.getByLabelText(/Email/), { target: { value: 'ada@garge.no' } })
+        fireEvent.change(await screen.findByLabelText(/Email/), { target: { value: 'ada@garge.no' } })
         fireEvent.change(screen.getByLabelText(/^Password/), { target: { value: 'wrong' } })
         fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
 
