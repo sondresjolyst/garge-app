@@ -15,11 +15,19 @@ import { FieldValidationError, type FieldErrors } from '@/lib/errors';
 import { registerSchema } from '@/lib/validation/registerSchema';
 import { zodFieldErrors } from '@sjolystinnovation/app-kit/validation';
 import { apiErrorCode } from '@sjolystinnovation/app-kit/api';
+import { isTerminalSessionError } from '@sjolystinnovation/app-kit/session';
 
 /** The fields that show their own errors under their input. */
 const FIELDS_WITH_INPUT = new Set(['userName', 'firstName', 'lastName', 'email', 'password']);
 
 const TERMS_CHANGED_MESSAGE = 'The terms have changed. Read the new terms and accept them again.';
+
+// next-auth answers a stale CSRF token with its own sign-in page and ?csrf=true, and calls it a success.
+function refusedForCsrf(url: string | null | undefined): boolean {
+    if (!url) return false;
+    const parsed = new URL(url, window.location.origin);
+    return parsed.pathname.endsWith('/signin') && parsed.searchParams.get('csrf') === 'true';
+}
 
 const Register: React.FC = () => {
     const [userName, setUserName] = useState('');
@@ -40,11 +48,13 @@ const Register: React.FC = () => {
 
     // The session comes from the provider's own read, so a first visit sends a single session request
     // and the sign-in after registering keeps the CSRF cookie it was given.
-    const { status } = useSession();
+    const { data: session, status } = useSession();
     // The first settled session decides what the page shows, so a visitor who is already signed in
     // never sees the form. The sign-in after registering is left to handleRegister.
     const [view, setView] = useState<'form' | 'profile' | null>(null);
-    if (view === null && status !== 'loading') setView(status === 'authenticated' ? 'profile' : 'form');
+    if (view === null && status !== 'loading') {
+        setView(status === 'authenticated' && !isTerminalSessionError(session?.error) ? 'profile' : 'form');
+    }
 
     // replace, so Back does not return to a page that only redirects again.
     useEffect(() => {
@@ -110,9 +120,14 @@ const Register: React.FC = () => {
                 termsVersion,
             });
             setErrors({});
-            const result = await signIn('credentials', { redirect: true, email, password });
-            if (result?.error) { setApiMessage(result.error); setLoading(false); }
-            else router.push('/profile');
+            const result = await signIn('credentials', { redirect: false, email, password });
+            // The account exists now, so a refused sign-in sends the user to sign in by hand.
+            if (result?.error || !result?.ok || refusedForCsrf(result.url)) {
+                router.push('/login');
+                return;
+            }
+            router.push('/profile');
+            router.refresh();
         } catch (error: unknown) {
             if (error instanceof FieldValidationError) {
                 setErrors(error.fieldErrors);

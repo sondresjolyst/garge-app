@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { auth, makeSession, navigation, resetTestMocks, setSession } from '@sjolystinnovation/app-kit/testing'
+import { SESSION_ERRORS } from '@sjolystinnovation/app-kit/session'
 import { FieldValidationError } from '@/lib/errors'
 
 const { register, getTermsVersion } = vi.hoisted(() => ({
@@ -57,6 +58,14 @@ describe('Register session check', () => {
         expect(screen.queryByRole('button', { name: 'Create account' })).not.toBeInTheDocument()
     })
 
+    it('shows the form when the session has ended', async () => {
+        setSession(makeSession({ roles: [], error: SESSION_ERRORS.refreshRejected }))
+        render(<Register />)
+        expect(await screen.findByRole('button', { name: 'Create account' })).toBeInTheDocument()
+        expect(navigation.router.replace).not.toHaveBeenCalled()
+    })
+
+    // next-auth reports a failed session read as no session.
     it('shows the form to a signed-out visitor', async () => {
         render(<Register />)
         expect(await screen.findByRole('button', { name: 'Create account' })).toBeInTheDocument()
@@ -224,22 +233,54 @@ describe('Register — typed error surfacing on submit', () => {
         )
     })
 
-    it('signs in after a successful registration', async () => {
+    it('signs in after a successful registration and goes to the profile once', async () => {
         register.mockResolvedValueOnce({ message: 'ok' })
-        auth.signIn.mockResolvedValueOnce({ ok: true })
+        auth.signIn.mockResolvedValueOnce({ ok: true, error: null, status: 200, url: 'http://localhost:3000/register' })
         render(<Register />)
         await fillValidForm()
 
         fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
 
-        await waitFor(() => expect(register).toHaveBeenCalledTimes(1))
-        await waitFor(() =>
-            expect(auth.signIn).toHaveBeenCalledWith('credentials', {
-                redirect: true,
-                email: 'ada@example.com',
-                password: 'Sup3r!secret',
-            })
-        )
+        await waitFor(() => expect(navigation.router.push).toHaveBeenCalledWith('/profile'))
+        expect(auth.signIn).toHaveBeenCalledWith('credentials', {
+            redirect: false,
+            email: 'ada@example.com',
+            password: 'Sup3r!secret',
+        })
+        expect(navigation.router.push).toHaveBeenCalledTimes(1)
+        expect(navigation.router.refresh).toHaveBeenCalledTimes(1)
+        expect(navigation.router.replace).not.toHaveBeenCalled()
+    })
+
+    it('does not redirect again when the session turns signed in after the sign-in', async () => {
+        register.mockResolvedValueOnce({ message: 'ok' })
+        auth.signIn.mockResolvedValueOnce({ ok: true, error: null, status: 200, url: 'http://localhost:3000/register' })
+        const { rerender } = render(<Register />)
+        await fillValidForm()
+
+        fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
+        await waitFor(() => expect(navigation.router.push).toHaveBeenCalledWith('/profile'))
+        setSession(makeSession({ roles: [] }))
+        rerender(<Register />)
+
+        expect(navigation.router.replace).not.toHaveBeenCalled()
+        expect(navigation.router.push).toHaveBeenCalledTimes(1)
+    })
+
+    it.each([
+        ['wrong credentials', { ok: false, error: 'CredentialsSignin', status: 401, url: null }],
+        ['a stale CSRF token', { ok: true, error: null, status: 200, url: 'http://localhost:3000/api/auth/signin?csrf=true' }],
+    ])('sends the user to sign in by hand when the sign-in after registering is refused for %s', async (_, answer) => {
+        register.mockResolvedValueOnce({ message: 'ok' })
+        auth.signIn.mockResolvedValueOnce(answer)
+        render(<Register />)
+        await fillValidForm()
+
+        fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
+
+        await waitFor(() => expect(navigation.router.push).toHaveBeenCalledWith('/login'))
+        expect(navigation.router.push).toHaveBeenCalledTimes(1)
+        expect(navigation.router.refresh).not.toHaveBeenCalled()
     })
 })
 
