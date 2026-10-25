@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.2](https://github.com/sondresjolyst/garge-app/compare/v1.25.1...v1.25.2) (2026-10-25)
+
+
+### Bug Fixes
+
+* **auth:** use the app-kit credentials sign-in ([#638](https://github.com/sondresjolyst/garge-app/issues/638)) ([9e6935b](https://github.com/sondresjolyst/garge-app/commit/9e6935bed7ae59a6f904bb3e0a68c60830302799))
+
 ## [1.25.1](https://github.com/sondresjolyst/garge-app/compare/v1.25.0...v1.25.1) (2026-10-25)
 
 
