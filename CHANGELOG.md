@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.25.1](https://github.com/sondresjolyst/garge-app/compare/v1.25.0...v1.25.1) (2026-10-25)
+
+
+### Bug Fixes
+
+* **auth:** read the login page session from the session provider ([#635](https://github.com/sondresjolyst/garge-app/issues/635)) ([ddbf6ad](https://github.com/sondresjolyst/garge-app/commit/ddbf6ad7ac14fb0281737b54d2d1f865ecb81af3)), closes [#631](https://github.com/sondresjolyst/garge-app/issues/631)
+* **register:** hold the form until the session check settles ([#637](https://github.com/sondresjolyst/garge-app/issues/637)) ([f040767](https://github.com/sondresjolyst/garge-app/commit/f040767c0bf07e271719e3e5ad275b9162e95182))
+
 ## [1.25.0](https://github.com/sondresjolyst/garge-app/compare/v1.24.5...v1.25.0) (2026-10-25)
 
 
