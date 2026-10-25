@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { auth, resetTestMocks } from '@sjolystinnovation/app-kit/testing'
+import { auth, makeSession, navigation, resetTestMocks, setSession } from '@sjolystinnovation/app-kit/testing'
 import { FieldValidationError } from '@/lib/errors'
 
 const { register, getTermsVersion } = vi.hoisted(() => ({
@@ -27,8 +27,37 @@ const NEW_VERSION = '2026-10-25T12:30:00.000000Z'
 beforeEach(() => {
     vi.clearAllMocks()
     resetTestMocks()
-    auth.getSession.mockResolvedValue(null)
     getTermsVersion.mockResolvedValue(CURRENT_VERSION)
+})
+
+describe('Register session check', () => {
+    it('sends a signed-in visitor to the profile', async () => {
+        setSession(makeSession({ roles: [] }))
+        render(<Register />)
+        await waitFor(() => expect(navigation.router.push).toHaveBeenCalledWith('/profile'))
+        expect(navigation.router.push).toHaveBeenCalledTimes(1)
+    })
+
+    it('keeps a visitor without a session on the page', async () => {
+        render(<Register />)
+        expect(await screen.findByRole('button', { name: 'Create account' })).toBeInTheDocument()
+        expect(navigation.router.push).not.toHaveBeenCalled()
+    })
+
+    it('waits for the session to settle before deciding', () => {
+        setSession('loading')
+        const { rerender } = render(<Register />)
+        expect(navigation.router.push).not.toHaveBeenCalled()
+        setSession(makeSession({ roles: [] }))
+        rerender(<Register />)
+        expect(navigation.router.push).toHaveBeenCalledWith('/profile')
+    })
+
+    it('sends no session read of its own, the provider reads the session', async () => {
+        render(<Register />)
+        expect(await screen.findByRole('button', { name: 'Create account' })).toBeInTheDocument()
+        expect(auth.getSession).not.toHaveBeenCalled()
+    })
 })
 
 describe('Register — live client-side validation', () => {
