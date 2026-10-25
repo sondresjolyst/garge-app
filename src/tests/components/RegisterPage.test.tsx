@@ -247,6 +247,7 @@ describe('Register — typed error surfacing on submit', () => {
             email: 'ada@example.com',
             password: 'Sup3r!secret',
         })
+        expect(auth.signIn).toHaveBeenCalledTimes(1)
         expect(navigation.router.push).toHaveBeenCalledTimes(1)
         expect(navigation.router.refresh).toHaveBeenCalledTimes(1)
         expect(navigation.router.replace).not.toHaveBeenCalled()
@@ -267,20 +268,54 @@ describe('Register — typed error surfacing on submit', () => {
         expect(navigation.router.push).toHaveBeenCalledTimes(1)
     })
 
-    it.each([
-        ['wrong credentials', { ok: false, error: 'CredentialsSignin', status: 401, url: null }],
-        ['a stale CSRF token', { ok: true, error: null, status: 200, url: 'http://localhost:3000/api/auth/signin?csrf=true' }],
-    ])('sends the user to sign in by hand when the sign-in after registering is refused for %s', async (_, answer) => {
+    const csrfRefusal = { ok: true, error: null, status: 200, url: 'http://localhost:3000/api/auth/signin?csrf=true' }
+    const signedIn = { ok: true, error: null, status: 200, url: 'http://localhost:3000/register' }
+
+    it('sends the user to sign in by hand when the sign-in after registering is refused for wrong credentials', async () => {
         register.mockResolvedValueOnce({ message: 'ok' })
-        auth.signIn.mockResolvedValueOnce(answer)
+        auth.signIn.mockResolvedValueOnce({ ok: false, error: 'CredentialsSignin', status: 401, url: null })
         render(<Register />)
         await fillValidForm()
 
         fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
 
         await waitFor(() => expect(navigation.router.push).toHaveBeenCalledWith('/login'))
+        expect(auth.signIn).toHaveBeenCalledTimes(1)
         expect(navigation.router.push).toHaveBeenCalledTimes(1)
         expect(navigation.router.refresh).not.toHaveBeenCalled()
+    })
+
+    it('sends the user to sign in by hand when the sign-in is refused for CSRF twice', async () => {
+        register.mockResolvedValueOnce({ message: 'ok' })
+        auth.signIn.mockResolvedValueOnce(csrfRefusal).mockResolvedValueOnce(csrfRefusal)
+        render(<Register />)
+        await fillValidForm()
+
+        fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
+
+        await waitFor(() => expect(navigation.router.push).toHaveBeenCalledWith('/login'))
+        expect(auth.signIn).toHaveBeenCalledTimes(2)
+        expect(navigation.router.push).toHaveBeenCalledTimes(1)
+        expect(navigation.router.refresh).not.toHaveBeenCalled()
+    })
+
+    it('retries a sign-in refused for CSRF once and goes to the profile when the retry works', async () => {
+        register.mockResolvedValueOnce({ message: 'ok' })
+        auth.signIn.mockResolvedValueOnce(csrfRefusal).mockResolvedValueOnce(signedIn)
+        render(<Register />)
+        await fillValidForm()
+
+        fireEvent.click(screen.getByRole('button', { name: 'Create account' }))
+
+        await waitFor(() => expect(navigation.router.push).toHaveBeenCalledWith('/profile'))
+        expect(auth.signIn).toHaveBeenCalledTimes(2)
+        expect(auth.signIn).toHaveBeenNthCalledWith(2, 'credentials', {
+            redirect: false,
+            email: 'ada@example.com',
+            password: 'Sup3r!secret',
+        })
+        expect(navigation.router.push).toHaveBeenCalledTimes(1)
+        expect(navigation.router.refresh).toHaveBeenCalledTimes(1)
     })
 })
 

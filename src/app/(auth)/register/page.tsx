@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import AuthService from '@/services/userService';
 import { getTermsVersion } from '@/services/legalService';
 import BrandLogo from '@/components/BrandLogo';
@@ -16,18 +16,12 @@ import { registerSchema } from '@/lib/validation/registerSchema';
 import { zodFieldErrors } from '@sjolystinnovation/app-kit/validation';
 import { apiErrorCode } from '@sjolystinnovation/app-kit/api';
 import { isTerminalSessionError } from '@sjolystinnovation/app-kit/session';
+import { refusedForCsrf, signInWithCredentials } from '@sjolystinnovation/app-kit/session/react';
 
 /** The fields that show their own errors under their input. */
 const FIELDS_WITH_INPUT = new Set(['userName', 'firstName', 'lastName', 'email', 'password']);
 
 const TERMS_CHANGED_MESSAGE = 'The terms have changed. Read the new terms and accept them again.';
-
-// next-auth answers a stale CSRF token with its own sign-in page and ?csrf=true, and calls it a success.
-function refusedForCsrf(url: string | null | undefined): boolean {
-    if (!url) return false;
-    const parsed = new URL(url, window.location.origin);
-    return parsed.pathname.endsWith('/signin') && parsed.searchParams.get('csrf') === 'true';
-}
 
 const Register: React.FC = () => {
     const [userName, setUserName] = useState('');
@@ -120,7 +114,7 @@ const Register: React.FC = () => {
                 termsVersion,
             });
             setErrors({});
-            const result = await signIn('credentials', { redirect: false, email, password });
+            const result = await signInWithCredentials({ email, password });
             // The account exists now, so a refused sign-in sends the user to sign in by hand.
             if (result?.error || !result?.ok || refusedForCsrf(result.url)) {
                 router.push('/login');
