@@ -7,6 +7,7 @@ export function GET(request: Request) {
         headers: {
             Location: helpPathFor(request.headers.get('accept-language')),
             Vary: 'Accept-Language',
+            'Cache-Control': 'private, no-store',
         },
     });
 }

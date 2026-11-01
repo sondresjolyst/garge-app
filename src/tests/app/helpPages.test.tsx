@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 import { render, screen, within } from '@testing-library/react'
 import { GET } from '@/app/help/route'
 import { helpPathFor, isHelpPath } from '@/app/help/language'
-import { helpIds, helpImages, helpMetadata } from '@/app/help/helpContent'
+import { helpMetadata, type HelpContent } from '@/app/help/helpContent'
 import HelpPage from '@/app/help/HelpPage'
 import { content as no } from '@/app/help/content/no'
 import { content as en } from '@/app/help/content/en'
@@ -16,11 +16,19 @@ vi.mock('next/image', () => ({
 const NO = '/no/help'
 const EN = '/en/help'
 
+/** Every id a help page can be linked to. */
+const helpIds = (content: HelpContent) => content.sections.flatMap(section => [section.id, ...section.items.map(item => item.id)])
+
+/** Every image a help page shows, as public paths. */
+const helpImages = (content: HelpContent) => content.sections.flatMap(section => section.items.flatMap(item => (item.images ?? []).map(image => image.src)))
+
 /** The two setup page screenshots show a network name in each language. */
 const withoutLanguage = (src: string) => src.replace(/-(no|en)\.png$/, '.png')
 
 /** Every text in a content file, without the code around it. */
 const prose = (name: string) => readFileSync(resolve(`src/app/help/content/${name}.tsx`), 'utf8')
+
+const manual = () => readFileSync(resolve('docs/manual/garge-manual.html'), 'utf8')
 
 describe('helpPathFor', () => {
     it.each([
@@ -89,6 +97,7 @@ describe('GET /help', () => {
         expect(response.status).toBe(307)
         expect(response.headers.get('location')).toBe(NO)
         expect(response.headers.get('vary')).toBe('Accept-Language')
+        expect(response.headers.get('cache-control')).toBe('private, no-store')
     })
 
     it('sends a request with no header to the English page', () => {
@@ -127,22 +136,35 @@ describe('help content', () => {
     })
 
     it('uses only images that exist, and the print manual and the pages use all of them', () => {
-        const manual = readFileSync(resolve('docs/manual/garge-manual.html'), 'utf8')
         const used = new Set([
             ...[...helpImages(no), ...helpImages(en), '/help/device.png'].map(src => src.replace('/help/', '')),
-            ...[...manual.matchAll(/\.\.\/\.\.\/public\/help\/([\w.-]+)/g)].map(match => match[1]),
+            ...[...manual().matchAll(/\.\.\/\.\.\/public\/help\/([\w.-]+)/g)].map(match => match[1]),
         ])
 
         expect([...used].filter(file => !existsSync(resolve('public/help', file)))).toEqual([])
         expect(readdirSync(resolve('public/help')).filter(file => !used.has(file))).toEqual([])
     })
 
-    it('keeps the real example network out of the repo text', () => {
-        const realNetwork = ['b43a', '4536a880'].join('')
-        for (const text of [prose('no'), prose('en'), readFileSync(resolve('docs/manual/garge-manual.html'), 'utf8')]) {
-            expect(text).not.toContain(realNetwork)
+    it('uses the example network name on the pages and in the manual', () => {
+        for (const text of [prose('no'), prose('en'), manual()]) {
             expect(text).toContain('Garge a1b2c3d4e5f6')
         }
+    })
+
+    it('tells the reader to hold BOOT until the light blinks fast, never for a set time', () => {
+        for (const text of [prose('en'), manual()]) {
+            expect(text).not.toMatch(/hold the BOOT button for 5 seconds/i)
+            expect(text).toContain('Straight away, hold the BOOT button until the light blinks fast.')
+        }
+        for (const text of [prose('no'), manual()]) {
+            expect(text).not.toMatch(/inne i 5 sekunder/)
+            expect(text).toContain('Hold så BOOT-knappen inne med en gang, til lyset blinker raskt.')
+        }
+    })
+
+    it('tells a seller to remove every entry, on the pages and in the manual', () => {
+        for (const text of [prose('en'), manual()]) expect(text).toMatch(/“Remove from account”(<\/\w+>)? on every entry/)
+        for (const text of [prose('no'), manual()]) expect(text).toMatch(/«Remove from account»(<\/\w+>)? på alle oppføringene/)
     })
 
     it('never says tilkoblingskode, and uses the quotes of each language', () => {

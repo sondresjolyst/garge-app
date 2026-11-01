@@ -63,13 +63,3 @@ export function helpMetadata(content: HelpContent): Metadata {
         },
     };
 }
-
-/** Every id a help page can be linked to. */
-export function helpIds(content: HelpContent): string[] {
-    return content.sections.flatMap(section => [section.id, ...section.items.map(item => item.id)]);
-}
-
-/** Every image a help page shows, as public paths. */
-export function helpImages(content: HelpContent): string[] {
-    return content.sections.flatMap(section => section.items.flatMap(item => (item.images ?? []).map(image => image.src)));
-}

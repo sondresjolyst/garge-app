@@ -1,8 +1,8 @@
 import { test, expect, type Page } from '@playwright/test'
 
 const PAGES = [
-    { path: '/no/help', lang: 'nb', other: '/en/help', switchLabel: 'English', button: 'Last ned kortversjonen (PDF)', note: /kortversjon for utskrift/ },
-    { path: '/en/help', lang: 'en', other: '/no/help', switchLabel: 'Norsk', button: 'Download the short version (PDF)', note: /short version for printing/ },
+    { path: '/no/help', lang: 'nb', title: 'Hjelp | Garge', description: 'Sett opp Garge-sensoren, bruk den i appen og løs vanlige problemer.', other: '/en/help', switchLabel: 'English', button: 'Last ned kortversjonen (PDF)', note: /kortversjon for utskrift/ },
+    { path: '/en/help', lang: 'en', title: 'Help | Garge', description: 'Set up your Garge sensor, use it in the app and solve common problems.', other: '/no/help', switchLabel: 'Norsk', button: 'Download the short version (PDF)', note: /short version for printing/ },
 ]
 const VIEWPORTS = [{ width: 390, height: 844 }, { width: 1280, height: 800 }]
 
@@ -71,6 +71,8 @@ for (const help of PAGES) {
 
     test(`${help.path} has its metadata`, async ({ page }) => {
         await page.goto(help.path)
+        await expect(page).toHaveTitle(help.title)
+        await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', help.description)
         await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://www.garge.no${help.path}`)
         await expect(page.locator('link[rel="alternate"][hreflang="nb"]')).toHaveAttribute('href', 'https://www.garge.no/no/help')
         await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute('href', 'https://www.garge.no/en/help')
@@ -105,6 +107,7 @@ test.describe('/help', () => {
             expect(response.status()).toBe(307)
             expect(response.headers().location).toBe(target)
             expect(response.headers().vary).toContain('Accept-Language')
+            expect(response.headers()['cache-control']).toBe('private, no-store')
         })
     }
 

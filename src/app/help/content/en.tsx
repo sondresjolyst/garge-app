@@ -44,7 +44,7 @@ export const content: HelpContent = {
                         <>
                             <p><Ui>Garge Sensor:</Ui> plug in USB-C power.</p>
                             <p><Ui>Garge Voltmeter:</Ui> connect it to the SAE plug on the 12 V battery.</p>
-                            <p><Ui>The blue light blinks fast</Ui> when the sensor is ready. If it does not, or if the sensor was set up before, press the Restart button, then hold the BOOT button for 5 seconds. <a href="#buttons" className="text-sky-400 hover:text-sky-300">See where the buttons are.</a></p>
+                            <p><Ui>The blue light blinks fast</Ui> when the sensor is ready. If it does not, or if the sensor was set up before, press the Restart button and let go. Straight away, hold the BOOT button until the light blinks fast. This can take more than 5 seconds. <a href="#buttons" className="text-sky-400 hover:text-sky-300">See where the buttons are.</a></p>
                         </>
                     ),
                 },
@@ -65,7 +65,7 @@ export const content: HelpContent = {
                 {
                     id: 'step-name',
                     title: 'Name the sensor',
-                    body: <p>Go back to <Ui>“My Devices”</Ui>. The sensor appears by itself within a couple of minutes. Give it a name, for example “MC battery”.</p>,
+                    body: <p>Go back to <Ui>“My Devices”</Ui>. The sensor appears by itself within a couple of minutes. Reload the page if it does not appear. Give it a name, for example “MC battery”.</p>,
                 },
             ],
         },
@@ -83,7 +83,7 @@ export const content: HelpContent = {
                     body: (
                         <>
                             <p>The buttons sit behind two small holes on the case. The case has no labels. BOOT is the upper hole and Restart is the lower hole.</p>
-                            <p>Holding the BOOT button for 5 seconds opens setup mode. This erases nothing. To leave setup mode at once, press the Restart button.</p>
+                            <p>To open setup mode, press the Restart button and let go. Straight away, hold the BOOT button until the light blinks fast. This can take more than 5 seconds. This erases nothing. On a sensor that is already set up, press the Restart button to leave setup mode at once.</p>
                         </>
                     ),
                 },
@@ -92,8 +92,8 @@ export const content: HelpContent = {
                     title: 'The blue light',
                     body: (
                         <>
-                            <p><Ui>Fast blink (every second):</Ui> Setup mode. Lasts up to 30 minutes.</p>
-                            <p><Ui>Garge Sensor, slow blink:</Ui> Connected. Blinks every five seconds.</p>
+                            <p><Ui>Fast blink (1 second on, 1 second off):</Ui> Setup mode. Lasts up to 30 minutes.</p>
+                            <p><Ui>Garge Sensor, slow blink (5 seconds on, 5 seconds off):</Ui> Running. This can also happen while Wi-Fi is down.</p>
                             <p><Ui>Garge Voltmeter, short blink:</Ui> Wakes, blinks, sends a reading and sleeps.</p>
                         </>
                     ),
@@ -126,7 +126,7 @@ export const content: HelpContent = {
                     body: (
                         <>
                             <p>Go to <Ui>“Profile” &gt; “Notifications”</Ui>. Turn on <Ui>“Offline alerts on this device”</Ui> and set the hours under <Ui>“Alert after”</Ui>, from 1 to 168.</p>
-                            <p>The setting applies to one browser or installed app at a time. Turn it on in each one where you want alerts. Use <Ui>“Send test”</Ui> to check that alerts reach you.</p>
+                            <p>The switch applies to one browser or installed app at a time. Turn it on in each one where you want alerts. <Ui>“Alert after”</Ui> applies to your whole account. A Garge Voltmeter reports about once an hour, so pick more than 1 hour for it. Use <Ui>“Send test”</Ui> to check that alerts reach you.</p>
                         </>
                     ),
                     images: [
@@ -138,12 +138,13 @@ export const content: HelpContent = {
                     title: 'Share the sensor',
                     body: (
                         <>
-                            <p>Go to <Ui>“Profile” &gt; “Manage sensors” &gt; “Share”</Ui>. Enter another Garge user&apos;s email address. Pick <Ui>“Read”</Ui> if the other user should only see the readings, or <Ui>“Edit”</Ui> if the other user should also control and automate.</p>
+                            <p>Go to <Ui>“Profile” &gt; “Manage sensors” &gt; “Share”</Ui>. Enter another Garge user&apos;s email address. Pick <Ui>“Read”</Ui> if the other user should only see the readings, or <Ui>“Edit”</Ui> if the other user should also be able to use the sensor in automations.</p>
+                            <p>Sharing applies to one entry at a time. A Garge Sensor has two entries, temperature and humidity, so share each one you want the other user to see.</p>
                             <p>To stop sharing, open <Ui>“Share”</Ui> again and tap the X next to the person under <Ui>“Shared with”</Ui>. Only the owner can share a sensor. The other user can stop by tapping <Ui>“Leave”</Ui> on the sensor.</p>
                         </>
                     ),
                     images: [
-                        { src: '/help/app-manage-sensors.png', width: 720, height: 1558, alt: 'The Sensors page with Share and Remove from account on each sensor', caption: '“Share” and “Remove from account” in “Manage sensors”.' },
+                        { src: '/help/app-manage-sensors.png', width: 720, height: 1558, alt: 'The Sensors page with Share and Remove from account on each sensor', caption: 'Each entry in “Manage sensors” has its own “Share” and “Remove from account”.' },
                         { src: '/help/app-share.png', width: 720, height: 548, alt: 'The Share dialog with an email field and a Read or Edit choice', caption: 'Enter the email address and pick “Read” or “Edit”.' },
                     ],
                 },
@@ -152,7 +153,7 @@ export const content: HelpContent = {
                     title: 'Rename the sensor',
                     body: (
                         <>
-                            <p>Tap the sensor in <Ui>“My Devices”</Ui>, then tap the pencil next to its name. A name can have up to 50 characters.</p>
+                            <p>Tap the sensor in <Ui>“My Devices”</Ui>, then tap the pencil next to its name. A name can have up to 50 characters. Each entry has its own name, so a Garge Sensor has one for temperature and one for humidity.</p>
                             <p>You can also use the pencil on the sensor in <Ui>“Profile” &gt; “Manage sensors”</Ui>.</p>
                         </>
                     ),
@@ -171,7 +172,7 @@ export const content: HelpContent = {
                     title: 'Change Wi-Fi network',
                     body: (
                         <>
-                            <p>Press the Restart button, then hold the BOOT button for 5 seconds until the light blinks fast. Join “Garge …” on your phone, tap <Ui>“Change Wi-Fi”</Ui>, pick the new network and tap <Ui>“Connect”</Ui>.</p>
+                            <p>Press the Restart button and let go. Straight away, hold the BOOT button until the light blinks fast. This can take more than 5 seconds. Join “Garge …” on your phone, tap <Ui>“Change Wi-Fi”</Ui>, pick the new network and tap <Ui>“Connect”</Ui>.</p>
                             <p>A sensor that is already on your account does not need a new code. Leave <Ui>“Pairing code (optional)”</Ui> empty.</p>
                         </>
                     ),
@@ -181,8 +182,8 @@ export const content: HelpContent = {
                     title: 'Sensor does not show up',
                     body: (
                         <>
-                            <p>The sensor only supports 2.4 GHz Wi-Fi. Hidden networks are not listed. Check that the password is correct. Then press the Restart button, hold the BOOT button for 5 seconds and run setup again with a new pairing code.</p>
-                            <p>The setup page does not test the password. It only says “Data received. Restarting...”. A sensor with a wrong password does not go back to setup mode by itself, so it needs the buttons.</p>
+                            <p>The sensor only supports 2.4 GHz Wi-Fi. Hidden networks are not listed. If the password may be wrong, follow <a href="#change-wifi" className="text-sky-400 hover:text-sky-300">change Wi-Fi network</a>, enter the password again and a new pairing code.</p>
+                            <p>The setup page does not test the password. It only says “Data received. Restarting...”. A sensor with a wrong password does not go back to setup mode by itself, so it needs the buttons. Setup mode then shows <Ui>“Pair device”</Ui>, so tap <Ui>“Change Wi-Fi”</Ui> to reach the password field.</p>
                         </>
                     ),
                 },
@@ -192,7 +193,7 @@ export const content: HelpContent = {
                     body: (
                         <>
                             <p>If you see <Ui>“This pairing code has expired.”</Ui>, tap <Ui>“Get new code”</Ui>. The old code stops working.</p>
-                            <p>A code lasts 15 minutes and works once. If you already entered the old code on the sensor, see <a href="#setup-asks-for-code" className="text-sky-400 hover:text-sky-300">the setup page only asks for a pairing code</a>.</p>
+                            <p>A code lasts 15 minutes and works once. If you already entered the old code on the sensor, go back to the setup page. Press the Restart button and let go. Straight away, hold the BOOT button until the light blinks fast. This can take more than 5 seconds. Join “Garge …” on your phone and enter the new code. See <a href="#setup-asks-for-code" className="text-sky-400 hover:text-sky-300">the setup page only asks for a pairing code</a>.</p>
                         </>
                     ),
                 },
@@ -202,14 +203,14 @@ export const content: HelpContent = {
                     body: (
                         <>
                             <p>If the setup page shows <Ui>“Pair device”</Ui>, the sensor already has a Wi-Fi network saved. Enter a new pairing code and tap <Ui>“Pair”</Ui>. To pick another network, tap <Ui>“Change Wi-Fi”</Ui>.</p>
-                            <p>The first setup page says <Ui>“Pairing code (optional)”</Ui>, but a new sensor needs the code. If you left it empty, the sensor opens setup mode again so you can enter it.</p>
+                            <p>The first setup page says <Ui>“Pairing code (optional)”</Ui>, but a new sensor needs the code. If you left it empty, the sensor goes into setup mode again so you can enter it.</p>
                         </>
                     ),
                 },
                 {
                     id: 'setup-network-missing',
                     title: 'The “Garge …” network is gone',
-                    body: <p>Setup mode lasts up to 30 minutes. If you no longer see the network, press the Restart button, then hold the BOOT button for 5 seconds until the light blinks fast. The network is open, so it asks for no password.</p>,
+                    body: <p>Setup mode lasts up to 30 minutes. If you no longer see the network, press the Restart button and let go. Straight away, hold the BOOT button until the light blinks fast. This can take more than 5 seconds. The network is open, so it asks for no password.</p>,
                 },
                 {
                     id: 'setup-page-not-opening',
@@ -237,10 +238,10 @@ export const content: HelpContent = {
                     body: (
                         <>
                             <p>Check that your Wi-Fi works. <Ui>“Last seen”</Ui> in the sensor&apos;s view shows the time of the last reading.</p>
-                            <p>A Garge Sensor keeps trying to reconnect by itself. It also blinks every five seconds while it tries, so the slow blink alone does not prove it has Wi-Fi.</p>
-                            <p>A Garge Voltmeter that cannot connect sleeps longer between tries, up to 6 hours. Press the Restart button to make it try at once.</p>
+                            <p>A Garge Sensor keeps trying to reconnect by itself. It also blinks slowly while it tries, so the slow blink alone does not prove it has Wi-Fi.</p>
+                            <p>A Garge Voltmeter that cannot connect sleeps longer between tries, up to 6 hours. It can take that long to show up again after your Wi-Fi is back.</p>
                             <p>If the network name or password changed, the sensor does not find the network by itself. See <a href="#change-wifi" className="text-sky-400 hover:text-sky-300">change Wi-Fi network</a>.</p>
-                            <p>A sensor marked <Ui>“Off”</Ui> in <Ui>“Profile” &gt; “Manage sensors”</Ui> has its readings hidden. Tap <Ui>“Turn on”</Ui>.</p>
+                            <p>An entry marked <Ui>“Off”</Ui> in <Ui>“Profile” &gt; “Manage sensors”</Ui> has its readings hidden. Tap <Ui>“Turn on”</Ui>.</p>
                         </>
                     ),
                 },
@@ -250,7 +251,7 @@ export const content: HelpContent = {
                     body: (
                         <>
                             <p>Check that <Ui>“Offline alerts on this device”</Ui> is on in the browser or app you use, and tap <Ui>“Send test”</Ui>.</p>
-                            <p>If you see <Ui>“Notifications blocked in browser settings.”</Ui>, allow notifications for Garge in your browser. If you see <Ui>“Push notifications are not supported in this browser.”</Ui>, use another browser.</p>
+                            <p>If you see <Ui>“Notifications blocked in browser settings.”</Ui>, allow notifications for Garge in your browser. If you see <Ui>“Push notifications are not supported in this browser.”</Ui>, use another browser. On iPhone, first tap <Ui>“Share” &gt; “Add to Home Screen”</Ui> and open Garge from there.</p>
                         </>
                     ),
                 },
@@ -265,8 +266,18 @@ export const content: HelpContent = {
                     title: 'Remove the sensor from your account',
                     body: (
                         <>
-                            <p>Go to <Ui>“Profile” &gt; “Manage sensors” &gt; “Remove from account”</Ui>. The new owner follows setup from <a href="#setup" className="text-sky-400 hover:text-sky-300">step 1</a> and does not see your readings.</p>
-                            <p>Anyone you shared the sensor with loses access. You can add the sensor back later with the code under <Ui>“Device code”</Ui>.</p>
+                            <p>Go to <Ui>“Profile” &gt; “Manage sensors”</Ui> and tap <Ui>“Remove from account”</Ui> on every entry for the sensor. A Garge Sensor has two, temperature and humidity. If one stays, the new owner cannot pair the sensor and only sees <Ui>“Waiting for your device…”</Ui>.</p>
+                            <p>Removing an entry deletes its custom name, photos, activities and thresholds from your account. Anyone you shared it with loses access.</p>
+                        </>
+                    ),
+                },
+                {
+                    id: 'new-owner',
+                    title: 'What the new owner does',
+                    body: (
+                        <>
+                            <p>The new owner follows setup from <a href="#setup" className="text-sky-400 hover:text-sky-300">step 1</a> and does not see your readings. The sensor was set up before, so the setup page shows <Ui>“Pair device”</Ui>. They tap <Ui>“Change Wi-Fi”</Ui>, enter their own Wi-Fi and the pairing code, and tap <Ui>“Connect”</Ui>.</p>
+                            <p>Your Wi-Fi name and password stay on the sensor until the new owner&apos;s Wi-Fi replaces them.</p>
                         </>
                     ),
                 },
