@@ -267,7 +267,7 @@ export const content: HelpContent = {
                     body: (
                         <>
                             <p>Gå til <Ui>«Profile» &gt; «Manage sensors»</Ui> og trykk <Ui>«Remove from account»</Ui> på alle oppføringene for sensoren. En Garge Sensor har to, temperatur og luftfuktighet. Blir én stående, får ikke den nye eieren koblet til sensoren og ser bare <Ui>«Waiting for your device…»</Ui>.</p>
-                            <p>Når du fjerner en oppføring, slettes det egne navnet, bildene, aktivitetene og terskelverdiene fra kontoen din. Alle du har delt den med, mister tilgangen.</p>
+                            <p>Når du fjerner en oppføring, slettes det egne navnet, bildene, aktivitetene og terskelverdiene fra kontoen din. Alle du har delt den med, mister tilgangen. Du kan legge sensoren til igjen senere med koden under <Ui>«Device code»</Ui>.</p>
                         </>
                     ),
                 },

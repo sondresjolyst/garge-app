@@ -267,7 +267,7 @@ export const content: HelpContent = {
                     body: (
                         <>
                             <p>Go to <Ui>“Profile” &gt; “Manage sensors”</Ui> and tap <Ui>“Remove from account”</Ui> on every entry for the sensor. A Garge Sensor has two, temperature and humidity. If one stays, the new owner cannot pair the sensor and only sees <Ui>“Waiting for your device…”</Ui>.</p>
-                            <p>Removing an entry deletes its custom name, photos, activities and thresholds from your account. Anyone you shared it with loses access.</p>
+                            <p>Removing an entry deletes its custom name, photos, activities and thresholds from your account. Anyone you shared it with loses access. You can add the sensor back later with the code under <Ui>“Device code”</Ui>.</p>
                         </>
                     ),
                 },
