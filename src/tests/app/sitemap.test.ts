@@ -20,10 +20,12 @@ beforeEach(() => {
 })
 
 describe('sitemap', () => {
-    it('lists the front page, the contact page and every legal page, dated by its last save', async () => {
+    it('lists the front page, the contact page, both help pages and every legal page, dated by its last save', async () => {
         expect(await sitemap()).toEqual([
             { url: 'https://www.garge.no' },
             { url: 'https://www.garge.no/contact' },
+            { url: 'https://www.garge.no/no/help' },
+            { url: 'https://www.garge.no/en/help' },
             { url: 'https://www.garge.no/terms', lastModified: new Date(saved.terms) },
             { url: 'https://www.garge.no/privacy', lastModified: new Date(saved.privacy) },
             { url: 'https://www.garge.no/cookies', lastModified: new Date(saved.cookies) },

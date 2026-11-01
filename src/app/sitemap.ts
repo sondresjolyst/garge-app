@@ -7,7 +7,7 @@ import LegalService, { LEGAL_LOCALE, type LegalPage } from '@/services/legalServ
 // Matches PUBLIC_REVALIDATE_SECONDS, the fallback when an admin save could not purge the sitemap.
 export const revalidate = 300;
 
-const PAGES = ['', '/contact'];
+const PAGES = ['', '/contact', '/no/help', '/en/help'];
 
 /** The public pages, with each legal page dated by when an admin last saved it. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
