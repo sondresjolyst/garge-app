@@ -8,14 +8,13 @@ export const content: HelpContent = {
     switchPath: '/no/help',
     switchLang: 'nb',
     title: 'Help',
-    intro: 'Set up your Garge sensor, use it in the app and find what to do when something does not work.',
     metaTitle: 'Help | Garge',
-    metaDescription: 'Set up your Garge sensor, use it in the app and solve common problems.',
+    metaDescription: 'Setup, buttons, light and troubleshooting for Garge Sensor and Garge Voltmeter.',
     download: {
-        label: 'Download the short version (PDF)',
-        note: 'The PDF is a short version for printing and does not contain everything on this page.',
+        label: 'Download the short print version (PDF)',
+        note: 'Does not include everything on this page.',
     },
-    contentsLabel: 'On this page',
+    contentsLabel: 'Contents',
     linkLabel: 'Link to',
     sections: [
         {
@@ -71,7 +70,7 @@ export const content: HelpContent = {
         },
         {
             id: 'buttons-and-light',
-            title: 'The buttons and the blue light',
+            title: 'What the buttons and light mean',
             device: {
                 label: 'The sensor with the BOOT button and the Restart button',
                 caption: 'The buttons on the sensor.',
@@ -102,7 +101,7 @@ export const content: HelpContent = {
         },
         {
             id: 'sensors',
-            title: 'The two sensors',
+            title: 'Garge Sensor and Garge Voltmeter',
             items: [
                 {
                     id: 'garge-sensor',

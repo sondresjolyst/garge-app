@@ -8,14 +8,13 @@ export const content: HelpContent = {
     switchPath: '/en/help',
     switchLang: 'en',
     title: 'Hjelp',
-    intro: 'Sett opp Garge-sensoren, bruk den i appen og finn ut hva du gjør når noe ikke virker.',
     metaTitle: 'Hjelp | Garge',
-    metaDescription: 'Sett opp Garge-sensoren, bruk den i appen og løs vanlige problemer.',
+    metaDescription: 'Oppsett, knapper, lys og feilsøking for Garge Sensor og Garge Voltmeter.',
     download: {
-        label: 'Last ned kortversjonen (PDF)',
-        note: 'PDF-en er en kortversjon for utskrift og inneholder ikke alt som står på denne siden.',
+        label: 'Last ned kort utskriftsversjon (PDF)',
+        note: 'Inneholder ikke alt som står på denne siden.',
     },
-    contentsLabel: 'På denne siden',
+    contentsLabel: 'Innhold',
     linkLabel: 'Lenke til',
     sections: [
         {
@@ -71,7 +70,7 @@ export const content: HelpContent = {
         },
         {
             id: 'buttons-and-light',
-            title: 'Knappene og det blå lyset',
+            title: 'Hva knappene og lyset betyr',
             device: {
                 label: 'Sensoren med BOOT-knappen og Restart-knappen',
                 caption: 'Knappene på sensoren.',
@@ -102,7 +101,7 @@ export const content: HelpContent = {
         },
         {
             id: 'sensors',
-            title: 'De to sensorene',
+            title: 'Garge Sensor og Garge Voltmeter',
             items: [
                 {
                     id: 'garge-sensor',

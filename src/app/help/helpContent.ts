@@ -38,7 +38,6 @@ export interface HelpContent {
     switchPath: string;
     switchLang: 'nb' | 'en';
     title: string;
-    intro: string;
     metaTitle: string;
     metaDescription: string;
     download: { label: string; note: string };

@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import { GET } from '@/app/help/route'
 import { helpPathFor, isHelpPath } from '@/app/help/language'
 import { helpMetadata, type HelpContent } from '@/app/help/helpContent'
@@ -12,6 +12,38 @@ import { content as en } from '@/app/help/content/en'
 vi.mock('next/image', () => ({
     default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
 }))
+
+/** Stands in for the browser's observer, so a test decides which sections are in view. */
+let observers: { callback: IntersectionObserverCallback; targets: Element[] }[] = []
+
+class FakeIntersectionObserver {
+    private readonly entry: { callback: IntersectionObserverCallback; targets: Element[] }
+    constructor(callback: IntersectionObserverCallback) {
+        this.entry = { callback, targets: [] }
+        observers.push(this.entry)
+    }
+    observe(target: Element) { this.entry.targets.push(target) }
+    disconnect() { this.entry.targets = [] }
+}
+
+beforeEach(() => {
+    observers = []
+    vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver)
+})
+afterEach(() => vi.unstubAllGlobals())
+
+/** Reports each id as entering or leaving the part of the screen that decides the current section. */
+function scrollTo(changes: Record<string, boolean>) {
+    const [observer] = observers
+    const entries = Object.entries(changes).map(([id, isIntersecting]) => ({
+        target: observer.targets.find(target => target.id === id),
+        isIntersecting,
+    }))
+    act(() => observer.callback(entries as unknown as IntersectionObserverEntry[], observer as unknown as IntersectionObserver))
+}
+
+const currentLinks = (container: HTMLElement) =>
+    [...container.querySelectorAll('[aria-current]')].map(link => link.getAttribute('href'))
 
 const NO = '/no/help'
 const EN = '/en/help'
@@ -193,6 +225,69 @@ describe('helpMetadata', () => {
 })
 
 describe('HelpPage', () => {
+    it('goes from the heading straight to the content, with no intro line', () => {
+        const { container } = render(<HelpPage content={en} />)
+        const heading = screen.getByRole('heading', { level: 1 })
+
+        expect(heading.parentElement?.nextElementSibling).toContainElement(screen.getByRole('link', { name: en.download.label }))
+        expect(container.querySelector('h1 + p')).toBeNull()
+    })
+
+    it.each([[no, 'Innhold', 'Hva knappene og lyset betyr', 'Garge Sensor og Garge Voltmeter'], [en, 'Contents', 'What the buttons and light mean', 'Garge Sensor and Garge Voltmeter']])('uses the agreed titles', (content, contents, buttons, sensors) => {
+        expect(content.contentsLabel).toBe(contents)
+        expect(content.sections.find(section => section.id === 'buttons-and-light')?.title).toBe(buttons)
+        expect(content.sections.find(section => section.id === 'sensors')?.title).toBe(sensors)
+    })
+
+    it('has a collapsed contents list above the sections, labelled for the language', () => {
+        const { container } = render(<HelpPage content={no} />)
+        const details = container.querySelector('details') as HTMLDetailsElement
+
+        expect(details.open).toBe(false)
+        expect(details.querySelector('summary')).toHaveTextContent('Innhold')
+        expect(details.querySelector('a[href="#change-wifi"]')).not.toBeNull()
+        expect(details.compareDocumentPosition(container.querySelector('section') as Element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+
+    it('marks no link as current until a section is in view', () => {
+        const { container } = render(<HelpPage content={en} />)
+        expect(currentLinks(container)).toEqual([])
+    })
+
+    it('marks the section in view with aria-current in the sidebar', () => {
+        const { container } = render(<HelpPage content={en} />)
+        scrollTo({ setup: true })
+        expect(currentLinks(container)).toEqual(['#setup'])
+    })
+
+    it('prefers the problem over the section around it, and moves on when it leaves', () => {
+        const { container } = render(<HelpPage content={en} />)
+
+        scrollTo({ troubleshooting: true, 'change-wifi': true })
+        expect(currentLinks(container)).toEqual(['#change-wifi'])
+
+        scrollTo({ 'change-wifi': false })
+        expect(currentLinks(container)).toEqual(['#troubleshooting'])
+    })
+
+    it('keeps the last section marked while nothing is in view', () => {
+        const { container } = render(<HelpPage content={en} />)
+
+        scrollTo({ sensors: true })
+        scrollTo({ sensors: false })
+        expect(currentLinks(container)).toEqual(['#sensors'])
+    })
+
+    it('drops the mark when the page is back above the first section', () => {
+        const { container } = render(<HelpPage content={en} />)
+        scrollTo({ setup: true })
+
+        vi.spyOn(container.querySelector('#setup') as Element, 'getBoundingClientRect').mockReturnValue({ top: 300 } as DOMRect)
+        scrollTo({ setup: false })
+
+        expect(currentLinks(container)).toEqual([])
+    })
+
     it('marks the Norwegian text with lang="nb"', () => {
         const { container } = render(<HelpPage content={no} />)
         expect(container.firstElementChild).toHaveAttribute('lang', 'nb')
