@@ -171,8 +171,8 @@ describe('help content', () => {
         expect(renderedIds(no)).toEqual(renderedIds(en))
     })
 
-    it('has the five sections in the agreed order', () => {
-        expect(en.sections.map(s => s.id)).toEqual(['setup', 'troubleshooting', 'common-tasks', 'buttons-and-light', 'sensors'])
+    it('has the four sections in the agreed order', () => {
+        expect(en.sections.map(s => s.id)).toEqual(['setup', 'troubleshooting', 'common-tasks', 'buttons-and-light'])
     })
 
     it('has five numbered setup steps', () => {
@@ -190,7 +190,7 @@ describe('help content', () => {
         const ids = renderedIds(content)
         const earlier = [
             'setup', 'step-account', 'step-pairing-code', 'step-power', 'step-wifi', 'step-name',
-            'buttons-and-light', 'buttons', 'blue-light', 'sensors', 'garge-sensor', 'garge-voltmeter',
+            'buttons-and-light', 'buttons', 'blue-light',
             'notifications', 'sharing', 'renaming',
             'troubleshooting', 'change-wifi', 'sensor-not-showing-up', 'pairing-code-expired', 'setup-asks-for-code',
             'setup-network-missing', 'setup-page-not-opening', 'cannot-get-pairing-code', 'voltmeter-not-responding',
@@ -200,14 +200,13 @@ describe('help content', () => {
     })
 
     it('has the agreed Norwegian titles', () => {
-        expect(no.sections.map(section => section.title)).toEqual(['Sett opp en ny sensor', 'Noe virker ikke', 'Vanlige oppgaver', 'Knappene og lyset på sensoren', 'Forskjellen på sensorene'])
+        expect(no.sections.map(section => section.title)).toEqual(['Sett opp en ny sensor', 'Noe virker ikke', 'Vanlige oppgaver', 'Knappene og lyset på sensoren'])
         expect(helpItems(no).map(item => item.title)).toEqual([
             'Opprett en Garge-konto', 'Hent en pairing code i appen', 'Slå på sensoren', 'Koble sensoren til Wi-Fi', 'Gi sensoren et navn i appen',
             'Sensoren blinker ikke raskt', 'Mobilen finner ikke Wi-Fi-nettverket «Garge …»', 'Sensorens oppsettside åpner seg ikke', 'Sensorens oppsettside ber bare om pairing code', 'Pairing code har gått ut', 'Appen gir deg ikke en pairing code', 'Ny sensor dukker ikke opp i appen',
             'Sensoren har sluttet å sende målinger', 'Garge Voltmeter reagerer ikke på knappene', 'Varsler fra Garge kommer ikke frem',
             'Bytte Wi-Fi-nettverk på sensoren', 'Få varsel når en sensor er frakoblet', 'Dele en sensor med en annen bruker', 'Gi en sensor nytt navn', 'Selge eller gi bort en sensor',
             'Hvor er BOOT- og Restart-knappene?', 'Slik åpner du oppsettmodus på sensoren', 'Hva betyr det blå lyset på sensoren?',
-            'Garge Sensor måler temperatur og luftfuktighet', 'Garge Voltmeter måler batterispenning',
         ])
     })
 
@@ -275,8 +274,11 @@ describe('help content', () => {
 
 describe('helpMetadata', () => {
     it.each([[no, NO], [en, EN]])('gives each page its canonical and the same alternates', (content, path) => {
-        const alternates = helpMetadata(content).alternates
+        const metadata = helpMetadata(content)
+        const alternates = metadata.alternates
 
+        expect(metadata.title).toBeUndefined()
+        expect(metadata.description).toBe(content.metaDescription)
         expect(alternates?.canonical).toBe(`https://www.garge.no${path}`)
         expect(alternates?.languages).toEqual({
             nb: 'https://www.garge.no/no/help',
@@ -323,14 +325,14 @@ describe('HelpPage', () => {
         const { container } = render(<HelpPage content={en} />)
         const shown = shownSidebarLinks(container)
 
-        expect(shown).toEqual(['#setup', '#step-account', '#step-pairing-code', '#step-power', '#step-wifi', '#step-name', '#troubleshooting', '#common-tasks', '#buttons-and-light', '#sensors'])
+        expect(shown).toEqual(['#setup', '#step-account', '#step-pairing-code', '#step-power', '#step-wifi', '#step-name', '#troubleshooting', '#common-tasks', '#buttons-and-light'])
     })
 
     it('expands the section being read and folds the others', () => {
         const { container } = render(<HelpPage content={en} />)
         scrollTo({ 'common-tasks': true, sharing: true })
 
-        expect(shownSidebarLinks(container)).toEqual(['#setup', '#troubleshooting', '#common-tasks', '#change-wifi', '#notifications', '#sharing', '#renaming', '#selling', '#buttons-and-light', '#sensors'])
+        expect(shownSidebarLinks(container)).toEqual(['#setup', '#troubleshooting', '#common-tasks', '#change-wifi', '#notifications', '#sharing', '#renaming', '#selling', '#buttons-and-light'])
     })
 
     it('shows the group labels of the expanded section', () => {
@@ -397,14 +399,14 @@ describe('HelpPage', () => {
         vi.spyOn(first, 'matches').mockReturnValue(true)
 
         fireEvent.focusIn(first)
-        expect(shownSidebarLinks(container)).toContain('#garge-voltmeter')
+        expect(shownSidebarLinks(container)).toContain('#blue-light')
         expect(shownSidebarLinks(container)).toContain('#pairing-code-expired')
 
         fireEvent.focusOut(first, { relatedTarget: nav.querySelector('a[href="#step-name"]') })
-        expect(shownSidebarLinks(container)).toContain('#garge-voltmeter')
+        expect(shownSidebarLinks(container)).toContain('#blue-light')
 
         fireEvent.focusOut(first, { relatedTarget: document.body })
-        expect(shownSidebarLinks(container)).not.toContain('#garge-voltmeter')
+        expect(shownSidebarLinks(container)).not.toContain('#blue-light')
     })
 
     it('does not open every section when a press moves the focus, so the link stays under the cursor', () => {
@@ -415,7 +417,7 @@ describe('HelpPage', () => {
         fireEvent.focusIn(first)
 
         expect(matches).toHaveBeenCalledWith(':focus-visible')
-        expect(shownSidebarLinks(container)).not.toContain('#garge-voltmeter')
+        expect(shownSidebarLinks(container)).not.toContain('#blue-light')
     })
 
     it('tells assistive technology which sections are open', () => {
@@ -450,34 +452,34 @@ describe('HelpPage', () => {
         })
 
         it('marks the target of the address the page opens with', () => {
-            window.location.hash = '#garge-voltmeter'
+            window.location.hash = '#blue-light'
             const { container } = render(<HelpPage content={en} />)
-            expect(currentLinks(container)).toEqual(['#garge-voltmeter'])
+            expect(currentLinks(container)).toEqual(['#blue-light'])
         })
 
         it('marks the target of a hash change and ignores the strip until the jump has settled', () => {
             const { container } = render(<HelpPage content={en} />)
 
-            window.location.hash = '#garge-sensor'
+            window.location.hash = '#setup-mode'
             act(() => { window.dispatchEvent(new Event('hashchange')) })
-            expect(currentLinks(container)).toEqual(['#garge-sensor'])
+            expect(currentLinks(container)).toEqual(['#setup-mode'])
 
-            scrollTo({ sensors: true })
-            expect(currentLinks(container)).toEqual(['#garge-sensor'])
+            scrollTo({ 'buttons-and-light': true })
+            expect(currentLinks(container)).toEqual(['#setup-mode'])
 
             clock += 100
             act(() => { window.dispatchEvent(new Event('scroll')) })
-            expect(currentLinks(container)).toEqual(['#garge-sensor'])
+            expect(currentLinks(container)).toEqual(['#setup-mode'])
         })
 
         it('marks the target of a clicked link, and follows the strip again once the reader scrolls', () => {
             const { container } = render(<HelpPage content={en} />)
 
-            fireEvent.click(container.querySelector('aside nav a[href="#sensors"]') as Element)
-            expect(currentLinks(container)).toEqual(['#sensors'])
+            fireEvent.click(container.querySelector('aside nav a[href="#buttons-and-light"]') as Element)
+            expect(currentLinks(container)).toEqual(['#buttons-and-light'])
 
             scrollTo({ 'common-tasks': true })
-            expect(currentLinks(container)).toEqual(['#sensors'])
+            expect(currentLinks(container)).toEqual(['#buttons-and-light'])
 
             clock += 1000
             act(() => { window.dispatchEvent(new Event('scroll')) })
@@ -496,7 +498,7 @@ describe('HelpPage', () => {
             vi.spyOn(window, 'scrollY', 'get').mockReturnValue(500)
 
             act(() => { window.dispatchEvent(new Event('scroll')) })
-            expect(currentLinks(container)).toEqual(['#garge-voltmeter'])
+            expect(currentLinks(container)).toEqual(['#blue-light'])
 
             scrollHeight.mockReturnValue(window.innerHeight + 900)
             scrollTo({ 'common-tasks': true })
@@ -539,9 +541,9 @@ describe('HelpPage', () => {
     it('keeps the last section marked while nothing is in view', () => {
         const { container } = render(<HelpPage content={en} />)
 
-        scrollTo({ sensors: true })
-        scrollTo({ sensors: false })
-        expect(currentLinks(container)).toEqual(['#sensors'])
+        scrollTo({ 'buttons-and-light': true })
+        scrollTo({ 'buttons-and-light': false })
+        expect(currentLinks(container)).toEqual(['#buttons-and-light'])
     })
 
     it('drops the mark when the page is back above the first section', () => {
@@ -564,17 +566,19 @@ describe('HelpPage', () => {
         expect(screen.getByRole('link', { name: label })).toHaveAttribute('href', href)
     })
 
-    it.each([[no], [en]])('offers the PDF with the note next to it, in the sidebar and at the end of the page', content => {
+    it.each([[no], [en]])('offers the PDF in the sidebar and at the end of the page, with no note', content => {
         const { container } = render(<HelpPage content={content} />)
         const buttons = screen.getAllByRole('link', { name: content.download.label })
 
         expect(buttons).toHaveLength(2)
         expect(container.querySelector('aside')).toContainElement(buttons[0])
-        expect(buttons[1].parentElement?.parentElement?.className).toContain('lg:hidden')
+        expect(buttons[1].parentElement?.className).toContain('lg:hidden')
         for (const button of buttons) {
             expect(button).toHaveAttribute('href', '/garge-manual.pdf')
-            expect(within(button.parentElement as HTMLElement).getByText(content.download.note)).toBeInTheDocument()
+            expect(button.parentElement?.children).toHaveLength(1)
         }
+        expect(container).not.toHaveTextContent('Inneholder ikke alt')
+        expect(container).not.toHaveTextContent('Does not include everything')
     })
 
     it('gives every section and problem an element and a link to it', () => {
@@ -590,6 +594,14 @@ describe('HelpPage', () => {
     it('states what to do with a hidden or 5 GHz network, on both pages', () => {
         expect(prose('en')).toContain('If your network is hidden, make it visible. If it is 5 GHz only, use a 2.4 GHz network.')
         expect(prose('no')).toContain('Hvis nettverket er skjult, gjør du det synlig. Hvis det bare er på 5 GHz, bruker du et nettverk på 2,4 GHz.')
+    })
+
+    it('links to the page about «Pair device» with the agreed Norwegian text', () => {
+        render(<HelpPage content={no} />)
+
+        expect(screen.getByRole('link', { name: 'Slik gjør du da.' })).toHaveAttribute('href', '#setup-asks-for-code')
+        expect(screen.getByRole('link', { name: 'Les mer om siden «Pair device».' })).toHaveAttribute('href', '#setup-asks-for-code')
+        expect(prose('no')).toContain('må du tillate varsler for Garge i nettleseren')
     })
 
     it('points every link inside the page at something that exists', () => {

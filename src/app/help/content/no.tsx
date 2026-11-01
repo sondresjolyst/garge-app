@@ -8,11 +8,9 @@ export const content: HelpContent = {
     switchPath: '/en/help',
     switchLang: 'en',
     title: 'Hjelp',
-    metaTitle: 'Hjelp | Garge',
     metaDescription: 'Oppsett, knapper, lys og feilsøking for Garge Sensor og Garge Voltmeter.',
     download: {
         label: 'Last ned kort utskriftsversjon (PDF)',
-        note: 'Inneholder ikke alt som står på denne siden.',
     },
     contentsLabel: 'Innhold',
     linkLabel: 'Lenke til',
@@ -74,7 +72,7 @@ export const content: HelpContent = {
                                     <li>Skriv inn pairing code.</li>
                                     <li>Trykk på <Ui>«Connect»</Ui>.</li>
                                 </Steps>
-                                <p>Hvis siden viser <Ui>«Pair device»</Ui>, finner du hjelp under <Go to="setup-asks-for-code">oppsettsiden ber bare om pairing code</Go>.</p>
+                                <p>Hvis siden viser <Ui>«Pair device»</Ui>, har sensoren allerede lagret et Wi-Fi-nettverk. <Go to="setup-asks-for-code">Slik gjør du da.</Go></p>
                             </>
                         ),
                         images: [
@@ -169,7 +167,7 @@ export const content: HelpContent = {
                                     <DoThis>Slik løser du det</DoThis>
                                     <Steps>
                                         <li>Hvis du ser <Ui>«This pairing code has expired.»</Ui>, trykker du på <Ui>«Get new code»</Ui>. Den gamle koden slutter da å virke.</li>
-                                        <li>Hvis du allerede har skrevet inn den gamle koden på sensoren, <Go to="setup-mode">åpner du oppsettmodus</Go>, kobler mobilen til «Garge …» og skriver inn den nye koden. Les mer under <Go to="setup-asks-for-code">oppsettsiden ber bare om pairing code</Go>.</li>
+                                        <li>Hvis du allerede har skrevet inn den gamle koden på sensoren, <Go to="setup-mode">åpner du oppsettmodus</Go>, kobler mobilen til «Garge …» og skriver inn den nye koden. <Go to="setup-asks-for-code">Les mer om siden «Pair device».</Go></li>
                                     </Steps>
                                     <p>En kode gjelder i 15 minutter, og du kan bare bruke den én gang.</p>
                                 </>
@@ -251,7 +249,7 @@ export const content: HelpContent = {
                                         <li>Sjekk at <Ui>«Offline alerts on this device»</Ui> er slått på i nettleseren eller appen du bruker.</li>
                                         <li>Trykk på <Ui>«Send test»</Ui>.</li>
                                     </Steps>
-                                    <p>Hvis du ser <Ui>«Notifications blocked in browser settings.»</Ui>, tillater du varsler for Garge i nettleseren.</p>
+                                    <p>Hvis du ser <Ui>«Notifications blocked in browser settings.»</Ui>, må du tillate varsler for Garge i nettleseren.</p>
                                     <p>Hvis du ser <Ui>«Push notifications are not supported in this browser.»</Ui>, bruker du en annen nettleser. På iPhone åpner du først delingsmenyen, legger Garge til på Hjem-skjermen og åpner Garge derfra.</p>
                                 </>
                             ),
@@ -407,24 +405,6 @@ export const content: HelpContent = {
                                 ]}
                             />
                         ),
-                    },
-                ],
-            }],
-        },
-        {
-            id: 'sensors',
-            title: 'Forskjellen på sensorene',
-            groups: [{
-                items: [
-                    {
-                        id: 'garge-sensor',
-                        title: 'Garge Sensor måler temperatur og luftfuktighet',
-                        body: <p>Den får strøm via USB-C og sover aldri.</p>,
-                    },
-                    {
-                        id: 'garge-voltmeter',
-                        title: 'Garge Voltmeter måler batterispenning',
-                        body: <p>Det får strøm fra 12 V-batteriet på motorsykkelen via en SAE-kontakt med to pinner. For å spare batteriet sover det mellom målingene. Det våkner, blinker, sender en måling og sover igjen. Som standard skjer dette omtrent én gang i timen.</p>,
                     },
                 ],
             }],

@@ -97,17 +97,14 @@ function Section({ section, linkLabel }: { section: HelpSection; linkLabel: stri
 
 function PdfDownload({ download }: { download: HelpContent['download'] }) {
     return (
-        <div className="space-y-2">
-            <a
-                href="/garge-manual.pdf"
-                download
-                className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-xl transition-all"
-            >
-                <ArrowDownTrayIcon className="h-4 w-4 flex-shrink-0" />
-                {download.label}
-            </a>
-            <p className="text-xs text-gray-400 leading-relaxed">{download.note}</p>
-        </div>
+        <a
+            href="/garge-manual.pdf"
+            download
+            className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-xl transition-all"
+        >
+            <ArrowDownTrayIcon className="h-4 w-4 flex-shrink-0" />
+            {download.label}
+        </a>
     );
 }
 

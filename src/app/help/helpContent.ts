@@ -44,19 +44,17 @@ export interface HelpContent {
     switchPath: string;
     switchLang: 'nb' | 'en';
     title: string;
-    metaTitle: string;
     metaDescription: string;
-    download: { label: string; note: string };
+    download: { label: string };
     contentsLabel: string;
     /** The accessible name of a section's link, ahead of its title. */
     linkLabel: string;
     sections: HelpSection[];
 }
 
-/** The title, description, canonical and language alternates of a help page. */
+/** The description, canonical and language alternates of a help page. The tab title comes from the layout. */
 export function helpMetadata(content: HelpContent): Metadata {
     return {
-        title: content.metaTitle,
         description: content.metaDescription,
         alternates: {
             canonical: site.absoluteUrl(content.path),

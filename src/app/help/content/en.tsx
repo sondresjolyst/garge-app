@@ -8,11 +8,9 @@ export const content: HelpContent = {
     switchPath: '/no/help',
     switchLang: 'nb',
     title: 'Help',
-    metaTitle: 'Help | Garge',
     metaDescription: 'Setup, buttons, light and troubleshooting for Garge Sensor and Garge Voltmeter.',
     download: {
         label: 'Download the short print version (PDF)',
-        note: 'Does not include everything on this page.',
     },
     contentsLabel: 'Contents',
     linkLabel: 'Link to',
@@ -407,24 +405,6 @@ export const content: HelpContent = {
                                 ]}
                             />
                         ),
-                    },
-                ],
-            }],
-        },
-        {
-            id: 'sensors',
-            title: 'The difference between the sensors',
-            groups: [{
-                items: [
-                    {
-                        id: 'garge-sensor',
-                        title: 'Garge Sensor measures temperature and humidity',
-                        body: <p>It gets power through USB-C and never sleeps.</p>,
-                    },
-                    {
-                        id: 'garge-voltmeter',
-                        title: 'Garge Voltmeter measures battery voltage',
-                        body: <p>It gets power from the 12 V motorcycle battery through an SAE 2-pin plug. To save the battery it sleeps between readings. It wakes, blinks, sends one reading and sleeps again. By default it does this about once an hour.</p>,
                     },
                 ],
             }],

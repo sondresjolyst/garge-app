@@ -1,8 +1,8 @@
 import { test, expect, type Page } from '@playwright/test'
 
 const PAGES = [
-    { path: '/no/help', lang: 'nb', title: 'Hjelp | Garge', description: 'Oppsett, knapper, lys og feilsøking for Garge Sensor og Garge Voltmeter.', other: '/en/help', switchLabel: 'English', button: 'Last ned kort utskriftsversjon (PDF)', note: 'Inneholder ikke alt som står på denne siden.', contents: 'Innhold' },
-    { path: '/en/help', lang: 'en', title: 'Help | Garge', description: 'Setup, buttons, light and troubleshooting for Garge Sensor and Garge Voltmeter.', other: '/no/help', switchLabel: 'Norsk', button: 'Download the short print version (PDF)', note: 'Does not include everything on this page.', contents: 'Contents' },
+    { path: '/no/help', lang: 'nb', description: 'Oppsett, knapper, lys og feilsøking for Garge Sensor og Garge Voltmeter.', other: '/en/help', switchLabel: 'English', button: 'Last ned kort utskriftsversjon (PDF)', contents: 'Innhold' },
+    { path: '/en/help', lang: 'en', description: 'Setup, buttons, light and troubleshooting for Garge Sensor and Garge Voltmeter.', other: '/no/help', switchLabel: 'Norsk', button: 'Download the short print version (PDF)', contents: 'Contents' },
 ]
 const VIEWPORTS = [{ width: 390, height: 844 }, { width: 1024, height: 768 }, { width: 1280, height: 800 }]
 
@@ -53,7 +53,6 @@ for (const help of PAGES) {
 
                 const button = page.getByRole('link', { name: help.button })
                 await expect(button).toBeVisible()
-                await expect(button.locator('..').getByText(help.note)).toBeVisible()
                 await expect(page.getByRole('link', { name: help.button })).toHaveCount(1)
                 const pdf = await page.request.get((await button.getAttribute('href')) as string)
                 expect(pdf.status()).toBe(200)
@@ -97,7 +96,7 @@ for (const help of PAGES) {
         test('has the PDF at the bottom of the page, below every section', async ({ page }) => {
             await page.goto(help.path)
             const pdf = await page.getByRole('link', { name: help.button }).boundingBox()
-            const last = await page.locator('#sensors').boundingBox()
+            const last = await page.locator('#buttons-and-light').boundingBox()
             expect(pdf!.y).toBeGreaterThan(last!.y + last!.height - 1)
         })
 
@@ -151,7 +150,7 @@ for (const help of PAGES) {
 
             test('holds the list still under the cursor while the page scrolls', async ({ page }) => {
                 await page.goto(help.path)
-                const link = page.locator('aside a[href="#sensors"]')
+                const link = page.locator('aside a[href="#buttons-and-light"]')
                 await link.hover()
                 const before = await link.boundingBox()
 
@@ -192,12 +191,12 @@ for (const help of PAGES) {
 
             test('reaches every subtitle with the Tab key, and folds again when the keyboard leaves', async ({ page }) => {
                 await page.goto(help.path)
-                await expect(page.locator('aside a[href="#garge-voltmeter"]')).toBeHidden()
+                await expect(page.locator('aside a[href="#blue-light"]')).toBeHidden()
 
                 const inSidebar = () => page.evaluate(() => document.activeElement?.closest('aside nav')?.getAttribute('aria-label') !== undefined && document.activeElement?.closest('aside nav') !== null)
                 for (let press = 0; press < 20 && !(await inSidebar()); press++) await page.keyboard.press('Tab')
                 expect(await inSidebar()).toBe(true)
-                await expect(page.locator('aside a[href="#garge-voltmeter"]')).toBeVisible()
+                await expect(page.locator('aside a[href="#blue-light"]')).toBeVisible()
 
                 const reached: string[] = []
                 for (let press = 0; press < 60 && await inSidebar(); press++) {
@@ -207,7 +206,7 @@ for (const help of PAGES) {
                 const all = await page.locator('aside nav a').evaluateAll(links => links.map(link => link.getAttribute('href')))
                 expect(reached).toEqual(all)
 
-                await expect(page.locator('aside a[href="#garge-voltmeter"]')).toBeHidden()
+                await expect(page.locator('aside a[href="#blue-light"]')).toBeHidden()
             })
 
             test('shows the link icon only on hover or keyboard focus', async ({ page }) => {
@@ -249,8 +248,8 @@ for (const help of PAGES) {
                 expect(first.bottom).toBeLessThanOrEqual(viewport.height)
                 expect(first.covered).toBe(0)
 
-                await page.locator('#blue-light').evaluate(element => element.scrollIntoView())
-                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#blue-light')
+                await page.locator('#selling').evaluate(element => element.scrollIntoView())
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#selling')
                 const second = await measure()
                 expect(second.scrollY).toBeGreaterThan(first.scrollY)
                 expect(second.top).toBe(first.top)
@@ -295,7 +294,7 @@ for (const help of PAGES) {
         test.describe(`${help.path} mark near the end of the page at ${viewport.width} x ${viewport.height}`, () => {
             test.use({ viewport })
 
-            for (const id of ['garge-voltmeter', 'garge-sensor']) {
+            for (const id of ['blue-light', 'setup-mode']) {
                 test(`marks ${id} when the page opens on it`, async ({ page }) => {
                     await page.goto(`${help.path}#${id}`)
                     await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', `#${id}`)
@@ -304,28 +303,28 @@ for (const help of PAGES) {
 
             test('marks the last section after a click on its title', async ({ page }) => {
                 await page.goto(help.path)
-                await page.locator('aside a[href="#sensors"]').click()
-                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#sensors')
+                await page.locator('aside a[href="#buttons-and-light"]').click()
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#buttons-and-light')
                 await page.waitForTimeout(400)
-                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#sensors')
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#buttons-and-light')
             })
 
             test('marks the last item at the end of the page, and follows the reader back up', async ({ page }) => {
                 await page.goto(help.path)
                 await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
-                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#garge-voltmeter')
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#blue-light')
 
                 await page.locator('#sharing').evaluate(element => element.scrollIntoView())
                 await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#sharing')
             })
 
             test('leaves a jump behind once the reader scrolls', async ({ page }) => {
-                await page.goto(`${help.path}#garge-sensor`)
-                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#garge-sensor')
+                await page.goto(`${help.path}#setup-mode`)
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#setup-mode')
                 await page.waitForTimeout(400)
                 await page.mouse.move(viewport.width - 5, viewport.height / 2)
                 await page.mouse.wheel(0, -2000)
-                await expect(page.locator('aside [aria-current]')).not.toHaveAttribute('href', '#garge-sensor')
+                await expect(page.locator('aside [aria-current]')).not.toHaveAttribute('href', '#setup-mode')
             })
         })
     }
@@ -340,8 +339,8 @@ for (const help of PAGES) {
             await expect(page.locator('aside a[href="#sharing"]')).toBeVisible()
             await expect(page.locator('aside a[href="#step-wifi"]')).toBeHidden()
 
-            await page.locator('aside a[href="#sensors"]').tap()
-            await expect(page.locator('aside a[href="#garge-voltmeter"]')).toBeVisible()
+            await page.locator('aside a[href="#buttons-and-light"]').tap()
+            await expect(page.locator('aside a[href="#blue-light"]')).toBeVisible()
             await expect(page.locator('aside a[href="#sharing"]')).toBeHidden()
             await context.close()
         })
@@ -349,7 +348,7 @@ for (const help of PAGES) {
 
     test(`${help.path} has its metadata`, async ({ page }) => {
         await page.goto(help.path)
-        await expect(page).toHaveTitle(help.title)
+        await expect(page).toHaveTitle('Garge')
         await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', help.description)
         await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://www.garge.no${help.path}`)
         await expect(page.locator('link[rel="alternate"][hreflang="nb"]')).toHaveAttribute('href', 'https://www.garge.no/no/help')
@@ -368,7 +367,7 @@ for (const help of PAGES) {
             await page.locator('aside a[href="#selling"]').click()
             await expect(page.locator('#selling')).toBeInViewport()
 
-            for (const id of ['step-wifi', 'pairing-code-expired', 'sharing', 'setup-mode', 'garge-voltmeter']) {
+            for (const id of ['step-wifi', 'pairing-code-expired', 'sharing', 'setup-mode', 'blue-light']) {
                 await expect(page.locator(`aside a[href="#${id}"]`)).toBeVisible()
             }
 
