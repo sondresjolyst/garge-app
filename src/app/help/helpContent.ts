@@ -15,19 +15,29 @@ export interface HelpItem {
     /** The same in both languages, in English, so a customer can be sent straight to it. */
     id: string;
     title: string;
+    /** Ids this item used to have, so links already sent to customers keep working. */
+    aliases?: string[];
     body: ReactNode;
     images?: HelpImage[];
+    /** Shows the picture of the buttons on the case beside the text. */
+    device?: { label: string; caption: ReactNode };
+}
+
+export interface HelpGroup {
+    id?: string;
+    /** The label above a part of a section. A section with one part leaves it out. */
+    title?: string;
+    items: HelpItem[];
 }
 
 export interface HelpSection {
     id: string;
     title: string;
-    intro?: ReactNode;
+    /** Ids this section used to have, so links already sent to customers keep working. */
+    aliases?: string[];
     /** Numbers the items, for the setup steps. */
     numbered?: boolean;
-    /** Shows the picture of the buttons on the case below the intro. */
-    device?: { label: string; caption: ReactNode };
-    items: HelpItem[];
+    groups: HelpGroup[];
 }
 
 export interface HelpContent {

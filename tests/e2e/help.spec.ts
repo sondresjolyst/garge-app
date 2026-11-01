@@ -54,6 +54,7 @@ for (const help of PAGES) {
                 const button = page.getByRole('link', { name: help.button })
                 await expect(button).toBeVisible()
                 await expect(button.locator('..').getByText(help.note)).toBeVisible()
+                await expect(page.getByRole('link', { name: help.button })).toHaveCount(1)
                 const pdf = await page.request.get((await button.getAttribute('href')) as string)
                 expect(pdf.status()).toBe(200)
                 expect(pdf.headers()['content-type']).toContain('application/pdf')
@@ -84,13 +85,30 @@ for (const help of PAGES) {
             const detailsBox = await details.boundingBox()
             const setupBox = await page.locator('#setup').boundingBox()
             expect(detailsBox!.y).toBeLessThan(setupBox!.y)
-            const pdfBox = await page.getByRole('link', { name: help.button }).boundingBox()
-            expect(pdfBox!.y).toBeLessThan(detailsBox!.y)
+            const heading = await page.getByRole('heading', { level: 1 }).boundingBox()
+            expect(heading!.y).toBeLessThan(detailsBox!.y)
 
             await details.locator('summary').click()
             await details.locator('a[href="#change-wifi"]').click()
             await expect(page).toHaveURL(/#change-wifi$/)
             await expect(page.locator('#change-wifi')).toBeInViewport()
+        })
+
+        test('has the PDF at the bottom of the page, below every section', async ({ page }) => {
+            await page.goto(help.path)
+            const pdf = await page.getByRole('link', { name: help.button }).boundingBox()
+            const last = await page.locator('#sensors').boundingBox()
+            expect(pdf!.y).toBeGreaterThan(last!.y + last!.height - 1)
+        })
+
+        test('fits the light table on the screen and drops the link icons on touch', async ({ browser }) => {
+            const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+            const page = await context.newPage()
+            await page.goto(help.path)
+            const table = await page.getByRole('table').boundingBox()
+            expect(table!.x + table!.width).toBeLessThanOrEqual(390)
+            await expect(page.locator('#change-wifi a[href="#change-wifi"]').first()).toBeHidden()
+            await context.close()
         })
     })
 
@@ -109,7 +127,78 @@ for (const help of PAGES) {
                 const heading = await page.getByRole('heading', { level: 1 }).boundingBox()
                 expect(heading!.x).toBeGreaterThanOrEqual(content!.x)
                 const pdf = await page.getByRole('link', { name: help.button }).boundingBox()
-                expect(pdf!.x).toBeGreaterThanOrEqual(content!.x)
+                expect(pdf!.x + pdf!.width).toBeLessThanOrEqual(content!.x)
+                expect(pdf!.y).toBeGreaterThan(sidebar!.y + sidebar!.height - 1)
+            })
+
+            test('opens directly on setup, after the heading', async ({ page }) => {
+                await page.goto(help.path)
+                const heading = await page.getByRole('heading', { level: 1 }).boundingBox()
+                const setup = await page.locator('#setup').boundingBox()
+                expect(setup!.y - (heading!.y + heading!.height)).toBeLessThan(80)
+            })
+
+            test('shows the main titles, and the subtitles of the section being read', async ({ page }) => {
+                await page.goto(help.path)
+                await expect(page.locator('aside a[href="#step-wifi"]')).toBeVisible()
+                await expect(page.locator('aside a[href="#change-wifi"]')).toBeHidden()
+
+                await page.locator('#sharing').evaluate(element => element.scrollIntoView())
+                await expect(page.locator('aside a[href="#sharing"]')).toBeVisible()
+                await expect(page.locator('aside a[href="#step-wifi"]')).toBeHidden()
+                await expect(page.locator('aside a[href="#pairing-code-expired"]')).toBeHidden()
+            })
+
+            test('holds the list still under the cursor while the page scrolls', async ({ page }) => {
+                await page.goto(help.path)
+                const link = page.locator('aside a[href="#sensors"]')
+                await link.hover()
+                const before = await link.boundingBox()
+
+                await page.evaluate(() => document.getElementById('sharing')?.scrollIntoView())
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#common-tasks')
+
+                expect(await link.boundingBox()).toEqual(before)
+            })
+
+            test('keeps a clicked link under the cursor, so a click on a subtitle lands', async ({ page }) => {
+                await page.goto(help.path)
+                const title = page.locator('aside a[href="#common-tasks"]')
+                await title.hover()
+                const before = await title.boundingBox()
+
+                await title.click()
+                await expect(page).toHaveURL(/#common-tasks$/)
+                expect(await title.boundingBox()).toEqual(before)
+
+                const subtitle = page.locator('aside a[href="#selling"]')
+                await subtitle.scrollIntoViewIfNeeded()
+                await subtitle.click()
+                await expect(page).toHaveURL(/#selling$/)
+                await expect(page.locator('#selling')).toBeInViewport()
+
+                await page.mouse.move(viewport.width - 5, viewport.height / 2)
+                await expect(page.locator('aside a[href="#step-wifi"]')).toBeHidden()
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#selling')
+            })
+
+            test('reaches a subtitle in a folded section from a link in the text', async ({ page }) => {
+                await page.goto(help.path)
+                await expect(page.locator('aside a[href="#light-not-blinking-fast"]')).toBeHidden()
+                await page.locator('#step-power a[href="#light-not-blinking-fast"]').click()
+                await expect(page.locator('#light-not-blinking-fast')).toBeInViewport()
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#light-not-blinking-fast')
+            })
+
+            test('shows the link icon only on hover or keyboard focus', async ({ page }) => {
+                await page.goto(help.path)
+                const icon = page.locator('#change-wifi a[href="#change-wifi"]').first()
+                await expect(icon).toHaveCSS('opacity', '0')
+                await page.locator('#change-wifi').hover()
+                await expect(icon).toHaveCSS('opacity', '1')
+                await page.mouse.move(0, 0)
+                await icon.focus()
+                await expect(icon).toHaveCSS('opacity', '1')
             })
 
             test('stays in place below the navbar and clear of the fixed bars while scrolling', async ({ page }) => {
@@ -120,10 +209,10 @@ for (const help of PAGES) {
                 const measure = () => page.evaluate(() => {
                     const nav = document.querySelector('aside nav') as HTMLElement
                     const box = nav.getBoundingClientRect()
-                    const covered = [...nav.querySelectorAll('a')].filter(link => {
+                    const covered = [...document.querySelectorAll('aside a')].filter(link => {
                         const linkBox = link.getBoundingClientRect()
                         const point = document.elementFromPoint(linkBox.left + 4, linkBox.top + linkBox.height / 2)
-                        return linkBox.bottom <= box.bottom && !nav.contains(point)
+                        return linkBox.height > 0 && linkBox.bottom <= window.innerHeight && !link.parentElement?.closest('aside')?.contains(point)
                     })
                     return {
                         top: box.top,
@@ -140,8 +229,8 @@ for (const help of PAGES) {
                 expect(first.bottom).toBeLessThanOrEqual(viewport.height)
                 expect(first.covered).toBe(0)
 
-                await page.locator('#selling').evaluate(element => element.scrollIntoView())
-                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', /#(selling|sell-sensor)$/)
+                await page.locator('#blue-light').evaluate(element => element.scrollIntoView())
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#blue-light')
                 const second = await measure()
                 expect(second.scrollY).toBeGreaterThan(first.scrollY)
                 expect(second.top).toBe(first.top)
@@ -151,7 +240,7 @@ for (const help of PAGES) {
                 await page.goto(help.path)
                 await expect(page.locator('aside [aria-current]')).toHaveCount(0)
 
-                await page.locator('#selling').evaluate(element => element.scrollIntoView())
+                await page.locator('#sharing').evaluate(element => element.scrollIntoView())
                 await expect(page.locator('aside [aria-current]')).toHaveCount(1)
 
                 await page.evaluate(() => window.scrollTo(0, 0))
@@ -166,7 +255,7 @@ for (const help of PAGES) {
                 expect(sizes.scroll).toBeGreaterThan(sizes.client)
             })
 
-            for (const id of ['troubleshooting', 'change-wifi', 'setup-page-not-opening']) {
+            for (const id of ['troubleshooting', 'change-wifi', 'setup-page-not-opening', 'selling', 'setup-mode']) {
                 test(`marks ${id} as current after a jump to it`, async ({ page }) => {
                     await page.goto(`${help.path}#${id}`)
                     await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', `#${id}`)
@@ -202,6 +291,10 @@ for (const help of PAGES) {
 
             await page.locator('aside a[href="#selling"]').click()
             await expect(page.locator('#selling')).toBeInViewport()
+
+            for (const id of ['step-wifi', 'pairing-code-expired', 'sharing', 'setup-mode', 'garge-voltmeter']) {
+                await expect(page.locator(`aside a[href="#${id}"]`)).toBeVisible()
+            }
 
             await page.getByRole('link', { name: help.switchLabel, exact: true }).click()
             await expect(page).toHaveURL(new RegExp(`${help.other}$`))

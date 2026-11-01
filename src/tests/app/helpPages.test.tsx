@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { act, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { GET } from '@/app/help/route'
 import { helpPathFor, isHelpPath } from '@/app/help/language'
 import { helpMetadata, type HelpContent } from '@/app/help/helpContent'
@@ -48,11 +48,21 @@ const currentLinks = (container: HTMLElement) =>
 const NO = '/no/help'
 const EN = '/en/help'
 
-/** Every id a help page can be linked to. */
-const helpIds = (content: HelpContent) => content.sections.flatMap(section => [section.id, ...section.items.map(item => item.id)])
+const helpItems = (content: HelpContent) => content.sections.flatMap(section => section.groups.flatMap(group => group.items))
+
+/** Every id a help page has a heading for. */
+const helpIds = (content: HelpContent) => content.sections.flatMap(section => [section.id, ...section.groups.flatMap(group => group.items.map(item => item.id))])
 
 /** Every image a help page shows, as public paths. */
-const helpImages = (content: HelpContent) => content.sections.flatMap(section => section.items.flatMap(item => (item.images ?? []).map(image => image.src)))
+const helpImages = (content: HelpContent) => helpItems(content).flatMap(item => (item.images ?? []).map(image => image.src))
+
+/** Every id on the rendered page, also the ones that sit inside the text. */
+function renderedIds(content: HelpContent) {
+    const { container, unmount } = render(<HelpPage content={content} />)
+    const ids = [...container.querySelectorAll('[id]')].map(element => element.id)
+    unmount()
+    return ids
+}
 
 /** The two setup page screenshots show a network name in each language. */
 const withoutLanguage = (src: string) => src.replace(/-(no|en)\.png$/, '.png')
@@ -157,14 +167,57 @@ describe('help content', () => {
         expect(helpImages(no).map(withoutLanguage)).toEqual(helpImages(en).map(withoutLanguage))
     })
 
-    it('has the six sections in the agreed order', () => {
-        expect(en.sections.map(s => s.id)).toEqual(['setup', 'buttons-and-light', 'sensors', 'using-the-app', 'troubleshooting', 'selling'])
+    it('has the same ids on both rendered pages, also inside the text', () => {
+        expect(renderedIds(no)).toEqual(renderedIds(en))
+    })
+
+    it('has the five sections in the agreed order', () => {
+        expect(en.sections.map(s => s.id)).toEqual(['setup', 'troubleshooting', 'common-tasks', 'buttons-and-light', 'sensors'])
     })
 
     it('has five numbered setup steps', () => {
         const setup = en.sections[0]
         expect(setup.numbered).toBe(true)
-        expect(setup.items).toHaveLength(5)
+        expect(setup.groups[0].items).toHaveLength(5)
+    })
+
+    it.each([[no], [en]])('splits the problems into two groups, seven during setup and three after', content => {
+        const groups = content.sections.find(section => section.id === 'troubleshooting')?.groups ?? []
+        expect(groups.map(group => group.items.length)).toEqual([7, 3])
+    })
+
+    it.each([[no], [en]])('keeps every id a customer may already have been sent', content => {
+        const ids = renderedIds(content)
+        const earlier = [
+            'setup', 'step-account', 'step-pairing-code', 'step-power', 'step-wifi', 'step-name',
+            'buttons-and-light', 'buttons', 'blue-light', 'sensors', 'garge-sensor', 'garge-voltmeter',
+            'using-the-app', 'notifications', 'sharing', 'renaming',
+            'troubleshooting', 'change-wifi', 'sensor-not-showing-up', 'pairing-code-expired', 'setup-asks-for-code',
+            'setup-network-missing', 'setup-page-not-opening', 'cannot-get-pairing-code', 'voltmeter-not-responding',
+            'sensor-stopped-reporting', 'alerts-not-arriving', 'selling', 'sell-sensor', 'new-owner',
+        ]
+        expect(earlier.filter(id => !ids.includes(id))).toEqual([])
+    })
+
+    it('has the agreed Norwegian titles', () => {
+        expect(no.sections.map(section => section.title)).toEqual(['Sett opp en ny sensor', 'Noe virker ikke', 'Vanlige oppgaver', 'Knappene og lyset på sensoren', 'Forskjellen på sensorene'])
+        expect(helpItems(no).map(item => item.title)).toEqual([
+            'Opprett en Garge-konto', 'Hent en pairing code i appen', 'Slå på sensoren', 'Koble sensoren til Wi-Fi', 'Gi sensoren et navn i appen',
+            'Sensoren blinker ikke raskt', 'Mobilen finner ikke Wi-Fi-nettverket «Garge …»', 'Sensorens oppsettside åpner seg ikke', 'Sensorens oppsettside ber bare om pairing code', 'Pairing code har gått ut', 'Appen gir deg ikke en pairing code', 'Ny sensor dukker ikke opp i appen',
+            'Sensoren har sluttet å sende målinger', 'Garge Voltmeter reagerer ikke på knappene', 'Varsler fra Garge kommer ikke frem',
+            'Bytte Wi-Fi-nettverk på sensoren', 'Få varsel når en sensor er frakoblet', 'Dele en sensor med en annen bruker', 'Gi en sensor nytt navn', 'Selge eller gi bort en sensor',
+            'Hvor er BOOT- og Restart-knappene?', 'Slik åpner du oppsettmodus på sensoren', 'Hva betyr det blå lyset på sensoren?',
+            'Garge Sensor måler temperatur og luftfuktighet', 'Garge Voltmeter måler batterispenning',
+        ])
+    })
+
+    it.each([
+        ['en', /hold the BOOT button/gi, /Restart button and let go/g],
+        ['no', /Hold så BOOT-knappen/g, /Restart-knappen og slipp/g],
+    ])('states the BOOT procedure once in %s, and every other place links to it', (name, hold, release) => {
+        expect(prose(name).match(hold)).toHaveLength(1)
+        expect(prose(name).match(release)).toHaveLength(1)
+        expect(prose(name).match(/<Go to="setup-mode">/g)?.length).toBeGreaterThanOrEqual(5)
     })
 
     it('uses only images that exist, and the print manual and the pages use all of them', () => {
@@ -224,19 +277,98 @@ describe('helpMetadata', () => {
     })
 })
 
+/** The sidebar's links that a reader can see, going by what the list folds away. */
+function shownSidebarLinks(container: HTMLElement) {
+    return [...container.querySelectorAll('aside nav a')]
+        .filter(link => !link.closest('div.hidden'))
+        .map(link => link.getAttribute('href'))
+}
+
 describe('HelpPage', () => {
     it('goes from the heading straight to the content, with no intro line', () => {
         const { container } = render(<HelpPage content={en} />)
-        const heading = screen.getByRole('heading', { level: 1 })
-
-        expect(heading.parentElement?.nextElementSibling).toContainElement(screen.getByRole('link', { name: en.download.label }))
         expect(container.querySelector('h1 + p')).toBeNull()
     })
 
-    it.each([[no, 'Innhold', 'Hva knappene og lyset betyr', 'Garge Sensor og Garge Voltmeter'], [en, 'Contents', 'What the buttons and light mean', 'Garge Sensor and Garge Voltmeter']])('uses the agreed titles', (content, contents, buttons, sensors) => {
-        expect(content.contentsLabel).toBe(contents)
-        expect(content.sections.find(section => section.id === 'buttons-and-light')?.title).toBe(buttons)
-        expect(content.sections.find(section => section.id === 'sensors')?.title).toBe(sensors)
+    it('shows the light as a table with the agreed columns', () => {
+        render(<HelpPage content={no} />)
+        const table = screen.getByRole('table')
+
+        expect(within(table).getAllByRole('columnheader').map(header => header.textContent)).toEqual(['Lyset', 'Betyr', 'Gjør dette'])
+        expect(within(table).getAllByRole('row')).toHaveLength(4)
+        expect(within(table).getByRole('link', { name: 'Koble sensoren til Wi-Fi' })).toHaveAttribute('href', '#step-wifi')
+        expect(within(table).getByRole('link', { name: 'Får du ikke målinger?' })).toHaveAttribute('href', '#sensor-stopped-reporting')
+    })
+
+    it('numbers the setup steps with a real list', () => {
+        const { container } = render(<HelpPage content={en} />)
+        expect(container.querySelectorAll('#setup > div > ol > li > article')).toHaveLength(5)
+    })
+
+    it('lets a screenshot open at full size with a plain link', () => {
+        render(<HelpPage content={en} />)
+        expect(screen.getByAltText('A sensor opened from My Devices, with a pencil next to its name').closest('a')).toHaveAttribute('href', '/help/app-rename.png')
+    })
+
+    it('expands only the first section until a section is in view', () => {
+        const { container } = render(<HelpPage content={en} />)
+        const shown = shownSidebarLinks(container)
+
+        expect(shown).toEqual(['#setup', '#step-account', '#step-pairing-code', '#step-power', '#step-wifi', '#step-name', '#troubleshooting', '#common-tasks', '#buttons-and-light', '#sensors'])
+    })
+
+    it('expands the section being read and folds the others', () => {
+        const { container } = render(<HelpPage content={en} />)
+        scrollTo({ 'common-tasks': true, sharing: true })
+
+        expect(shownSidebarLinks(container)).toEqual(['#setup', '#troubleshooting', '#common-tasks', '#change-wifi', '#notifications', '#sharing', '#renaming', '#selling', '#buttons-and-light', '#sensors'])
+    })
+
+    it('shows the group labels of the expanded section', () => {
+        const { container } = render(<HelpPage content={no} />)
+        scrollTo({ troubleshooting: true })
+        expect(within(container.querySelector('aside nav') as HTMLElement).getByText('Problemer under oppsett')).toBeInTheDocument()
+    })
+
+    it('lets a browser with no scripting show the folded subtitles', () => {
+        const { container } = render(<HelpPage content={en} />)
+        const folded = (container.querySelector('aside nav a[href="#change-wifi"]') as Element).closest('.hidden')
+        expect(folded?.className).toContain('[@media(scripting:none)]:block')
+    })
+
+    it('holds the list still while the mouse is over it', () => {
+        const { container } = render(<HelpPage content={en} />)
+        const nav = container.querySelector('aside nav') as HTMLElement
+        const before = shownSidebarLinks(container)
+
+        fireEvent.mouseEnter(nav)
+        scrollTo({ 'common-tasks': true, sharing: true })
+        expect(shownSidebarLinks(container)).toEqual(before)
+
+        fireEvent.mouseLeave(nav)
+        expect(shownSidebarLinks(container)).toContain('#sharing')
+        expect(shownSidebarLinks(container)).not.toContain('#step-name')
+    })
+
+    it('marks the section while its subtitle is folded away by the held list', () => {
+        const { container } = render(<HelpPage content={en} />)
+
+        fireEvent.mouseEnter(container.querySelector('aside nav') as HTMLElement)
+        scrollTo({ 'common-tasks': true, sharing: true })
+
+        expect(currentLinks(container)).toEqual(['#common-tasks'])
+    })
+
+    it('opens a clicked section without closing the one above it, so the clicked link stays put', () => {
+        const { container } = render(<HelpPage content={en} />)
+        const nav = container.querySelector('aside nav') as HTMLElement
+
+        fireEvent.mouseEnter(nav)
+        fireEvent.click(nav.querySelector('a[href="#common-tasks"]') as Element)
+
+        const shown = shownSidebarLinks(container)
+        expect(shown).toContain('#step-name')
+        expect(shown).toContain('#sharing')
     })
 
     it('has a collapsed contents list above the sections, labelled for the language', () => {
@@ -246,6 +378,7 @@ describe('HelpPage', () => {
         expect(details.open).toBe(false)
         expect(details.querySelector('summary')).toHaveTextContent('Innhold')
         expect(details.querySelector('a[href="#change-wifi"]')).not.toBeNull()
+        expect(details.querySelector('.hidden')).toBeNull()
         expect(details.compareDocumentPosition(container.querySelector('section') as Element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     })
 
@@ -263,10 +396,10 @@ describe('HelpPage', () => {
     it('prefers the problem over the section around it, and moves on when it leaves', () => {
         const { container } = render(<HelpPage content={en} />)
 
-        scrollTo({ troubleshooting: true, 'change-wifi': true })
-        expect(currentLinks(container)).toEqual(['#change-wifi'])
+        scrollTo({ troubleshooting: true, 'pairing-code-expired': true })
+        expect(currentLinks(container)).toEqual(['#pairing-code-expired'])
 
-        scrollTo({ 'change-wifi': false })
+        scrollTo({ 'pairing-code-expired': false })
         expect(currentLinks(container)).toEqual(['#troubleshooting'])
     })
 
@@ -298,15 +431,20 @@ describe('HelpPage', () => {
         expect(screen.getByRole('link', { name: label })).toHaveAttribute('href', href)
     })
 
-    it.each([[no], [en]])('offers the PDF with the note next to it', content => {
-        render(<HelpPage content={content} />)
-        const button = screen.getByRole('link', { name: content.download.label })
+    it.each([[no], [en]])('offers the PDF with the note next to it, in the sidebar and at the end of the page', content => {
+        const { container } = render(<HelpPage content={content} />)
+        const buttons = screen.getAllByRole('link', { name: content.download.label })
 
-        expect(button).toHaveAttribute('href', '/garge-manual.pdf')
-        expect(within(button.parentElement as HTMLElement).getByText(content.download.note)).toBeInTheDocument()
+        expect(buttons).toHaveLength(2)
+        expect(container.querySelector('aside')).toContainElement(buttons[0])
+        expect(buttons[1].parentElement?.parentElement?.className).toContain('lg:hidden')
+        for (const button of buttons) {
+            expect(button).toHaveAttribute('href', '/garge-manual.pdf')
+            expect(within(button.parentElement as HTMLElement).getByText(content.download.note)).toBeInTheDocument()
+        }
     })
 
-    it('gives every section and problem an element and a visible link to it', () => {
+    it('gives every section and problem an element and a link to it', () => {
         const { container } = render(<HelpPage content={en} />)
 
         for (const id of helpIds(en)) {

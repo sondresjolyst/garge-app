@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import ContentsList, { type ContentsEntry } from './ContentsList';
 
 /**
@@ -8,13 +8,26 @@ import ContentsList, { type ContentsEntry } from './ContentsList';
  * below where an anchor lands, and is taller than the gap between two problems, so one is always in it.
  */
 const STRIP_TOP = 96;
-const STRIP_BOTTOM = 124;
+const STRIP_BOTTOM = 136;
 
-/** The contents from the lg breakpoint, with the section being read marked. */
+/** The contents from the lg breakpoint, with the section being read expanded and its current link marked. */
 export default function HelpSidebar({ label, entries }: { label: string; entries: ContentsEntry[] }) {
     const [activeId, setActiveId] = useState<string | null>(null);
+    // While the mouse is over the list it holds still, so a link never moves away from the cursor.
+    const [held, setHeld] = useState<ReadonlySet<string> | null>(null);
     const navRef = useRef<HTMLElement>(null);
-    const ids = useMemo(() => entries.flatMap(entry => [entry.id, ...(entry.children ?? []).map(child => child.id)]), [entries]);
+
+    const sectionOf = useMemo(() => new Map(entries.flatMap(entry => [
+        [entry.id, entry.id] as const,
+        ...entry.groups.flatMap(group => group.items.map(item => [item.id, entry.id] as const)),
+    ])), [entries]);
+    const ids = useMemo(() => [...sectionOf.keys()], [sectionOf]);
+
+    const activeSection = activeId ? sectionOf.get(activeId) : undefined;
+    const readingSection = activeSection ?? entries[0].id;
+    const expanded = held ?? new Set([readingSection]);
+    // A subtitle that is folded away cannot show the mark, so its section does.
+    const markedId = activeSection && !expanded.has(activeSection) ? activeSection : activeId;
 
     useEffect(() => {
         let observer: IntersectionObserver;
@@ -48,25 +61,35 @@ export default function HelpSidebar({ label, entries }: { label: string; entries
         };
     }, [ids]);
 
-    // Scrolls only the sidebar, so a short screen still shows the active link without moving the page.
+    // Scrolls only the sidebar, so a short screen still shows the marked link without moving the page.
     useEffect(() => {
         const nav = navRef.current;
         const link = nav?.querySelector('[aria-current]');
-        if (!nav || !link) return;
+        if (!nav || !link || held) return;
         const navBox = nav.getBoundingClientRect();
         const linkBox = link.getBoundingClientRect();
         if (linkBox.top < navBox.top) nav.scrollTop -= navBox.top - linkBox.top;
         else if (linkBox.bottom > navBox.bottom) nav.scrollTop += linkBox.bottom - navBox.bottom;
-    }, [activeId]);
+    }, [markedId, held]);
+
+    // Opening the clicked section only pushes the links below it down, so the clicked link stays put.
+    const openClickedSection = (event: MouseEvent<HTMLElement>) => {
+        const href = (event.target as Element).closest('a')?.getAttribute('href');
+        const section = href ? sectionOf.get(href.slice(1)) : undefined;
+        if (section) setHeld(current => current && new Set(current).add(section));
+    };
 
     return (
         <nav
             ref={navRef}
             aria-label={label}
-            className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-16rem)] lg:overflow-y-auto space-y-2"
+            className="min-h-0 flex-1 space-y-2 overflow-y-auto"
+            onMouseEnter={() => setHeld(expanded)}
+            onMouseLeave={() => setHeld(null)}
+            onClick={openClickedSection}
         >
             <h2 className="px-2 text-sm font-semibold text-gray-100">{label}</h2>
-            <ContentsList entries={entries} activeId={activeId} />
+            <ContentsList entries={entries} activeId={markedId} expanded={expanded} />
         </nav>
     );
 }
