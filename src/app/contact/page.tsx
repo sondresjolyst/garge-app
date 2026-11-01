@@ -13,6 +13,11 @@ export default async function ContactPage() {
                 <p className="text-sm text-gray-400 leading-relaxed">
                     Have a question, feedback, or need help with your Garge device? Reach out and we will get back to you as soon as possible.
                 </p>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                    Most questions are answered in{' '}
+                    {/* /help only redirects, so prefetching it would cost a request and give nothing. */}
+                    <Link href="/help" prefetch={false} className="font-medium text-sky-400 hover:text-sky-300 transition-colors">Help</Link>.
+                </p>
                 <div className="flex items-center gap-3 pt-2">
                     <div className="w-9 h-9 rounded-xl bg-sky-600/20 flex items-center justify-center flex-shrink-0">
                         <EnvelopeIcon className="h-5 w-5 text-sky-400" />

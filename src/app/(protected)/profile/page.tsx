@@ -505,6 +505,24 @@ const Profile: React.FC = () => {
                     </Link>
                 </Section>
 
+                <Section title="Help">
+                    {/* /help only redirects, so prefetching it would cost a request and give nothing. */}
+                    <Link
+                        href="/help"
+                        prefetch={false}
+                        className="flex items-center justify-between p-3 rounded-xl bg-gray-900/50 border border-gray-700/40 hover:border-gray-600/60 hover:bg-gray-800/50 transition-all group"
+                    >
+                        <div className="flex items-center gap-3">
+                            <span className="text-lg">❓</span>
+                            <div>
+                                <p className="text-sm font-medium text-gray-100">Help</p>
+                                <p className="text-xs text-gray-500">Setup, troubleshooting and common tasks</p>
+                            </div>
+                        </div>
+                        <ChevronRightIcon className="h-4 w-4 text-gray-600 group-hover:text-gray-400 transition-colors" />
+                    </Link>
+                </Section>
+
                 <Section title="Devices">
                     <div className="space-y-4">
                         <CapacityMeter used={used} capacity={capacity} bypass={bypass} loading={eligibilityLoading} />

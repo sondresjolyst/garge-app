@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+import { mockSession, regularUser } from './helpers/auth'
 
 const PAGES = [
     { path: '/no/help', lang: 'nb', description: 'Oppsett, knapper, lys og feilsøking for Garge Sensor og Garge Voltmeter.', other: '/en/help', switchLabel: 'English', button: 'Last ned kort utskriftsversjon (PDF)', contents: 'Innhold' },
@@ -301,6 +302,17 @@ for (const help of PAGES) {
                 })
             }
 
+            test('stays in view below the navbar when the page is fully scrolled', async ({ page }) => {
+                await page.goto(help.path)
+                await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#blue-light')
+
+                const sidebar = await page.locator('aside nav').boundingBox()
+                const header = await page.locator('header').boundingBox()
+                expect(sidebar!.y).toBeGreaterThanOrEqual(header!.y + header!.height)
+                await expect(page.locator('aside').getByRole('link', { name: help.button })).toBeInViewport()
+            })
+
             test('marks the last section after a click on its title', async ({ page }) => {
                 await page.goto(help.path)
                 await page.locator('aside a[href="#buttons-and-light"]').click()
@@ -376,6 +388,57 @@ for (const help of PAGES) {
         })
     })
 }
+
+/** Answers every call to the API, which runs on a closed port in the specs. */
+async function mockAllApi(page: Page) {
+    await page.route('**://localhost:5999/**', route => {
+        const url = route.request().url()
+        const body = url.includes('capacity') ? { capacity: 4, used: 0, bypass: false, canClaim: true } : /sensors|switches|groups/.test(url) ? [] : {}
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
+    })
+}
+
+for (const { acceptLanguage, target } of [{ acceptLanguage: 'nb-NO', target: '/no/help' }, { acceptLanguage: 'en-US', target: '/en/help' }]) {
+    test.describe(`Help links for ${acceptLanguage}`, () => {
+        test.use({ locale: acceptLanguage, viewport: { width: 1280, height: 800 } })
+
+        test('keeps #setup through the /help redirect and lands on the section', async ({ page }) => {
+            await page.goto('/help#setup')
+            await expect(page).toHaveURL(new RegExp(`${target}#setup$`))
+            await expect(page.locator('#setup')).toBeInViewport()
+        })
+
+        test('opens the setup section in a new tab from the wizard, and the wizard stays open', async ({ page, context }) => {
+            await mockSession(page, regularUser)
+            await mockAllApi(page)
+            await page.goto('/')
+            await page.getByRole('button', { name: /add device/i }).first().click()
+            const link = page.getByRole('link', { name: 'Need help?' })
+            await expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+
+            const [helpTab] = await Promise.all([context.waitForEvent('page'), link.click()])
+            await expect(helpTab).toHaveURL(new RegExp(`${target}#setup$`))
+            await expect(helpTab.locator('#setup')).toBeInViewport()
+            await expect(page.getByRole('heading', { name: 'Add a device' })).toBeVisible()
+        })
+    })
+}
+
+test.describe('Links to Help from the app', () => {
+    test('the contact page links to Help', async ({ page }) => {
+        await page.goto('/contact')
+        await page.getByRole('main').getByRole('link', { name: 'Help', exact: true }).click()
+        await expect(page).toHaveURL(/\/(no|en)\/help$/)
+    })
+
+    test('the profile page has a Help row', async ({ page }) => {
+        await mockSession(page, regularUser)
+        await mockAllApi(page)
+        await page.goto('/profile')
+        await page.getByRole('main').getByRole('link', { name: /Setup, troubleshooting and common tasks/ }).click()
+        await expect(page).toHaveURL(/\/(no|en)\/help$/)
+    })
+})
 
 test.describe('/help', () => {
     for (const [acceptLanguage, target] of [

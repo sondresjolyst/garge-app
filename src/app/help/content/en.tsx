@@ -221,7 +221,7 @@ export const content: HelpContent = {
                                     <Steps>
                                         <li>Check that your Wi-Fi works. <Ui>“Last seen”</Ui> in the sensor&apos;s view shows the time of the last reading.</li>
                                         <li>If the network name or password changed, <Go to="change-wifi">change the Wi-Fi network on the sensor</Go>. It does not find the network by itself.</li>
-                                        <li>If an entry is marked <Ui>“Off”</Ui> in <Ui>“Profile” &gt; “Manage sensors”</Ui>, its readings are hidden. Tap <Ui>“Turn on”</Ui>.</li>
+                                        <li>If a card is marked <Ui>“Off”</Ui> in <Ui>“Profile” &gt; “Manage sensors”</Ui>, its readings are hidden. Tap <Ui>“Turn on”</Ui>.</li>
                                     </Steps>
                                     <p>A Garge Sensor keeps trying to reconnect by itself. It also blinks slowly while it tries, so the slow blink alone does not prove it has Wi-Fi.</p>
                                     <p>A Garge Voltmeter that cannot connect sleeps longer between tries, up to 6 hours. It can take that long to show up again after your Wi-Fi is back.</p>
@@ -302,17 +302,17 @@ export const content: HelpContent = {
                             <>
                                 <Steps>
                                     <li>Go to <Ui>“Profile” &gt; “Manage sensors”</Ui>.</li>
-                                    <li>Tap <Ui>“Share”</Ui> on the entry.</li>
+                                    <li>Tap <Ui>“Share”</Ui> on the card.</li>
                                     <li>Enter another Garge user&apos;s email address.</li>
                                     <li>Pick <Ui>“Read”</Ui> if the other user should only see the readings, or <Ui>“Edit”</Ui> if the other user can also create automations for the sockets this sensor has found.</li>
                                     <li>Tap <Ui>“Share”</Ui>.</li>
                                 </Steps>
-                                <p>Sharing applies to one entry at a time. A Garge Sensor has two entries, temperature and humidity, so share each one you want the other user to see.</p>
+                                <p>Sharing applies to one card at a time. A Garge Sensor has two cards, temperature and humidity, so share each one you want the other user to see.</p>
                                 <p>To stop sharing, open <Ui>“Share”</Ui> again and tap the X next to the person under <Ui>“Shared with”</Ui>. Only the owner can share a sensor. The other user can stop by tapping <Ui>“Leave”</Ui> on the sensor.</p>
                             </>
                         ),
                         images: [
-                            { src: '/help/app-manage-sensors.png', width: 720, height: 1558, alt: 'The Sensors page with Share and Remove from account on each sensor', caption: 'Each entry has its own “Share” and “Remove from account”.' },
+                            { src: '/help/app-manage-sensors.png', width: 720, height: 1558, alt: 'The Sensors page with Share and Remove from account on each card', caption: 'Each card has its own “Share” and “Remove from account”.' },
                             { src: '/help/app-share.png', width: 720, height: 548, alt: 'The Share dialog with an email field and a Read or Edit choice', caption: 'Enter the email address and pick “Read” or “Edit”.' },
                         ],
                     },
@@ -325,7 +325,7 @@ export const content: HelpContent = {
                                     <li>Tap the sensor in <Ui>“My Devices”</Ui>.</li>
                                     <li>Tap the pencil next to its name.</li>
                                 </Steps>
-                                <p>A name can have up to 50 characters. Each entry has its own name, so a Garge Sensor has one for temperature and one for humidity.</p>
+                                <p>A name can have up to 50 characters. Each card has its own name, so a Garge Sensor has one for temperature and one for humidity.</p>
                                 <p>You can also use the pencil on the sensor in <Ui>“Profile” &gt; “Manage sensors”</Ui>.</p>
                             </>
                         ),
@@ -340,12 +340,12 @@ export const content: HelpContent = {
                             <>
                                 <Steps>
                                     <li>Go to <Ui>“Profile” &gt; “Manage sensors”</Ui>.</li>
-                                    <li>Save the code under <Ui>“Device code”</Ui> on each entry. It disappears with the entry, and a Garge Sensor has two.</li>
-                                    <li>Tap <Ui>“Remove from account”</Ui> on every entry for the sensor.</li>
+                                    <li>Save the code under <Ui>“Device code”</Ui> on each card. It disappears with the card, and a Garge Sensor has two.</li>
+                                    <li>Tap <Ui>“Remove from account”</Ui> on every card for the sensor.</li>
                                 </Steps>
-                                <p>A Garge Sensor has two entries, temperature and humidity. If one stays, the new owner gets only part of the sensor and you keep access to the rest.</p>
-                                <p>Entries from the same sensor have the same code in their default name, for example “Garge D4E5F6 temperature” and “Garge D4E5F6 humidity”. If you renamed an entry, its default name is on the <Ui>“Default:”</Ui> line.</p>
-                                <p>Removing an entry deletes its custom name, photos, activities and thresholds from your account. Anyone you shared it with loses access. You can add the sensor back later with the code under <Ui>“Device code”</Ui>. This needs an active subscription.</p>
+                                <p>A Garge Sensor has two cards, temperature and humidity. If one stays, the new owner gets only part of the sensor and you keep access to the rest.</p>
+                                <p>Cards from the same sensor have the same code in their default name, for example “Garge D4E5F6 temperature” and “Garge D4E5F6 humidity”. If you renamed a card, its default name is on the <Ui>“Default:”</Ui> line.</p>
+                                <p>Removing a card deletes its custom name, photos, activities and thresholds from your account. Anyone you shared it with loses access. You can add the sensor back later with the code under <Ui>“Device code”</Ui>. This needs an active subscription.</p>
                                 <h4 id="new-owner" className="scroll-mt-20 pt-2 font-semibold text-gray-100">What the new owner does</h4>
                                 <Steps>
                                     <li>Follow setup steps <Go to="step-account">1</Go> and <Go to="step-pairing-code">2</Go>.</li>

@@ -221,7 +221,7 @@ export const content: HelpContent = {
                                     <Steps>
                                         <li>Sjekk at Wi-Fi-nettverket virker. Åpne sensoren. Under <Ui>«Last seen»</Ui> ser du når den sist sendte en måling.</li>
                                         <li>Hvis nettverksnavnet eller passordet er endret, må du <Go to="change-wifi">bytte Wi-Fi-nettverk på sensoren</Go>. Sensoren finner ikke nettverket selv.</li>
-                                        <li>Hvis en linje er merket <Ui>«Off»</Ui> i <Ui>«Profile» &gt; «Manage sensors»</Ui>, er målingene skjult. Trykk på <Ui>«Turn on»</Ui>.</li>
+                                        <li>Hvis et kort er merket <Ui>«Off»</Ui> i <Ui>«Profile» &gt; «Manage sensors»</Ui>, er målingene skjult. Trykk på <Ui>«Turn on»</Ui>.</li>
                                     </Steps>
                                     <p>En Garge Sensor prøver selv å koble til igjen. Den blinker sakte også mens den prøver, så sakte blink betyr ikke alltid at den har Wi-Fi.</p>
                                     <p>Et Garge Voltmeter som ikke får koblet til, sover lenger mellom hvert forsøk, opptil 6 timer. Det kan ta så lang tid før det er tilbake i appen etter at Wi-Fi virker igjen.</p>
@@ -302,17 +302,17 @@ export const content: HelpContent = {
                             <>
                                 <Steps>
                                     <li>Gå til <Ui>«Profile» &gt; «Manage sensors»</Ui>.</li>
-                                    <li>Trykk på <Ui>«Share»</Ui> på linjen du vil dele.</li>
+                                    <li>Trykk på <Ui>«Share»</Ui> på kortet du vil dele.</li>
                                     <li>Skriv inn e-postadressen til en annen Garge-bruker.</li>
                                     <li>Velg <Ui>«Read»</Ui> hvis den andre brukeren bare skal se målingene, eller <Ui>«Edit»</Ui> hvis den andre brukeren også skal kunne lage automatiseringer for stikkontaktene sensoren har funnet.</li>
                                     <li>Trykk på <Ui>«Share»</Ui>.</li>
                                 </Steps>
-                                <p>Du deler én linje om gangen. En Garge Sensor vises som to linjer, temperatur og luftfuktighet, så del hver linje den andre brukeren skal se.</p>
+                                <p>Du deler ett kort om gangen. En Garge Sensor vises som to kort, temperatur og luftfuktighet, så del hvert kort den andre brukeren skal se.</p>
                                 <p>Vil du slutte å dele, åpner du <Ui>«Share»</Ui> på nytt og trykker på X-en ved personen under <Ui>«Shared with»</Ui>. Bare eieren kan dele en sensor. Den andre brukeren kan selv avslutte ved å trykke på <Ui>«Leave»</Ui> på sensoren.</p>
                             </>
                         ),
                         images: [
-                            { src: '/help/app-manage-sensors.png', width: 720, height: 1558, alt: 'Siden Sensors med Share og Remove from account på hver sensor', caption: 'Hver linje har sin egen «Share» og «Remove from account».' },
+                            { src: '/help/app-manage-sensors.png', width: 720, height: 1558, alt: 'Siden Sensors med Share og Remove from account på hvert kort', caption: 'Hvert kort har sin egen «Share» og «Remove from account».' },
                             { src: '/help/app-share.png', width: 720, height: 548, alt: 'Dialogen Share med felt for e-post og valget Read eller Edit', caption: 'Skriv inn e-postadressen og velg «Read» eller «Edit».' },
                         ],
                     },
@@ -325,7 +325,7 @@ export const content: HelpContent = {
                                     <li>Trykk på sensoren i <Ui>«My Devices»</Ui>.</li>
                                     <li>Trykk på blyanten ved navnet.</li>
                                 </Steps>
-                                <p>Et navn kan ha opptil 50 tegn. Hver linje har sitt eget navn, så en Garge Sensor har ett navn for temperatur og ett for luftfuktighet.</p>
+                                <p>Et navn kan ha opptil 50 tegn. Hvert kort har sitt eget navn, så en Garge Sensor har ett navn for temperatur og ett for luftfuktighet.</p>
                                 <p>Du kan også bruke blyanten på sensoren i <Ui>«Profile» &gt; «Manage sensors»</Ui>.</p>
                             </>
                         ),
@@ -340,12 +340,12 @@ export const content: HelpContent = {
                             <>
                                 <Steps>
                                     <li>Gå til <Ui>«Profile» &gt; «Manage sensors»</Ui>.</li>
-                                    <li>Ta vare på koden under <Ui>«Device code»</Ui> på hver linje. Koden forsvinner når du fjerner linjen, og en Garge Sensor har to.</li>
-                                    <li>Trykk på <Ui>«Remove from account»</Ui> på alle linjene for sensoren.</li>
+                                    <li>Ta vare på koden under <Ui>«Device code»</Ui> på hvert kort. Koden forsvinner når du fjerner kortet, og en Garge Sensor har to.</li>
+                                    <li>Trykk på <Ui>«Remove from account»</Ui> på alle kortene for sensoren.</li>
                                 </Steps>
-                                <p>En Garge Sensor vises som to linjer, temperatur og luftfuktighet. Blir én linje stående, får den nye eieren bare deler av sensoren, og du beholder tilgang til resten.</p>
-                                <p>Linjer fra samme sensor har samme kode i standardnavnet, for eksempel «Garge D4E5F6 temperature» og «Garge D4E5F6 humidity». Hvis du har gitt en linje nytt navn, står standardnavnet etter <Ui>«Default:»</Ui>.</p>
-                                <p>Når du fjerner en linje, sletter du samtidig navnet du har gitt den, bildene, aktivitetene og terskelverdiene fra kontoen din. Alle du har delt den med, mister tilgangen. Du kan legge sensoren til igjen senere med koden under <Ui>«Device code»</Ui>. Det krever et aktivt abonnement.</p>
+                                <p>En Garge Sensor vises som to kort, temperatur og luftfuktighet. Blir ett kort stående, får den nye eieren bare deler av sensoren, og du beholder tilgang til resten.</p>
+                                <p>Kort fra samme sensor har samme kode i standardnavnet, for eksempel «Garge D4E5F6 temperature» og «Garge D4E5F6 humidity». Hvis du har gitt et kort nytt navn, står standardnavnet etter <Ui>«Default:»</Ui>.</p>
+                                <p>Når du fjerner et kort, sletter du samtidig navnet du har gitt det, bildene, aktivitetene og terskelverdiene fra kontoen din. Alle du har delt det med, mister tilgangen. Du kan legge sensoren til igjen senere med koden under <Ui>«Device code»</Ui>. Det krever et aktivt abonnement.</p>
                                 <h4 id="new-owner" className="scroll-mt-20 pt-2 font-semibold text-gray-100">Dette gjør den nye eieren</h4>
                                 <Steps>
                                     <li>Følg steg <Go to="step-account">1</Go> og <Go to="step-pairing-code">2</Go> i oppsettet.</li>

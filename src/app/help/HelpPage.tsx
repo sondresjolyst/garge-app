@@ -126,7 +126,8 @@ export default function HelpPage({ content }: { content: HelpContent }) {
     return (
         <div lang={content.lang} className="max-w-7xl mx-auto px-4 py-10">
             <div className="lg:grid lg:grid-cols-[13rem_minmax(0,48rem)] xl:grid-cols-[15rem_minmax(0,48rem)] lg:justify-center lg:gap-8">
-                <aside className="hidden lg:block lg:-mt-10">
+                {/* The negative bottom margin lets the sticky list use the empty space below the content, so it stays in view at the end of the page. */}
+                <aside className="hidden lg:block lg:-mt-10 lg:-mb-40">
                     <div className="sticky top-20 flex max-h-[calc(100vh-6rem)] flex-col gap-4">
                         <HelpSidebar label={content.contentsLabel} entries={entries} />
                         <div className="flex-shrink-0 border-t border-gray-700/60 px-2 pt-4">

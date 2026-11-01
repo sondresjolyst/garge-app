@@ -229,6 +229,11 @@ describe('help content', () => {
         expect(readdirSync(resolve('public/help')).filter(file => !used.has(file))).toEqual([])
     })
 
+    it('shows the page address for help in both print headers', () => {
+        expect(manual().match(/<div class="web">www\.garge\.no\/help<\/div>/g)).toHaveLength(2)
+        expect(manual()).toContain('Gå til www.garge.no og')
+    })
+
     it('uses the example network name on the pages and in the manual', () => {
         for (const text of [prose('no'), prose('en'), manual()]) {
             expect(text).toContain('Garge a1b2c3d4e5f6')
@@ -246,9 +251,8 @@ describe('help content', () => {
     })
 
     it('tells a seller to remove every entry, on the pages and in the manual', () => {
-        for (const text of [prose('en'), manual()]) expect(text).toMatch(/“Remove from account”(<\/\w+>)? on every entry/)
-        expect(prose('no')).toMatch(/«Remove from account»(<\/\w+>)? på alle linjene/)
-        expect(manual()).toMatch(/«Remove from account»(<\/\w+>)? på alle oppføringene/)
+        for (const text of [prose('en'), manual()]) expect(text).toMatch(/“Remove from account”(<\/\w+>)? on every card/)
+        for (const text of [prose('no'), manual()]) expect(text).toMatch(/«Remove from account»(<\/\w+>)? på alle kortene/)
     })
 
     it('says what a partial removal leads to, on the pages and in the manual', () => {
@@ -259,7 +263,9 @@ describe('help content', () => {
     it('writes Norwegian button instructions with «trykk på», and uses the agreed words', () => {
         const text = prose('no')
         expect(text).not.toMatch(/\b[Tt]rykk <Ui>/)
-        expect(text).not.toMatch(/oppføring/i)
+        expect(text).not.toMatch(/oppføring|\blinjen?e?r?\b/i)
+        expect(manual()).not.toMatch(/oppføring|\bentr(y|ies)\b/i)
+        expect(prose('en')).not.toMatch(/\bentr(y|ies)\b/i)
         expect(text).not.toMatch(/Wi-Fi er nede|For å slutte å dele|For å velge|For å bytte|Bli værende|rapporterer/)
         expect(text).toContain('<DoThis>Slik løser du det</DoThis>')
         expect(text).not.toContain('<DoThis>Gjør dette</DoThis>')
