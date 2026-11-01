@@ -7,12 +7,13 @@ export interface ContentsEntry extends ContentsLink {
     groups: { label?: string; items: ContentsLink[] }[];
 }
 
-function ContentsAnchor({ link, activeId }: { link: ContentsLink; activeId?: string | null }) {
+function ContentsAnchor({ link, activeId, isExpanded }: { link: ContentsLink; activeId?: string | null; isExpanded?: boolean }) {
     const active = link.id === activeId;
     return (
         <a
             href={`#${link.id}`}
             aria-current={active ? 'location' : undefined}
+            aria-expanded={isExpanded}
             className={`block rounded-lg px-2 py-1 transition-colors ${active ? 'bg-sky-500/15 font-medium text-sky-300' : 'text-gray-400 hover:text-sky-300'}`}
         >
             {link.title}
@@ -23,14 +24,15 @@ function ContentsAnchor({ link, activeId }: { link: ContentsLink; activeId?: str
 /**
  * The sections of a help page as plain links. `expanded` names the sections that show their
  * subtitles, and leaving it out shows them all. Without JavaScript nothing can expand a section,
- * so a browser that reports no scripting shows them all as well.
+ * so a browser that reports no scripting shows them all as well. `showExpandedState` tells assistive
+ * technology which sections are open, and is left out where nothing can change it.
  */
-export default function ContentsList({ entries, activeId, expanded }: { entries: ContentsEntry[]; activeId?: string | null; expanded?: ReadonlySet<string> }) {
+export default function ContentsList({ entries, activeId, expanded, showExpandedState }: { entries: ContentsEntry[]; activeId?: string | null; expanded?: ReadonlySet<string>; showExpandedState?: boolean }) {
     return (
         <ul className="space-y-0.5 text-sm">
             {entries.map(entry => (
                 <li key={entry.id}>
-                    <ContentsAnchor link={entry} activeId={activeId} />
+                    <ContentsAnchor link={entry} activeId={activeId} isExpanded={showExpandedState ? expanded?.has(entry.id) : undefined} />
                     <div className={!expanded || expanded.has(entry.id) ? undefined : 'hidden [@media(scripting:none)]:block'}>
                         {entry.groups.map((group, index) => (
                             <div key={group.label ?? index}>

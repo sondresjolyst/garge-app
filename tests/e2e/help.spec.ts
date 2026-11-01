@@ -190,6 +190,26 @@ for (const help of PAGES) {
                 await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#light-not-blinking-fast')
             })
 
+            test('reaches every subtitle with the Tab key, and folds again when the keyboard leaves', async ({ page }) => {
+                await page.goto(help.path)
+                await expect(page.locator('aside a[href="#garge-voltmeter"]')).toBeHidden()
+
+                const inSidebar = () => page.evaluate(() => document.activeElement?.closest('aside nav')?.getAttribute('aria-label') !== undefined && document.activeElement?.closest('aside nav') !== null)
+                for (let press = 0; press < 20 && !(await inSidebar()); press++) await page.keyboard.press('Tab')
+                expect(await inSidebar()).toBe(true)
+                await expect(page.locator('aside a[href="#garge-voltmeter"]')).toBeVisible()
+
+                const reached: string[] = []
+                for (let press = 0; press < 60 && await inSidebar(); press++) {
+                    reached.push(await page.evaluate(() => document.activeElement?.getAttribute('href') ?? ''))
+                    await page.keyboard.press('Tab')
+                }
+                const all = await page.locator('aside nav a').evaluateAll(links => links.map(link => link.getAttribute('href')))
+                expect(reached).toEqual(all)
+
+                await expect(page.locator('aside a[href="#garge-voltmeter"]')).toBeHidden()
+            })
+
             test('shows the link icon only on hover or keyboard focus', async ({ page }) => {
                 await page.goto(help.path)
                 const icon = page.locator('#change-wifi a[href="#change-wifi"]').first()
@@ -270,6 +290,62 @@ for (const help of PAGES) {
             })
         })
     }
+
+    for (const viewport of [{ width: 1920, height: 1080 }, { width: 1280, height: 800 }]) {
+        test.describe(`${help.path} mark near the end of the page at ${viewport.width} x ${viewport.height}`, () => {
+            test.use({ viewport })
+
+            for (const id of ['garge-voltmeter', 'garge-sensor']) {
+                test(`marks ${id} when the page opens on it`, async ({ page }) => {
+                    await page.goto(`${help.path}#${id}`)
+                    await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', `#${id}`)
+                })
+            }
+
+            test('marks the last section after a click on its title', async ({ page }) => {
+                await page.goto(help.path)
+                await page.locator('aside a[href="#sensors"]').click()
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#sensors')
+                await page.waitForTimeout(400)
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#sensors')
+            })
+
+            test('marks the last item at the end of the page, and follows the reader back up', async ({ page }) => {
+                await page.goto(help.path)
+                await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#garge-voltmeter')
+
+                await page.locator('#sharing').evaluate(element => element.scrollIntoView())
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#sharing')
+            })
+
+            test('leaves a jump behind once the reader scrolls', async ({ page }) => {
+                await page.goto(`${help.path}#garge-sensor`)
+                await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#garge-sensor')
+                await page.waitForTimeout(400)
+                await page.mouse.move(viewport.width - 5, viewport.height / 2)
+                await page.mouse.wheel(0, -2000)
+                await expect(page.locator('aside [aria-current]')).not.toHaveAttribute('href', '#garge-sensor')
+            })
+        })
+    }
+
+    test.describe(`${help.path} sidebar on a touch screen`, () => {
+        test('follows the page after a tap, with no list held open', async ({ browser }) => {
+            const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, hasTouch: true })
+            const page = await context.newPage()
+            await page.goto(`${help.path}`)
+
+            await page.locator('aside a[href="#common-tasks"]').tap()
+            await expect(page.locator('aside a[href="#sharing"]')).toBeVisible()
+            await expect(page.locator('aside a[href="#step-wifi"]')).toBeHidden()
+
+            await page.locator('aside a[href="#sensors"]').tap()
+            await expect(page.locator('aside a[href="#garge-voltmeter"]')).toBeVisible()
+            await expect(page.locator('aside a[href="#sharing"]')).toBeHidden()
+            await context.close()
+        })
+    })
 
     test(`${help.path} has its metadata`, async ({ page }) => {
         await page.goto(help.path)

@@ -74,6 +74,7 @@ export const content: HelpContent = {
                                     <li>Enter the pairing code.</li>
                                     <li>Tap <Ui>“Connect”</Ui>.</li>
                                 </Steps>
+                                <p>If the page shows <Ui>“Pair device”</Ui>, see <Go to="setup-asks-for-code">the setup page only asks for a pairing code</Go>.</p>
                             </>
                         ),
                         images: [
@@ -89,7 +90,7 @@ export const content: HelpContent = {
                                     <li>Go back to <Ui>“My Devices”</Ui>. The sensor appears by itself within a couple of minutes.</li>
                                     <li>Give it a name, for example “MC battery”. <Go to="renaming">How to rename a sensor.</Go></li>
                                 </Steps>
-                                <p>If it does not appear, reload the page.</p>
+                                <p>If it does not appear, reload the page. <Go to="sensor-not-showing-up">Still not there?</Go></p>
                             </>
                         ),
                     },
@@ -152,7 +153,7 @@ export const content: HelpContent = {
                                 <>
                                     <DoThis>Do this</DoThis>
                                     <Steps>
-                                        <li>Enter a new pairing code.</li>
+                                        <li>Enter a <Go to="step-pairing-code">new pairing code</Go>.</li>
                                         <li>Tap <Ui>“Pair”</Ui>.</li>
                                     </Steps>
                                     <p>To pick another network, tap <Ui>“Change Wi-Fi”</Ui> instead.</p>
@@ -168,7 +169,7 @@ export const content: HelpContent = {
                                     <DoThis>Do this</DoThis>
                                     <Steps>
                                         <li>If you see <Ui>“This pairing code has expired.”</Ui>, tap <Ui>“Get new code”</Ui>. The old code stops working.</li>
-                                        <li>If you already entered the old code on the sensor, <Go to="setup-mode">open setup mode</Go>, join “Garge …” on your phone and enter the new code.</li>
+                                        <li>If you already entered the old code on the sensor, <Go to="setup-mode">open setup mode</Go>, join “Garge …” on your phone and enter the new code. See <Go to="setup-asks-for-code">the setup page only asks for a pairing code</Go>.</li>
                                     </Steps>
                                     <p>A code lasts 15 minutes and works once.</p>
                                 </>
@@ -192,9 +193,16 @@ export const content: HelpContent = {
                                 <>
                                     <DoThis>Do this</DoThis>
                                     <Steps>
-                                        <li>Check that your network is on 2.4 GHz and not hidden. The sensor only supports 2.4 GHz Wi-Fi, and hidden networks are not listed.</li>
-                                        <li>If the password may be wrong, <Go to="setup-mode">open setup mode</Go> and tap <Ui>“Change Wi-Fi”</Ui> on the <Ui>“Pair device”</Ui> page.</li>
-                                        <li>Choose the network, and enter the password again and a new pairing code.</li>
+                                        <li>Check that your network is on 2.4 GHz and not hidden. The sensor only supports 2.4 GHz Wi-Fi, and the setup page only lists the networks it finds. If your network is hidden, make it visible. If it is 5 GHz only, use a 2.4 GHz network.</li>
+                                    </Steps>
+                                    <p>If the password may be wrong:</p>
+                                    <Steps>
+                                        <li><Go to="step-pairing-code">Get a new pairing code in the app</Go> first. Your phone has no internet while it is on the sensor&apos;s network.</li>
+                                        <li><Go to="setup-mode">Open setup mode on the sensor.</Go></li>
+                                        <li>Join “Garge …” on your phone.</li>
+                                        <li>Tap <Ui>“Change Wi-Fi”</Ui> on the <Ui>“Pair device”</Ui> page.</li>
+                                        <li>Choose the network, and enter the password and the new code.</li>
+                                        <li>Tap <Ui>“Connect”</Ui>.</li>
                                     </Steps>
                                     <p>The setup page does not test the password. It only says “Data received. Restarting...”. A sensor with a wrong password does not go back to setup mode by itself.</p>
                                 </>
@@ -254,7 +262,6 @@ export const content: HelpContent = {
         },
         {
             id: 'common-tasks',
-            aliases: ['using-the-app'],
             title: 'Common tasks',
             groups: [{
                 items: [
@@ -299,7 +306,7 @@ export const content: HelpContent = {
                                     <li>Go to <Ui>“Profile” &gt; “Manage sensors”</Ui>.</li>
                                     <li>Tap <Ui>“Share”</Ui> on the entry.</li>
                                     <li>Enter another Garge user&apos;s email address.</li>
-                                    <li>Pick <Ui>“Read”</Ui> if the other user should only see the readings, or <Ui>“Edit”</Ui> if the other user should also get automations for the sockets this sensor has found.</li>
+                                    <li>Pick <Ui>“Read”</Ui> if the other user should only see the readings, or <Ui>“Edit”</Ui> if the other user can also create automations for the sockets this sensor has found.</li>
                                     <li>Tap <Ui>“Share”</Ui>.</li>
                                 </Steps>
                                 <p>Sharing applies to one entry at a time. A Garge Sensor has two entries, temperature and humidity, so share each one you want the other user to see.</p>
@@ -330,7 +337,6 @@ export const content: HelpContent = {
                     },
                     {
                         id: 'selling',
-                        aliases: ['sell-sensor'],
                         title: 'Sell or give away a sensor',
                         body: (
                             <>
@@ -344,12 +350,15 @@ export const content: HelpContent = {
                                 <p>Removing an entry deletes its custom name, photos, activities and thresholds from your account. Anyone you shared it with loses access. You can add the sensor back later with the code under <Ui>“Device code”</Ui>. This needs an active subscription.</p>
                                 <h4 id="new-owner" className="scroll-mt-20 pt-2 font-semibold text-gray-100">What the new owner does</h4>
                                 <Steps>
-                                    <li>Follow setup from <Go to="setup">step 1</Go>. The new owner does not see your readings.</li>
-                                    <li><Go to="setup-mode">Open setup mode on the sensor</Go>. It was set up before, so the setup page shows <Ui>“Pair device”</Ui>.</li>
-                                    <li>Tap <Ui>“Change Wi-Fi”</Ui>.</li>
-                                    <li>Enter your own Wi-Fi and the pairing code, and tap <Ui>“Connect”</Ui>.</li>
+                                    <li>Follow setup steps <Go to="step-account">1</Go> and <Go to="step-pairing-code">2</Go>.</li>
+                                    <li><Go to="step-power">Power on the sensor.</Go></li>
+                                    <li><Go to="setup-mode">Open setup mode on the sensor.</Go></li>
+                                    <li>Join “Garge …” on the phone.</li>
+                                    <li>Tap <Ui>“Change Wi-Fi”</Ui> on the <Ui>“Pair device”</Ui> page.</li>
+                                    <li>Choose the Wi-Fi network, enter its password and the pairing code, and tap <Ui>“Connect”</Ui>.</li>
+                                    <li>Follow setup step <Go to="step-name">5</Go>.</li>
                                 </Steps>
-                                <p>The seller&apos;s Wi-Fi name and password stay on the sensor until the new owner&apos;s Wi-Fi replaces them.</p>
+                                <p>The new owner does not see the seller&apos;s readings. The seller&apos;s Wi-Fi name and password stay on the sensor until the new owner&apos;s Wi-Fi replaces them.</p>
                             </>
                         ),
                     },
@@ -380,6 +389,7 @@ export const content: HelpContent = {
                                     <li>Straight away, hold the BOOT button until the light blinks fast.</li>
                                 </Steps>
                                 <p>This can take more than 5 seconds. If it does not blink fast, try again. This erases nothing.</p>
+                                <p>If the light does not come on at all, check the power. For a Garge Voltmeter, check the battery and the plug.</p>
                                 <p>On a sensor that is already set up, press the Restart button to leave setup mode at once.</p>
                             </>
                         ),

@@ -15,8 +15,6 @@ export interface HelpItem {
     /** The same in both languages, in English, so a customer can be sent straight to it. */
     id: string;
     title: string;
-    /** Ids this item used to have, so links already sent to customers keep working. */
-    aliases?: string[];
     body: ReactNode;
     images?: HelpImage[];
     /** Shows the picture of the buttons on the case beside the text. */
@@ -33,8 +31,6 @@ export interface HelpGroup {
 export interface HelpSection {
     id: string;
     title: string;
-    /** Ids this section used to have, so links already sent to customers keep working. */
-    aliases?: string[];
     /** Numbers the items, for the setup steps. */
     numbered?: boolean;
     groups: HelpGroup[];

@@ -191,10 +191,10 @@ describe('help content', () => {
         const earlier = [
             'setup', 'step-account', 'step-pairing-code', 'step-power', 'step-wifi', 'step-name',
             'buttons-and-light', 'buttons', 'blue-light', 'sensors', 'garge-sensor', 'garge-voltmeter',
-            'using-the-app', 'notifications', 'sharing', 'renaming',
+            'notifications', 'sharing', 'renaming',
             'troubleshooting', 'change-wifi', 'sensor-not-showing-up', 'pairing-code-expired', 'setup-asks-for-code',
             'setup-network-missing', 'setup-page-not-opening', 'cannot-get-pairing-code', 'voltmeter-not-responding',
-            'sensor-stopped-reporting', 'alerts-not-arriving', 'selling', 'sell-sensor', 'new-owner',
+            'sensor-stopped-reporting', 'alerts-not-arriving', 'selling', 'new-owner',
         ]
         expect(earlier.filter(id => !ids.includes(id))).toEqual([])
     })
@@ -336,16 +336,16 @@ describe('HelpPage', () => {
         expect(folded?.className).toContain('[@media(scripting:none)]:block')
     })
 
-    it('holds the list still while the mouse is over it', () => {
+    it('holds the list still while a mouse is over it', () => {
         const { container } = render(<HelpPage content={en} />)
         const nav = container.querySelector('aside nav') as HTMLElement
         const before = shownSidebarLinks(container)
 
-        fireEvent.mouseEnter(nav)
+        fireEvent.pointerEnter(nav, { pointerType: 'mouse' })
         scrollTo({ 'common-tasks': true, sharing: true })
         expect(shownSidebarLinks(container)).toEqual(before)
 
-        fireEvent.mouseLeave(nav)
+        fireEvent.pointerLeave(nav, { pointerType: 'mouse' })
         expect(shownSidebarLinks(container)).toContain('#sharing')
         expect(shownSidebarLinks(container)).not.toContain('#step-name')
     })
@@ -353,7 +353,7 @@ describe('HelpPage', () => {
     it('marks the section while its subtitle is folded away by the held list', () => {
         const { container } = render(<HelpPage content={en} />)
 
-        fireEvent.mouseEnter(container.querySelector('aside nav') as HTMLElement)
+        fireEvent.pointerEnter(container.querySelector('aside nav') as HTMLElement, { pointerType: 'mouse' })
         scrollTo({ 'common-tasks': true, sharing: true })
 
         expect(currentLinks(container)).toEqual(['#common-tasks'])
@@ -363,12 +363,136 @@ describe('HelpPage', () => {
         const { container } = render(<HelpPage content={en} />)
         const nav = container.querySelector('aside nav') as HTMLElement
 
-        fireEvent.mouseEnter(nav)
+        fireEvent.pointerEnter(nav, { pointerType: 'mouse' })
         fireEvent.click(nav.querySelector('a[href="#common-tasks"]') as Element)
 
         const shown = shownSidebarLinks(container)
         expect(shown).toContain('#step-name')
         expect(shown).toContain('#sharing')
+    })
+
+    it.each(['touch', 'pen'])('does not hold the list for a %s', pointerType => {
+        const { container } = render(<HelpPage content={en} />)
+
+        fireEvent.pointerEnter(container.querySelector('aside nav') as HTMLElement, { pointerType })
+        scrollTo({ 'common-tasks': true, sharing: true })
+
+        expect(shownSidebarLinks(container)).toContain('#sharing')
+        expect(shownSidebarLinks(container)).not.toContain('#step-name')
+    })
+
+    it('opens every section while the keyboard is in the list, and folds them when it leaves', () => {
+        const { container } = render(<HelpPage content={en} />)
+        const nav = container.querySelector('aside nav') as HTMLElement
+        const first = nav.querySelector('a') as HTMLElement
+        vi.spyOn(first, 'matches').mockReturnValue(true)
+
+        fireEvent.focusIn(first)
+        expect(shownSidebarLinks(container)).toContain('#garge-voltmeter')
+        expect(shownSidebarLinks(container)).toContain('#pairing-code-expired')
+
+        fireEvent.focusOut(first, { relatedTarget: nav.querySelector('a[href="#step-name"]') })
+        expect(shownSidebarLinks(container)).toContain('#garge-voltmeter')
+
+        fireEvent.focusOut(first, { relatedTarget: document.body })
+        expect(shownSidebarLinks(container)).not.toContain('#garge-voltmeter')
+    })
+
+    it('does not open every section when a press moves the focus, so the link stays under the cursor', () => {
+        const { container } = render(<HelpPage content={en} />)
+        const first = container.querySelector('aside nav a') as HTMLElement
+        const matches = vi.spyOn(first, 'matches').mockReturnValue(false)
+
+        fireEvent.focusIn(first)
+
+        expect(matches).toHaveBeenCalledWith(':focus-visible')
+        expect(shownSidebarLinks(container)).not.toContain('#garge-voltmeter')
+    })
+
+    it('tells assistive technology which sections are open', () => {
+        const { container } = render(<HelpPage content={en} />)
+        const state = (id: string) => container.querySelector(`aside nav a[href="#${id}"]`)?.getAttribute('aria-expanded')
+
+        expect(state('setup')).toBe('true')
+        expect(state('common-tasks')).toBe('false')
+        expect(state('step-account')).toBeNull()
+
+        scrollTo({ 'common-tasks': true })
+        expect(state('setup')).toBe('false')
+        expect(state('common-tasks')).toBe('true')
+        expect(container.querySelector('details [aria-expanded]')).toBeNull()
+    })
+
+    it('uses a plain paragraph for the sidebar label', () => {
+        const { container } = render(<HelpPage content={en} />)
+        expect(container.querySelector('aside nav h2')).toBeNull()
+        expect(container.querySelector('aside nav > p')).toHaveTextContent('Contents')
+    })
+
+    describe('after a jump', () => {
+        let clock = 1000
+        beforeEach(() => {
+            clock = 1000
+            vi.spyOn(Date, 'now').mockImplementation(() => clock)
+        })
+        afterEach(() => {
+            vi.restoreAllMocks()
+            window.location.hash = ''
+        })
+
+        it('marks the target of the address the page opens with', () => {
+            window.location.hash = '#garge-voltmeter'
+            const { container } = render(<HelpPage content={en} />)
+            expect(currentLinks(container)).toEqual(['#garge-voltmeter'])
+        })
+
+        it('marks the target of a hash change and ignores the strip until the jump has settled', () => {
+            const { container } = render(<HelpPage content={en} />)
+
+            window.location.hash = '#garge-sensor'
+            act(() => { window.dispatchEvent(new Event('hashchange')) })
+            expect(currentLinks(container)).toEqual(['#garge-sensor'])
+
+            scrollTo({ sensors: true })
+            expect(currentLinks(container)).toEqual(['#garge-sensor'])
+
+            clock += 100
+            act(() => { window.dispatchEvent(new Event('scroll')) })
+            expect(currentLinks(container)).toEqual(['#garge-sensor'])
+        })
+
+        it('marks the target of a clicked link, and follows the strip again once the reader scrolls', () => {
+            const { container } = render(<HelpPage content={en} />)
+
+            fireEvent.click(container.querySelector('aside nav a[href="#sensors"]') as Element)
+            expect(currentLinks(container)).toEqual(['#sensors'])
+
+            scrollTo({ 'common-tasks': true })
+            expect(currentLinks(container)).toEqual(['#sensors'])
+
+            clock += 1000
+            act(() => { window.dispatchEvent(new Event('scroll')) })
+            expect(currentLinks(container)).toEqual(['#common-tasks'])
+        })
+
+        it('ignores an address that is not a section', () => {
+            window.location.hash = '#nothing-here'
+            const { container } = render(<HelpPage content={en} />)
+            expect(currentLinks(container)).toEqual([])
+        })
+
+        it('marks the last item at the end of the page', () => {
+            const { container } = render(<HelpPage content={en} />)
+            const scrollHeight = vi.spyOn(document.documentElement, 'scrollHeight', 'get').mockReturnValue(window.innerHeight + 500)
+            vi.spyOn(window, 'scrollY', 'get').mockReturnValue(500)
+
+            act(() => { window.dispatchEvent(new Event('scroll')) })
+            expect(currentLinks(container)).toEqual(['#garge-voltmeter'])
+
+            scrollHeight.mockReturnValue(window.innerHeight + 900)
+            scrollTo({ 'common-tasks': true })
+            expect(currentLinks(container)).toEqual(['#common-tasks'])
+        })
     })
 
     it('has a collapsed contents list above the sections, labelled for the language', () => {
@@ -452,6 +576,11 @@ describe('HelpPage', () => {
             expect(target).not.toBeNull()
             expect(target?.querySelector(`a[href="#${id}"]`)).not.toBeNull()
         }
+    })
+
+    it('states what to do with a hidden or 5 GHz network, on both pages', () => {
+        expect(prose('en')).toContain('If your network is hidden, make it visible. If it is 5 GHz only, use a 2.4 GHz network.')
+        expect(prose('no')).toContain('Hvis nettverket er skjult, gjør det synlig. Hvis det bare er på 5 GHz, bruk et nettverk på 2,4 GHz.')
     })
 
     it('points every link inside the page at something that exists', () => {

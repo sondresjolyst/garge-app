@@ -40,7 +40,6 @@ function Item({ item, number, linkLabel, grouped }: { item: HelpItem; number?: n
     const hasFigure = Boolean(item.images?.length || item.device);
     return (
         <article id={item.id} className="group/item scroll-mt-20 space-y-3">
-            {item.aliases?.map(alias => <span key={alias} id={alias} className="block scroll-mt-20" />)}
             <div className="flex items-start gap-3">
                 {number !== undefined && (
                     <span className="w-7 h-7 rounded-full bg-sky-600 text-white text-sm font-bold flex items-center justify-center flex-shrink-0">
@@ -76,7 +75,6 @@ function Section({ section, linkLabel }: { section: HelpSection; linkLabel: stri
     let number = 0;
     return (
         <section id={section.id} className="group/section scroll-mt-20 space-y-6">
-            {section.aliases?.map(alias => <span key={alias} id={alias} className="block scroll-mt-20" />)}
             <div className="flex items-start gap-3 border-b border-gray-700/60 pb-2">
                 <h2 className="min-w-0 text-xl font-bold text-gray-100">{section.title}</h2>
                 <AnchorLink id={section.id} label={`${linkLabel}: ${section.title}`} group="section" />
