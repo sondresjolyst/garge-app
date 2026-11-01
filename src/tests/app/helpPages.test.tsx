@@ -213,7 +213,7 @@ describe('help content', () => {
 
     it.each([
         ['en', /hold the BOOT button/gi, /Restart button and let go/g],
-        ['no', /Hold så BOOT-knappen/g, /Restart-knappen og slipp/g],
+        ['no', /Hold BOOT-knappen/g, /Restart-knappen og slipp/g],
     ])('states the BOOT procedure once in %s, and every other place links to it', (name, hold, release) => {
         expect(prose(name).match(hold)).toHaveLength(1)
         expect(prose(name).match(release)).toHaveLength(1)
@@ -241,20 +241,29 @@ describe('help content', () => {
             expect(text).not.toMatch(/hold the BOOT button for 5 seconds/i)
             expect(text).toContain('Straight away, hold the BOOT button until the light blinks fast.')
         }
-        for (const text of [prose('no'), manual()]) {
-            expect(text).not.toMatch(/inne i 5 sekunder/)
-            expect(text).toContain('Hold så BOOT-knappen inne med en gang, til lyset blinker raskt.')
-        }
+        for (const text of [prose('no'), manual()]) expect(text).not.toMatch(/inne i 5 sekunder/)
+        expect(prose('no')).toContain('Hold BOOT-knappen inne med en gang, helt til lyset blinker raskt.')
+        expect(manual()).toContain('Hold så BOOT-knappen inne med en gang, til lyset blinker raskt.')
     })
 
     it('tells a seller to remove every entry, on the pages and in the manual', () => {
         for (const text of [prose('en'), manual()]) expect(text).toMatch(/“Remove from account”(<\/\w+>)? on every entry/)
-        for (const text of [prose('no'), manual()]) expect(text).toMatch(/«Remove from account»(<\/\w+>)? på alle oppføringene/)
+        expect(prose('no')).toMatch(/«Remove from account»(<\/\w+>)? på alle linjene/)
+        expect(manual()).toMatch(/«Remove from account»(<\/\w+>)? på alle oppføringene/)
     })
 
     it('says what a partial removal leads to, on the pages and in the manual', () => {
         for (const text of [prose('en'), manual()]) expect(text).toContain('the new owner gets only part of the sensor and you keep access to the rest')
         for (const text of [prose('no'), manual()]) expect(text).toContain('får den nye eieren bare deler av sensoren, og du beholder tilgang til resten')
+    })
+
+    it('writes Norwegian button instructions with «trykk på», and uses the agreed words', () => {
+        const text = prose('no')
+        expect(text).not.toMatch(/\b[Tt]rykk <Ui>/)
+        expect(text).not.toMatch(/oppføring/i)
+        expect(text).not.toMatch(/Wi-Fi er nede|For å slutte å dele|For å velge|For å bytte|Bli værende|rapporterer/)
+        expect(text).toContain('<DoThis>Slik løser du det</DoThis>')
+        expect(text).not.toContain('<DoThis>Gjør dette</DoThis>')
     })
 
     it('never says tilkoblingskode, and uses the quotes of each language', () => {
@@ -294,7 +303,7 @@ describe('HelpPage', () => {
         render(<HelpPage content={no} />)
         const table = screen.getByRole('table')
 
-        expect(within(table).getAllByRole('columnheader').map(header => header.textContent)).toEqual(['Lyset', 'Betyr', 'Gjør dette'])
+        expect(within(table).getAllByRole('columnheader').map(header => header.textContent)).toEqual(['Lyset', 'Hva det betyr', 'Hva du gjør'])
         expect(within(table).getAllByRole('row')).toHaveLength(4)
         expect(within(table).getByRole('link', { name: 'Koble sensoren til Wi-Fi' })).toHaveAttribute('href', '#step-wifi')
         expect(within(table).getByRole('link', { name: 'Får du ikke målinger?' })).toHaveAttribute('href', '#sensor-stopped-reporting')
@@ -580,7 +589,7 @@ describe('HelpPage', () => {
 
     it('states what to do with a hidden or 5 GHz network, on both pages', () => {
         expect(prose('en')).toContain('If your network is hidden, make it visible. If it is 5 GHz only, use a 2.4 GHz network.')
-        expect(prose('no')).toContain('Hvis nettverket er skjult, gjør det synlig. Hvis det bare er på 5 GHz, bruk et nettverk på 2,4 GHz.')
+        expect(prose('no')).toContain('Hvis nettverket er skjult, gjør du det synlig. Hvis det bare er på 5 GHz, bruker du et nettverk på 2,4 GHz.')
     })
 
     it('points every link inside the page at something that exists', () => {
