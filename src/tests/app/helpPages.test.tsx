@@ -13,33 +13,23 @@ vi.mock('next/image', () => ({
     default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
 }))
 
-/** Stands in for the browser's observer, so a test decides which sections are in view. */
-let observers: { callback: IntersectionObserverCallback; targets: Element[] }[] = []
-
-class FakeIntersectionObserver {
-    private readonly entry: { callback: IntersectionObserverCallback; targets: Element[] }
-    constructor(callback: IntersectionObserverCallback) {
-        this.entry = { callback, targets: [] }
-        observers.push(this.entry)
-    }
-    observe(target: Element) { this.entry.targets.push(target) }
-    disconnect() { this.entry.targets = [] }
-}
+/** Where the browser reports each section, in pixels from the top of the screen. Others are far below. */
+let tops: Record<string, number> = {}
 
 beforeEach(() => {
-    observers = []
-    vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver)
+    tops = {}
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+        return { top: tops[this.id] ?? 5000 } as DOMRect
+    })
 })
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => vi.restoreAllMocks())
 
-/** Reports each id as entering or leaving the part of the screen that decides the current section. */
-function scrollTo(changes: Record<string, boolean>) {
-    const [observer] = observers
-    const entries = Object.entries(changes).map(([id, isIntersecting]) => ({
-        target: observer.targets.find(target => target.id === id),
-        isIntersecting,
-    }))
-    act(() => observer.callback(entries as unknown as IntersectionObserverEntry[], observer as unknown as IntersectionObserver))
+/** Puts each id above the reading line or takes it away, then reports a scroll. */
+function scrollTo(changes: Record<string, boolean | number>) {
+    for (const [id, place] of Object.entries(changes)) {
+        tops[id] = place === true ? 90 : place === false ? 5000 : place
+    }
+    act(() => { window.dispatchEvent(new Event('scroll')) })
 }
 
 const currentLinks = (container: HTMLElement) =>
@@ -426,20 +416,6 @@ describe('HelpPage', () => {
         expect(shownSidebarLinks(container)).not.toContain('#blue-light')
     })
 
-    it('tells assistive technology which sections are open', () => {
-        const { container } = render(<HelpPage content={en} />)
-        const state = (id: string) => container.querySelector(`aside nav a[href="#${id}"]`)?.getAttribute('aria-expanded')
-
-        expect(state('setup')).toBe('true')
-        expect(state('common-tasks')).toBe('false')
-        expect(state('step-account')).toBeNull()
-
-        scrollTo({ 'common-tasks': true })
-        expect(state('setup')).toBe('false')
-        expect(state('common-tasks')).toBe('true')
-        expect(container.querySelector('details [aria-expanded]')).toBeNull()
-    })
-
     it('uses a plain paragraph for the sidebar label', () => {
         const { container } = render(<HelpPage content={en} />)
         expect(container.querySelector('aside nav h2')).toBeNull()
@@ -452,10 +428,12 @@ describe('HelpPage', () => {
             clock = 1000
             vi.spyOn(Date, 'now').mockImplementation(() => clock)
         })
-        afterEach(() => {
-            vi.restoreAllMocks()
-            window.location.hash = ''
-        })
+        afterEach(() => { window.location.hash = '' })
+
+        const changeHash = (hash: string) => {
+            window.location.hash = hash
+            act(() => { window.dispatchEvent(new Event('hashchange')) })
+        }
 
         it('marks the target of the address the page opens with', () => {
             window.location.hash = '#blue-light'
@@ -463,33 +441,59 @@ describe('HelpPage', () => {
             expect(currentLinks(container)).toEqual(['#blue-light'])
         })
 
-        it('marks the target of a hash change and ignores the strip until the jump has settled', () => {
+        it('marks the target of a hash change, and the browser scroll of the jump does not move it', () => {
             const { container } = render(<HelpPage content={en} />)
 
-            window.location.hash = '#setup-mode'
-            act(() => { window.dispatchEvent(new Event('hashchange')) })
+            changeHash('#setup-mode')
             expect(currentLinks(container)).toEqual(['#setup-mode'])
 
-            scrollTo({ 'buttons-and-light': true })
-            expect(currentLinks(container)).toEqual(['#setup-mode'])
-
-            clock += 100
-            act(() => { window.dispatchEvent(new Event('scroll')) })
+            scrollTo({ buttons: -300 })
             expect(currentLinks(container)).toEqual(['#setup-mode'])
         })
 
-        it('marks the target of a clicked link, and follows the strip again once the reader scrolls', () => {
+        it('follows the page when the reader scrolls inside the first moments, so no stale mark stays', () => {
             const { container } = render(<HelpPage content={en} />)
 
-            fireEvent.click(container.querySelector('aside nav a[href="#buttons-and-light"]') as Element)
-            expect(currentLinks(container)).toEqual(['#buttons-and-light'])
+            changeHash('#setup-mode')
+            scrollTo({ buttons: -300 })
+            clock += 50
+            scrollTo({ buttons: false, sharing: true })
 
-            scrollTo({ 'common-tasks': true })
-            expect(currentLinks(container)).toEqual(['#buttons-and-light'])
+            expect(currentLinks(container)).toEqual(['#sharing'])
+        })
 
+        it('follows the page when the reader scrolls later', () => {
+            const { container } = render(<HelpPage content={en} />)
+
+            changeHash('#setup-mode')
             clock += 1000
-            act(() => { window.dispatchEvent(new Event('scroll')) })
-            expect(currentLinks(container)).toEqual(['#common-tasks'])
+            scrollTo({ sharing: true })
+
+            expect(currentLinks(container)).toEqual(['#sharing'])
+        })
+
+        it('marks a clicked link again when the address is already that link', () => {
+            const { container } = render(<HelpPage content={en} />)
+            changeHash('#setup-mode')
+            clock += 1000
+            scrollTo({ sharing: true })
+
+            fireEvent.click(container.querySelector('aside nav a[href="#common-tasks"]') as Element)
+            fireEvent.click(container.querySelector('aside nav a[href="#setup-mode"]') as Element)
+
+            expect(currentLinks(container)).toEqual(['#setup-mode'])
+        })
+
+        it.each([{ ctrlKey: true }, { metaKey: true }, { shiftKey: true }])('leaves the mark and the list alone for a click with %o', modifier => {
+            const { container } = render(<HelpPage content={en} />)
+            const nav = container.querySelector('aside nav') as HTMLElement
+            scrollTo({ setup: true })
+
+            fireEvent.pointerEnter(nav, { pointerType: 'mouse' })
+            fireEvent.click(nav.querySelector('a[href="#common-tasks"]') as Element, modifier)
+
+            expect(currentLinks(container)).toEqual(['#setup'])
+            expect(shownSidebarLinks(container)).not.toContain('#sharing')
         })
 
         it('ignores an address that is not a section', () => {
@@ -544,20 +548,19 @@ describe('HelpPage', () => {
         expect(currentLinks(container)).toEqual(['#troubleshooting'])
     })
 
-    it('keeps the last section marked while nothing is in view', () => {
+    it('keeps the mark on the last item passed, also in the gap before the next one', () => {
         const { container } = render(<HelpPage content={en} />)
 
-        scrollTo({ 'buttons-and-light': true })
-        scrollTo({ 'buttons-and-light': false })
-        expect(currentLinks(container)).toEqual(['#buttons-and-light'])
+        scrollTo({ 'common-tasks': -900, 'change-wifi': -300, notifications: 400 })
+        expect(currentLinks(container)).toEqual(['#change-wifi'])
     })
 
     it('drops the mark when the page is back above the first section', () => {
         const { container } = render(<HelpPage content={en} />)
         scrollTo({ setup: true })
+        expect(currentLinks(container)).toEqual(['#setup'])
 
-        vi.spyOn(container.querySelector('#setup') as Element, 'getBoundingClientRect').mockReturnValue({ top: 300 } as DOMRect)
-        scrollTo({ setup: false })
+        scrollTo({ setup: 300 })
 
         expect(currentLinks(container)).toEqual([])
     })
@@ -608,6 +611,26 @@ describe('HelpPage', () => {
         expect(screen.getByRole('link', { name: 'Slik gjør du da.' })).toHaveAttribute('href', '#setup-asks-for-code')
         expect(screen.getByRole('link', { name: 'Les mer om siden «Pair device».' })).toHaveAttribute('href', '#setup-asks-for-code')
         expect(prose('no')).toContain('må du tillate varsler for Garge i nettleseren')
+    })
+
+    it.each([[no, 'Kontakt oss'], [en, 'Contact us']])('ends the problems with a way to reach us', (content, label) => {
+        const { container } = render(<HelpPage content={content} />)
+        const link = within(container.querySelector('#troubleshooting') as HTMLElement).getByRole('link', { name: label })
+
+        expect(link).toHaveAttribute('href', '/contact')
+    })
+
+    it.each([[no], [en]])('has no list with one lone step in the problem with a sensor that does not show up', content => {
+        const { container } = render(<HelpPage content={content} />)
+        const lists = [...container.querySelectorAll('#sensor-not-showing-up ol')]
+
+        expect(lists).toHaveLength(1)
+        expect(lists[0].children.length).toBeGreaterThan(1)
+    })
+
+    it.each([[no, 'Hent en ny pairing code.'], [en, 'Get a new pairing code.']])('offers a new code to someone who closed the page', (content, label) => {
+        const { container } = render(<HelpPage content={content} />)
+        expect(within(container.querySelector('#pairing-code-expired') as HTMLElement).getByRole('link', { name: label })).toHaveAttribute('href', '#step-pairing-code')
     })
 
     it('points every link inside the page at something that exists', () => {

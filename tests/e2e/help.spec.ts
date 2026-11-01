@@ -408,7 +408,13 @@ for (const { acceptLanguage, target } of [{ acceptLanguage: 'nb-NO', target: '/n
             await expect(page.locator('#setup')).toBeInViewport()
         })
 
-        test('opens the setup section in a new tab from the wizard, and the wizard stays open', async ({ page, context }) => {
+        test('keeps #step-power through the /help redirect and lands on the step', async ({ page }) => {
+            await page.goto('/help#step-power')
+            await expect(page).toHaveURL(new RegExp(`${target}#step-power$`))
+            await expect(page.locator('#step-power')).toBeInViewport()
+        })
+
+        test('opens the power on step in a new tab from the wizard, and the wizard stays open', async ({ page, context }) => {
             await mockSession(page, regularUser)
             await mockAllApi(page)
             await page.goto('/')
@@ -417,12 +423,102 @@ for (const { acceptLanguage, target } of [{ acceptLanguage: 'nb-NO', target: '/n
             await expect(link).toHaveAttribute('rel', 'noopener noreferrer')
 
             const [helpTab] = await Promise.all([context.waitForEvent('page'), link.click()])
-            await expect(helpTab).toHaveURL(new RegExp(`${target}#setup$`))
-            await expect(helpTab.locator('#setup')).toBeInViewport()
+            await expect(helpTab).toHaveURL(new RegExp(`${target}#step-power$`))
+            await expect(helpTab.locator('#step-power')).toBeInViewport()
             await expect(page.getByRole('heading', { name: 'Add a device' })).toBeVisible()
         })
     })
 }
+
+for (const viewport of [{ width: 1280, height: 800 }, { width: 1366, height: 650 }]) {
+    test.describe(`Keyboard in the sidebar at ${viewport.width} x ${viewport.height}`, () => {
+        test.use({ viewport })
+
+        for (const position of ['top', 'end']) {
+            test(`keeps every focused link on screen at the ${position} of the page`, async ({ page }) => {
+                await page.goto('/en/help')
+                const focusedInNav = () => page.evaluate(() => document.activeElement?.closest('aside nav') !== null && document.activeElement?.closest('aside nav') !== undefined)
+                for (let press = 0; press < 20 && !(await focusedInNav()); press++) await page.keyboard.press('Tab')
+                expect(await focusedInNav()).toBe(true)
+                if (position === 'end') await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+
+                let reached = 0
+                while (await focusedInNav()) {
+                    const box = await page.evaluate(() => {
+                        const link = (document.activeElement as HTMLElement).getBoundingClientRect()
+                        const header = (document.querySelector('header') as HTMLElement).getBoundingClientRect()
+                        return { top: link.top, bottom: link.bottom, headerBottom: header.bottom, height: window.innerHeight }
+                    })
+                    expect(box.top).toBeGreaterThanOrEqual(box.headerBottom - 1)
+                    expect(box.bottom).toBeLessThanOrEqual(box.height)
+                    reached++
+                    await page.keyboard.press('Tab')
+                    if (position === 'end' && reached === 1) await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+                }
+                expect(reached).toBeGreaterThan(20)
+            })
+        }
+    })
+}
+
+test.describe('The mark and how a link is opened', () => {
+    test.use({ viewport: { width: 1280, height: 800 } })
+
+    test('a Ctrl click on a sidebar link does not move the mark', async ({ page, context }) => {
+        await page.goto('/en/help#step-wifi')
+        await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#step-wifi')
+
+        await page.keyboard.down('Control')
+        const [opened] = await Promise.all([context.waitForEvent('page'), page.locator('aside a[href="#common-tasks"]').click()])
+        await page.keyboard.up('Control')
+        await opened.close()
+
+        await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#step-wifi')
+        await expect(page).toHaveURL(/#step-wifi$/)
+    })
+
+    test('a scroll that ends right after a jump does not leave a stale mark', async ({ page }) => {
+        await page.goto('/en/help')
+        await page.waitForLoadState('networkidle')
+        await page.evaluate(async () => {
+            const frame = () => new Promise(resolve => requestAnimationFrame(resolve))
+            window.location.hash = '#step-wifi'
+            await frame()
+            await frame()
+            document.getElementById('sharing')?.scrollIntoView()
+            await frame()
+            await frame()
+            window.scrollBy(0, 1)
+        })
+        await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#sharing')
+    })
+})
+
+// On a tall screen these sections never reach the reading line, so only the jump itself can mark them.
+test.describe('The mark near the end of a tall page', () => {
+    test.use({ viewport: { width: 1920, height: 1080 } })
+
+    test('a link in the text marks its target through the hash change', async ({ page }) => {
+        await page.goto('/en/help')
+        await page.waitForLoadState('networkidle')
+        await page.locator('#voltmeter-not-responding a[href="#setup-mode"]:not([aria-label])').click()
+        await expect(page).toHaveURL(/#setup-mode$/)
+        await page.waitForTimeout(400)
+        await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#setup-mode')
+    })
+
+    test('a second click on the current address marks it again', async ({ page }) => {
+        await page.goto('/en/help#setup-mode')
+        await page.waitForLoadState('networkidle')
+        await page.locator('#buttons').evaluate(element => element.scrollIntoView())
+        await page.waitForTimeout(400)
+        await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#buttons')
+
+        await page.locator('aside a[href="#setup-mode"]').click()
+        await page.waitForTimeout(400)
+        await expect(page.locator('aside [aria-current]')).toHaveAttribute('href', '#setup-mode')
+    })
+})
 
 test.describe('Links to Help from the app', () => {
     test('the contact page links to Help', async ({ page }) => {

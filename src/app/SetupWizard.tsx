@@ -421,7 +421,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                                     <li>Come back here — the device appears automatically.</li>
                                 </ol>
                                 <p className="text-sm">
-                                    <a href="/help#setup" target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:text-sky-300 transition-colors">
+                                    <a href="/help#step-power" target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:text-sky-300 transition-colors">
                                         Need help?
                                     </a>
                                 </p>

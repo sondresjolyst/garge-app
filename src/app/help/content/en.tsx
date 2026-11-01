@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { HelpContent } from '../helpContent';
 import { DoThis, Go, LightTable, Steps, Ui } from './Ui';
 
@@ -169,6 +170,7 @@ export const content: HelpContent = {
                                         <li>If you see <Ui>“This pairing code has expired.”</Ui>, tap <Ui>“Get new code”</Ui>. The old code stops working.</li>
                                         <li>If you already entered the old code on the sensor, <Go to="setup-mode">open setup mode</Go>, join “Garge …” on your phone and enter the new code. See <Go to="setup-asks-for-code">the setup page only asks for a pairing code</Go>.</li>
                                     </Steps>
+                                    <p>Closed the page? <Go to="step-pairing-code">Get a new pairing code.</Go></p>
                                     <p>A code lasts 15 minutes and works once.</p>
                                 </>
                             ),
@@ -190,9 +192,7 @@ export const content: HelpContent = {
                             body: (
                                 <>
                                     <DoThis>Do this</DoThis>
-                                    <Steps>
-                                        <li>Check that your network is on 2.4 GHz and not hidden. The sensor only supports 2.4 GHz Wi-Fi, and the setup page only lists the networks it finds. If your network is hidden, make it visible. If it is 5 GHz only, use a 2.4 GHz network.</li>
-                                    </Steps>
+                                    <p>Check that your network is on 2.4 GHz and not hidden. The sensor only supports 2.4 GHz Wi-Fi, and the setup page only lists the networks it finds. If your network is hidden, make it visible. If it is 5 GHz only, use a 2.4 GHz network.</p>
                                     <p>If the password may be wrong:</p>
                                     <Steps>
                                         <li><Go to="step-pairing-code">Get a new pairing code in the app</Go> first. Your phone has no internet while it is on the sensor&apos;s network.</li>
@@ -224,7 +224,7 @@ export const content: HelpContent = {
                                         <li>If a card is marked <Ui>“Off”</Ui> in <Ui>“Profile” &gt; “Manage sensors”</Ui>, its readings are hidden. Tap <Ui>“Turn on”</Ui>.</li>
                                     </Steps>
                                     <p>A Garge Sensor keeps trying to reconnect by itself. It also blinks slowly while it tries, so the slow blink alone does not prove it has Wi-Fi.</p>
-                                    <p>A Garge Voltmeter that cannot connect sleeps longer between tries, up to 6 hours. It can take that long to show up again after your Wi-Fi is back.</p>
+                                    <p>A Garge Voltmeter that cannot connect sleeps longer between tries, up to 6 hours. After your Wi-Fi is back, it can take up to 6 hours for the voltmeter to show up in the app again.</p>
                                 </>
                             ),
                         },
@@ -257,6 +257,7 @@ export const content: HelpContent = {
                     ],
                 },
             ],
+            closing: <>Still stuck? <Link href="/contact" className="text-sky-400 hover:text-sky-300">Contact us</Link>.</>,
         },
         {
             id: 'common-tasks',
@@ -272,7 +273,7 @@ export const content: HelpContent = {
                                 <li>Join “Garge …” on your phone.</li>
                                 <li>Tap <Ui>“Change Wi-Fi”</Ui>.</li>
                                 <li>Choose the new network and enter its password.</li>
-                                <li>Leave <Ui>“Pairing code (optional)”</Ui> empty and tap <Ui>“Connect”</Ui>. A sensor already on your account does not need a new code.</li>
+                                <li>Leave the <Ui>“Pairing code (optional)”</Ui> field empty and tap <Ui>“Connect”</Ui>. A sensor already on your account does not need a new code.</li>
                             </Steps>
                         ),
                     },
@@ -308,11 +309,11 @@ export const content: HelpContent = {
                                     <li>Tap <Ui>“Share”</Ui>.</li>
                                 </Steps>
                                 <p>Sharing applies to one card at a time. A Garge Sensor has two cards, temperature and humidity, so share each one you want the other user to see.</p>
-                                <p>To stop sharing, open <Ui>“Share”</Ui> again and tap the X next to the person under <Ui>“Shared with”</Ui>. Only the owner can share a sensor. The other user can stop by tapping <Ui>“Leave”</Ui> on the sensor.</p>
+                                <p>To stop sharing, open <Ui>“Share”</Ui> again and tap the X next to the person under <Ui>“Shared with”</Ui>. Only the owner can share a sensor. The other user can remove the share by tapping <Ui>“Leave”</Ui> on the card.</p>
                             </>
                         ),
                         images: [
-                            { src: '/help/app-manage-sensors.png', width: 720, height: 1558, alt: 'The Sensors page with Share and Remove from account on each card', caption: 'Each card has its own “Share” and “Remove from account”.' },
+                            { src: '/help/app-manage-sensors.png', width: 720, height: 1558, alt: 'The Sensors page with Share and Remove from account on each card', caption: 'Each card has its own “Share” and “Remove from account” buttons.' },
                             { src: '/help/app-share.png', width: 720, height: 548, alt: 'The Share dialog with an email field and a Read or Edit choice', caption: 'Enter the email address and pick “Read” or “Edit”.' },
                         ],
                     },
@@ -326,7 +327,7 @@ export const content: HelpContent = {
                                     <li>Tap the pencil next to its name.</li>
                                 </Steps>
                                 <p>A name can have up to 50 characters. Each card has its own name, so a Garge Sensor has one for temperature and one for humidity.</p>
-                                <p>You can also use the pencil on the sensor in <Ui>“Profile” &gt; “Manage sensors”</Ui>.</p>
+                                <p>You can also tap the pencil on the card in <Ui>“Profile” &gt; “Manage sensors”</Ui>.</p>
                             </>
                         ),
                         images: [
@@ -340,7 +341,7 @@ export const content: HelpContent = {
                             <>
                                 <Steps>
                                     <li>Go to <Ui>“Profile” &gt; “Manage sensors”</Ui>.</li>
-                                    <li>Save the code under <Ui>“Device code”</Ui> on each card. It disappears with the card, and a Garge Sensor has two.</li>
+                                    <li>Save the code under <Ui>“Device code”</Ui> on each card. It disappears with the card, and a Garge Sensor has two codes.</li>
                                     <li>Tap <Ui>“Remove from account”</Ui> on every card for the sensor.</li>
                                 </Steps>
                                 <p>A Garge Sensor has two cards, temperature and humidity. If one stays, the new owner gets only part of the sensor and you keep access to the rest.</p>
@@ -386,9 +387,9 @@ export const content: HelpContent = {
                                     <li>Press the Restart button and let go.</li>
                                     <li>Straight away, hold the BOOT button until the light blinks fast.</li>
                                 </Steps>
-                                <p>This can take more than 5 seconds. If it does not blink fast, try again. This erases nothing.</p>
+                                <p>This can take more than 5 seconds. If it does not blink fast, try again. Opening setup mode erases nothing.</p>
                                 <p>If the light does not come on at all, check the power. For a Garge Voltmeter, check the battery and the plug.</p>
-                                <p>On a sensor that is already set up, press the Restart button to leave setup mode at once.</p>
+                                <p>If the sensor is already set up, you can leave setup mode at once. Press the Restart button.</p>
                             </>
                         ),
                     },

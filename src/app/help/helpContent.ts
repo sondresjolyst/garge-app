@@ -34,6 +34,8 @@ export interface HelpSection {
     /** Numbers the items, for the setup steps. */
     numbered?: boolean;
     groups: HelpGroup[];
+    /** A line after the last item, for what to do when nothing above helped. */
+    closing?: ReactNode;
 }
 
 export interface HelpContent {

@@ -91,6 +91,7 @@ function Section({ section, linkLabel }: { section: HelpSection; linkLabel: stri
                     </List>
                 </div>
             ))}
+            {section.closing && <p className="text-sm text-gray-300 leading-relaxed">{section.closing}</p>}
         </section>
     );
 }

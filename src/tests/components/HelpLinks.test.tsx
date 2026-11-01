@@ -40,11 +40,11 @@ beforeEach(() => {
 })
 
 describe('Links to the help pages', () => {
-    it('opens the setup section in a new tab from the pairing step, so the code stays on screen', () => {
+    it('opens the power on step in a new tab from the pairing step, so the code stays on screen', () => {
         render(<SetupWizard onClose={vi.fn()} />)
         const link = screen.getByRole('link', { name: 'Need help?' })
 
-        expect(link).toHaveAttribute('href', '/help#setup')
+        expect(link).toHaveAttribute('href', '/help#step-power')
         expect(link).toHaveAttribute('target', '_blank')
         expect(link).toHaveAttribute('rel', 'noopener noreferrer')
     })
