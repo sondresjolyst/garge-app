@@ -167,6 +167,11 @@ describe('help content', () => {
         for (const text of [prose('no'), manual()]) expect(text).toMatch(/«Remove from account»(<\/\w+>)? på alle oppføringene/)
     })
 
+    it('says what a partial removal leads to, on the pages and in the manual', () => {
+        for (const text of [prose('en'), manual()]) expect(text).toContain('the new owner gets only part of the sensor and you keep access to the rest')
+        for (const text of [prose('no'), manual()]) expect(text).toContain('får den nye eieren bare deler av sensoren, og du beholder tilgang til resten')
+    })
+
     it('never says tilkoblingskode, and uses the quotes of each language', () => {
         expect(prose('no')).not.toMatch(/tilkoblingskode/i)
         expect(prose('no')).not.toMatch(/[“”]/)

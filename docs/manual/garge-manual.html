@@ -98,7 +98,7 @@ ol.steps .dev + .dev { margin-top: .3mm; }
 
 /* Blue light strip */
 .light {
-  display: grid; grid-template-columns: auto 1fr 1fr 1fr; gap: 4mm; align-items: center;
+  display: grid; grid-template-columns: auto .8fr 1.25fr .95fr; gap: 4mm; align-items: center;
   background: var(--soft); border-radius: 2.5mm; padding: 2.2mm 4mm; font-size: 8.4pt;
 }
 .light .title { font-weight: 700; display: flex; align-items: center; gap: 2mm; white-space: nowrap; }
@@ -152,7 +152,7 @@ ol.steps .dev + .dev { margin-top: .3mm; }
         <li><div><b>Slå på sensoren</b><span>
           <span class="dev"><strong>Garge Sensor:</strong> koble til USB-C-strøm.</span>
           <span class="dev"><strong>Garge Voltmeter:</strong> koble til SAE-kontakten på 12 V-batteriet.</span>
-          <span class="dev"><strong>Det blå lyset blinker raskt</strong> når sensoren er klar. Hvis ikke, eller hvis sensoren er satt opp fra før, trykk på Restart-knappen og slipp den. Hold så BOOT-knappen inne med en gang, til lyset blinker raskt. Det kan ta over 5 sekunder.</span>
+          <span class="dev"><strong>Det blå lyset blinker raskt</strong> når sensoren er klar. Hvis ikke, eller hvis sensoren er satt opp fra før, trykk på Restart-knappen og slipp den. Hold så BOOT-knappen inne med en gang, til lyset blinker raskt. Det kan ta over 5 sekunder. Hvis det ikke blinker raskt, prøv igjen.</span>
         </span></div></li>
         <li><div><b>Koble sensoren til Wi-Fi</b><span>
           <span class="dev"><strong>Koble mobilen til «Garge …»</strong> i Wi-Fi-innstillingene, for eksempel «Garge a1b2c3d4e5f6».</span>
@@ -200,7 +200,7 @@ ol.steps .dev + .dev { margin-top: .3mm; }
         </section>
         <section>
           <h3>Dele sensoren</h3>
-          <p>Gå til <span class="ui">«Profile» &gt; «Manage sensors» &gt; «Share»</span>. Skriv inn e-postadressen til en annen Garge-bruker. Velg <span class="ui">«Read»</span> hvis den andre brukeren bare skal se målingene, eller <span class="ui">«Edit»</span> hvis den andre brukeren også skal kunne bruke sensoren i automatiseringer. Deling gjelder per oppføring. En Garge Sensor har to, temperatur og luftfuktighet.</p>
+          <p>Gå til <span class="ui">«Profile» &gt; «Manage sensors» &gt; «Share»</span>. Skriv inn e-postadressen til en annen Garge-bruker. Velg <span class="ui">«Read»</span> hvis den andre brukeren bare skal se målingene, eller <span class="ui">«Edit»</span> hvis den andre brukeren også skal få automatiseringer for stikkontaktene denne sensoren har funnet. Deling gjelder per oppføring, og en Garge Sensor har to, temperatur og luftfuktighet.</p>
         </section>
         <section>
           <h3>Gi sensoren nytt navn</h3>
@@ -208,7 +208,7 @@ ol.steps .dev + .dev { margin-top: .3mm; }
         </section>
         <section>
           <h3>Selge eller gi bort sensoren</h3>
-          <p>Gå til <span class="ui">«Profile» &gt; «Manage sensors»</span> og trykk <span class="ui">«Remove from account»</span> på alle oppføringene for sensoren. Blir én stående, får ikke den nye eieren koblet til. Den nye eieren følger oppsettet fra steg 1 og ser ikke målingene dine.</p>
+          <p>Gå til <span class="ui">«Profile» &gt; «Manage sensors»</span> og trykk <span class="ui">«Remove from account»</span> på alle oppføringene for sensoren. Blir én stående, får den nye eieren bare deler av sensoren, og du beholder tilgang til resten. Den nye eieren følger oppsettet fra steg 1, trykker <span class="ui">«Change Wi-Fi»</span> på <span class="ui">«Pair device»</span> og ser ikke målingene dine.</p>
         </section>
         <section>
           <h3>Garge Voltmeter reagerer ikke</h3>
@@ -220,7 +220,7 @@ ol.steps .dev + .dev { margin-top: .3mm; }
     <div class="light">
       <div class="title"><span class="dot"></span>Det blå lyset</div>
       <div><b>Raskt (1 s på, 1 s av)</b><span>Oppsettmodus. Varer i opptil 30 minutter.</span></div>
-      <div><b>Garge Sensor: sakte (5 s på, 5 s av)</b><span>I drift. Kan også skje når Wi-Fi er nede.</span></div>
+      <div><b>Garge Sensor: sakte (5 s på, 5 s av)</b><span>I drift. Lyset blinker slik også når Wi-Fi er nede.</span></div>
       <div><b>Garge Voltmeter: kort blink</b><span>Våkner, blinker, sender en måling og sover.</span></div>
     </div>
   </main>
@@ -243,7 +243,7 @@ ol.steps .dev + .dev { margin-top: .3mm; }
         <li><div><b>Power on the sensor</b><span>
           <span class="dev"><strong>Garge Sensor:</strong> plug in USB-C power.</span>
           <span class="dev"><strong>Garge Voltmeter:</strong> connect it to the SAE plug on the 12 V battery.</span>
-          <span class="dev"><strong>The blue light blinks fast</strong> when the sensor is ready. If it does not, or if the sensor was set up before, press the Restart button and let go. Straight away, hold the BOOT button until the light blinks fast. This can take over 5 seconds.</span>
+          <span class="dev"><strong>The blue light blinks fast</strong> when the sensor is ready. If it does not, or if the sensor was set up before, press the Restart button and let go. Straight away, hold the BOOT button until the light blinks fast. This can take over 5 seconds. If it does not blink fast, try again.</span>
         </span></div></li>
         <li><div><b>Connect the sensor to Wi-Fi</b><span>
           <span class="dev"><strong>Join “Garge …”</strong> in your phone's Wi-Fi settings, for example “Garge a1b2c3d4e5f6”.</span>
@@ -291,7 +291,7 @@ ol.steps .dev + .dev { margin-top: .3mm; }
         </section>
         <section>
           <h3>Share the sensor</h3>
-          <p>Go to <span class="ui">“Profile” &gt; “Manage sensors” &gt; “Share”</span>. Enter another Garge user's email address. Pick <span class="ui">“Read”</span> if the other user should only see the readings, or <span class="ui">“Edit”</span> if the other user should also be able to use the sensor in automations. Sharing is per entry. A Garge Sensor has two, temperature and humidity.</p>
+          <p>Go to <span class="ui">“Profile” &gt; “Manage sensors” &gt; “Share”</span>. Enter another Garge user's email address. Pick <span class="ui">“Read”</span> if the other user should only see the readings, or <span class="ui">“Edit”</span> if the other user should also get automations for the sockets this sensor has found. Sharing is per entry, and a Garge Sensor has two, temperature and humidity.</p>
         </section>
         <section>
           <h3>Rename the sensor</h3>
@@ -299,7 +299,7 @@ ol.steps .dev + .dev { margin-top: .3mm; }
         </section>
         <section>
           <h3>Sell or give away the sensor</h3>
-          <p>Go to <span class="ui">“Profile” &gt; “Manage sensors”</span> and tap <span class="ui">“Remove from account”</span> on every entry for the sensor. If one stays, the new owner cannot pair it. The new owner follows setup from step 1 and does not see your readings.</p>
+          <p>Go to <span class="ui">“Profile” &gt; “Manage sensors”</span> and tap <span class="ui">“Remove from account”</span> on every entry for the sensor. If one stays, the new owner gets only part of the sensor and you keep access to the rest. The new owner follows setup from step 1, taps <span class="ui">“Change Wi-Fi”</span> on <span class="ui">“Pair device”</span> and does not see your readings.</p>
         </section>
         <section>
           <h3>Garge Voltmeter does not respond</h3>
@@ -311,7 +311,7 @@ ol.steps .dev + .dev { margin-top: .3mm; }
     <div class="light">
       <div class="title"><span class="dot"></span>The blue light</div>
       <div><b>Fast (1 s on, 1 s off)</b><span>Setup mode. Lasts up to 30 minutes.</span></div>
-      <div><b>Garge Sensor: slow (5 s on, 5 s off)</b><span>Running. Can also happen while Wi-Fi is down.</span></div>
+      <div><b>Garge Sensor: slow (5 s on, 5 s off)</b><span>Running. The light also blinks like this while Wi-Fi is down.</span></div>
       <div><b>Garge Voltmeter: short blink</b><span>Wakes, blinks, sends a reading and sleeps.</span></div>
     </div>
   </main>

@@ -44,7 +44,7 @@ export const content: HelpContent = {
                         <>
                             <p><Ui>Garge Sensor:</Ui> koble til USB-C-strøm.</p>
                             <p><Ui>Garge Voltmeter:</Ui> koble til SAE-kontakten på 12 V-batteriet.</p>
-                            <p><Ui>Det blå lyset blinker raskt</Ui> når sensoren er klar. Hvis ikke, eller hvis sensoren er satt opp fra før, trykk på Restart-knappen og slipp den. Hold så BOOT-knappen inne med en gang, til lyset blinker raskt. Det kan ta mer enn 5 sekunder. <a href="#buttons" className="text-sky-400 hover:text-sky-300">Se hvor knappene er.</a></p>
+                            <p><Ui>Det blå lyset blinker raskt</Ui> når sensoren er klar. Hvis ikke, eller hvis sensoren er satt opp fra før, trykk på Restart-knappen og slipp den. Hold så BOOT-knappen inne med en gang, til lyset blinker raskt. Det kan ta mer enn 5 sekunder. Hvis det ikke blinker raskt, prøv igjen. <a href="#buttons" className="text-sky-400 hover:text-sky-300">Se hvor knappene er.</a></p>
                         </>
                     ),
                 },
@@ -83,7 +83,7 @@ export const content: HelpContent = {
                     body: (
                         <>
                             <p>Knappene sitter bak to små hull på dekselet. Dekselet har ingen merking. BOOT-knappen er det øverste hullet, og Restart-knappen er det nederste.</p>
-                            <p>For å gå i oppsettmodus, trykk på Restart-knappen og slipp den. Hold så BOOT-knappen inne med en gang, til lyset blinker raskt. Det kan ta mer enn 5 sekunder. Dette sletter ingenting. På en sensor som allerede er satt opp, trykker du på Restart-knappen for å gå ut av oppsettmodus med en gang.</p>
+                            <p>For å gå i oppsettmodus, trykk på Restart-knappen og slipp den. Hold så BOOT-knappen inne med en gang, til lyset blinker raskt. Det kan ta mer enn 5 sekunder. Hvis det ikke blinker raskt, prøv igjen. Dette sletter ingenting. På en sensor som allerede er satt opp, trykker du på Restart-knappen for å gå ut av oppsettmodus med en gang.</p>
                         </>
                     ),
                 },
@@ -93,7 +93,7 @@ export const content: HelpContent = {
                     body: (
                         <>
                             <p><Ui>Blinker raskt (1 sekund på, 1 sekund av):</Ui> Oppsettmodus. Varer i opptil 30 minutter.</p>
-                            <p><Ui>Garge Sensor, blinker sakte (5 sekunder på, 5 sekunder av):</Ui> I drift. Dette kan også skje når Wi-Fi er nede.</p>
+                            <p><Ui>Garge Sensor, blinker sakte (5 sekunder på, 5 sekunder av):</Ui> I drift. Lyset blinker slik også når Wi-Fi er nede.</p>
                             <p><Ui>Garge Voltmeter, blinker kort:</Ui> Våkner, blinker, sender en måling og sover.</p>
                         </>
                     ),
@@ -138,7 +138,7 @@ export const content: HelpContent = {
                     title: 'Dele sensoren',
                     body: (
                         <>
-                            <p>Gå til <Ui>«Profile» &gt; «Manage sensors» &gt; «Share»</Ui>. Skriv inn e-postadressen til en annen Garge-bruker. Velg <Ui>«Read»</Ui> hvis den andre brukeren bare skal se målingene, eller <Ui>«Edit»</Ui> hvis den andre brukeren også skal kunne bruke sensoren i automatiseringer.</p>
+                            <p>Gå til <Ui>«Profile» &gt; «Manage sensors» &gt; «Share»</Ui>. Skriv inn e-postadressen til en annen Garge-bruker. Velg <Ui>«Read»</Ui> hvis den andre brukeren bare skal se målingene, eller <Ui>«Edit»</Ui> hvis den andre brukeren også skal få automatiseringer for stikkontaktene denne sensoren har funnet.</p>
                             <p>Deling gjelder for én oppføring om gangen. En Garge Sensor har to oppføringer, temperatur og luftfuktighet, så del hver av dem den andre brukeren skal se.</p>
                             <p>For å slutte å dele, åpne <Ui>«Share»</Ui> på nytt og trykk på X-en ved personen under <Ui>«Shared with»</Ui>. Bare eieren kan dele en sensor. Den andre brukeren kan selv avslutte ved å trykke <Ui>«Leave»</Ui> på sensoren.</p>
                         </>
@@ -172,7 +172,7 @@ export const content: HelpContent = {
                     title: 'Bytte Wi-Fi-nettverk',
                     body: (
                         <>
-                            <p>Trykk på Restart-knappen og slipp den. Hold så BOOT-knappen inne med en gang, til lyset blinker raskt. Det kan ta mer enn 5 sekunder. Koble mobilen til «Garge …», trykk <Ui>«Change Wi-Fi»</Ui>, velg det nye nettverket og trykk <Ui>«Connect»</Ui>.</p>
+                            <p>Trykk på Restart-knappen og slipp den. Hold så BOOT-knappen inne med en gang, til lyset blinker raskt. Det kan ta mer enn 5 sekunder. Hvis det ikke blinker raskt, prøv igjen. Koble mobilen til «Garge …», trykk <Ui>«Change Wi-Fi»</Ui>, velg det nye nettverket og trykk <Ui>«Connect»</Ui>.</p>
                             <p>En sensor som allerede er på kontoen din, trenger ingen ny kode. La <Ui>«Pairing code (optional)»</Ui> stå tomt.</p>
                         </>
                     ),
@@ -193,7 +193,7 @@ export const content: HelpContent = {
                     body: (
                         <>
                             <p>Hvis du ser <Ui>«This pairing code has expired.»</Ui>, trykk <Ui>«Get new code»</Ui>. Den gamle koden slutter da å virke.</p>
-                            <p>En kode gjelder i 15 minutter og virker én gang. Hvis du allerede har skrevet inn den gamle koden på sensoren, går du tilbake til oppsettsiden. Trykk på Restart-knappen og slipp den. Hold så BOOT-knappen inne med en gang, til lyset blinker raskt. Det kan ta mer enn 5 sekunder. Koble mobilen til «Garge …» og skriv inn den nye koden. Se <a href="#setup-asks-for-code" className="text-sky-400 hover:text-sky-300">oppsettsiden ber bare om pairing code</a>.</p>
+                            <p>En kode gjelder i 15 minutter og virker én gang. Hvis du allerede har skrevet inn den gamle koden på sensoren, går du tilbake til oppsettsiden. Trykk på Restart-knappen og slipp den. Hold så BOOT-knappen inne med en gang, til lyset blinker raskt. Det kan ta mer enn 5 sekunder. Hvis det ikke blinker raskt, prøv igjen. Koble mobilen til «Garge …» og skriv inn den nye koden. Se <a href="#setup-asks-for-code" className="text-sky-400 hover:text-sky-300">oppsettsiden ber bare om pairing code</a>.</p>
                         </>
                     ),
                 },
@@ -210,7 +210,7 @@ export const content: HelpContent = {
                 {
                     id: 'setup-network-missing',
                     title: 'Nettverket «Garge …» er borte',
-                    body: <p>Oppsettmodus varer i opptil 30 minutter. Hvis du ikke lenger ser nettverket, trykk på Restart-knappen og slipp den. Hold så BOOT-knappen inne med en gang, til lyset blinker raskt. Det kan ta mer enn 5 sekunder. Nettverket er åpent, så det ber ikke om passord.</p>,
+                    body: <p>Oppsettmodus varer i opptil 30 minutter. Hvis du ikke lenger ser nettverket, trykk på Restart-knappen og slipp den. Hold så BOOT-knappen inne med en gang, til lyset blinker raskt. Det kan ta mer enn 5 sekunder. Hvis det ikke blinker raskt, prøv igjen. Nettverket er åpent, så det ber ikke om passord.</p>,
                 },
                 {
                     id: 'setup-page-not-opening',
@@ -251,7 +251,7 @@ export const content: HelpContent = {
                     body: (
                         <>
                             <p>Sjekk at <Ui>«Offline alerts on this device»</Ui> er slått på i nettleseren eller appen du bruker, og trykk <Ui>«Send test»</Ui>.</p>
-                            <p>Hvis du ser <Ui>«Notifications blocked in browser settings.»</Ui>, tillat varsler for Garge i nettleseren. Hvis du ser <Ui>«Push notifications are not supported in this browser.»</Ui>, bruk en annen nettleser. På iPhone trykker du først <Ui>«Share» &gt; «Add to Home Screen»</Ui> og åpner Garge derfra.</p>
+                            <p>Hvis du ser <Ui>«Notifications blocked in browser settings.»</Ui>, tillat varsler for Garge i nettleseren. Hvis du ser <Ui>«Push notifications are not supported in this browser.»</Ui>, bruk en annen nettleser. På iPhone åpner du først delingsmenyen, legger Garge til på Hjem-skjermen og åpner Garge derfra.</p>
                         </>
                     ),
                 },
@@ -266,8 +266,10 @@ export const content: HelpContent = {
                     title: 'Fjern sensoren fra kontoen din',
                     body: (
                         <>
-                            <p>Gå til <Ui>«Profile» &gt; «Manage sensors»</Ui> og trykk <Ui>«Remove from account»</Ui> på alle oppføringene for sensoren. En Garge Sensor har to, temperatur og luftfuktighet. Blir én stående, får ikke den nye eieren koblet til sensoren og ser bare <Ui>«Waiting for your device…»</Ui>.</p>
-                            <p>Når du fjerner en oppføring, slettes det egne navnet, bildene, aktivitetene og terskelverdiene fra kontoen din. Alle du har delt den med, mister tilgangen. Du kan legge sensoren til igjen senere med koden under <Ui>«Device code»</Ui>.</p>
+                            <p>Gå til <Ui>«Profile» &gt; «Manage sensors»</Ui> og trykk <Ui>«Remove from account»</Ui> på alle oppføringene for sensoren. En Garge Sensor har to, temperatur og luftfuktighet. Blir én stående, får den nye eieren bare deler av sensoren, og du beholder tilgang til resten.</p>
+                            <p>Oppføringer fra samme sensor har samme kode i standardnavnet, for eksempel «Garge D4E5F6 temperature» og «Garge D4E5F6 humidity». Hvis du har gitt en oppføring nytt navn, står standardnavnet på linjen <Ui>«Default:»</Ui>.</p>
+                            <p>Før du fjerner en oppføring, må du ta vare på koden under <Ui>«Device code»</Ui>. Den forsvinner sammen med oppføringen, og en Garge Sensor har to.</p>
+                            <p>Når du fjerner en oppføring, slettes navnet du har gitt den, bildene, aktivitetene og terskelverdiene fra kontoen din. Alle du har delt den med, mister tilgangen. Du kan legge sensoren til igjen senere med koden under <Ui>«Device code»</Ui>. Det krever et aktivt abonnement.</p>
                         </>
                     ),
                 },
