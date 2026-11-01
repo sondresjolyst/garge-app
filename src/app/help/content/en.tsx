@@ -224,7 +224,7 @@ export const content: HelpContent = {
                                         <li>If a card is marked <Ui>“Off”</Ui> in <Ui>“Profile” &gt; “Manage sensors”</Ui>, its readings are hidden. Tap <Ui>“Turn on”</Ui>.</li>
                                     </Steps>
                                     <p>A Garge Sensor keeps trying to reconnect by itself. It also blinks slowly while it tries, so the slow blink alone does not prove it has Wi-Fi.</p>
-                                    <p>A Garge Voltmeter that cannot connect sleeps longer between tries, up to 6 hours. After your Wi-Fi is back, it can take up to 6 hours for the voltmeter to show up in the app again.</p>
+                                    <p>A Garge Voltmeter that cannot connect sleeps longer between tries, up to 6 hours. After your Wi-Fi is back, it can take up to 6 hours for the voltmeter to show up in the app again. To skip the wait, press the Restart button. The voltmeter then tries to connect at once.</p>
                                 </>
                             ),
                         },

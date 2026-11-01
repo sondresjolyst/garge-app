@@ -633,6 +633,11 @@ describe('HelpPage', () => {
         expect(within(container.querySelector('#pairing-code-expired') as HTMLElement).getByRole('link', { name: label })).toHaveAttribute('href', '#step-pairing-code')
     })
 
+    it('tells the reader how to skip the wait for a voltmeter', () => {
+        expect(prose('no')).toContain('Vil du ikke vente, trykker du på Restart-knappen. Da prøver voltmeteret å koble til med en gang.')
+        expect(prose('en')).toContain('To skip the wait, press the Restart button. The voltmeter then tries to connect at once.')
+    })
+
     it('points every link inside the page at something that exists', () => {
         const { container } = render(<HelpPage content={no} />)
         const hrefs = [...container.querySelectorAll('a[href^="#"]')].map(a => a.getAttribute('href')?.slice(1))

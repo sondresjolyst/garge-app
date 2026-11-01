@@ -20,19 +20,19 @@ export function DoThis({ children }: { children: ReactNode }) {
     return <p className="font-semibold text-gray-100">{children}</p>;
 }
 
-/** The table of what the light means. It wraps its cells, so it fits a phone without side scrolling. */
+/** The table of what the light means. It wraps its cells and uses smaller text on the narrowest phones, so the longest words still fit. */
 export function LightTable({ headers, rows }: { headers: [string, string, string]; rows: [ReactNode, ReactNode, ReactNode][] }) {
     return (
-        <table className="w-full table-fixed border-collapse text-left text-sm">
+        <table className="w-full table-fixed border-collapse text-left text-sm max-[359px]:text-xs [&_th:nth-child(2)]:w-[40%] [&_th:not(:nth-child(2))]:w-[30%]">
             <thead>
                 <tr className="border-b border-gray-700">
-                    {headers.map(header => <th key={header} scope="col" className="py-2 pr-3 font-semibold text-gray-100 align-bottom">{header}</th>)}
+                    {headers.map(header => <th key={header} scope="col" className="py-2 pr-2 font-semibold text-gray-100 align-bottom">{header}</th>)}
                 </tr>
             </thead>
             <tbody>
                 {rows.map((cells, row) => (
                     <tr key={row} className="border-b border-gray-800">
-                        {cells.map((cell, column) => <td key={column} className="py-2 pr-3 align-top">{cell}</td>)}
+                        {cells.map((cell, column) => <td key={column} className="py-2 pr-2 align-top">{cell}</td>)}
                     </tr>
                 ))}
             </tbody>

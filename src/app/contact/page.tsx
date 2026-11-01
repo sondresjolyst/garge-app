@@ -22,7 +22,7 @@ export default async function ContactPage() {
                     <div className="w-9 h-9 rounded-xl bg-sky-600/20 flex items-center justify-center flex-shrink-0">
                         <EnvelopeIcon className="h-5 w-5 text-sky-400" />
                     </div>
-                    <div>
+                    <div className="min-w-0 [overflow-wrap:anywhere]">
                         <p className="text-xs text-gray-500 mb-0.5">Email us at</p>
                         <a href={`mailto:${company.email}`} className="text-sm font-medium text-sky-400 hover:text-sky-300 transition-colors">
                             {company.email}

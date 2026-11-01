@@ -224,7 +224,7 @@ export const content: HelpContent = {
                                         <li>Hvis et kort er merket <Ui>«Off»</Ui> i <Ui>«Profile» &gt; «Manage sensors»</Ui>, er målingene skjult. Trykk på <Ui>«Turn on»</Ui>.</li>
                                     </Steps>
                                     <p>En Garge Sensor prøver selv å koble til igjen. Den blinker sakte også mens den prøver, så sakte blink betyr ikke alltid at den har Wi-Fi.</p>
-                                    <p>Et Garge Voltmeter som ikke får koblet til, sover lenger mellom hvert forsøk, opptil 6 timer. Etter at Wi-Fi virker igjen, kan det gå opptil 6 timer før voltmeteret er tilbake i appen.</p>
+                                    <p>Et Garge Voltmeter som ikke får koblet til, sover lenger mellom hvert forsøk, opptil 6 timer. Etter at Wi-Fi virker igjen, kan det gå opptil 6 timer før voltmeteret er tilbake i appen. Vil du ikke vente, trykker du på Restart-knappen. Da prøver voltmeteret å koble til med en gang.</p>
                                 </>
                             ),
                         },

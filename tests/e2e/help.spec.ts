@@ -520,6 +520,92 @@ test.describe('The mark near the end of a tall page', () => {
     })
 })
 
+for (const help of PAGES) {
+    for (const width of [320, 360, 375, 414, 480, 600, 768, 900, 1023, 1024]) {
+        test.describe(`${help.path} fits at ${width} px`, () => {
+            test.use({ viewport: { width, height: 700 } })
+
+            test('nothing leaves the screen, and the contents and PDF button work', async ({ page }) => {
+                await page.goto(help.path)
+                await page.waitForLoadState('networkidle')
+
+                const facts = await page.evaluate(() => {
+                    const right = document.documentElement.clientWidth
+                    const visible = (element: Element) => element.getBoundingClientRect().width > 0
+                    return {
+                        scroll: document.documentElement.scrollWidth - right,
+                        outside: [...document.querySelectorAll('main *')].filter(element => visible(element) && (element.getBoundingClientRect().right > right + 0.5 || element.getBoundingClientRect().left < -0.5)).map(element => element.tagName),
+                        // A word wider than its table cell runs into the next column without moving the page.
+                        wideCells: [...document.querySelectorAll('main td, main th')].filter(cell => cell.scrollWidth > cell.clientWidth).map(cell => cell.textContent),
+                        wideImages: [...document.querySelectorAll('main img')].filter(image => image.getBoundingClientRect().right > (image.closest('article') as Element).getBoundingClientRect().right + 0.5).length,
+                    }
+                })
+                expect(facts.scroll).toBeLessThanOrEqual(0)
+                expect(facts.outside).toEqual([])
+                expect(facts.wideCells).toEqual([])
+                expect(facts.wideImages).toBe(0)
+
+                const fits = async (name: string) => {
+                    const box = await page.getByRole('link', { name, exact: true }).boundingBox()
+                    expect(box!.x).toBeGreaterThanOrEqual(0)
+                    expect(box!.x + box!.width).toBeLessThanOrEqual(width)
+                }
+                await fits(help.switchLabel)
+                await fits(help.button)
+
+                if (width < 1024) {
+                    const details = page.locator('details')
+                    await details.locator('summary').click()
+                    await details.locator('a[href="#sharing"]').click()
+                    await expect(page).toHaveURL(/#sharing$/)
+                    await expect(page.locator('#sharing')).toBeInViewport()
+                }
+            })
+        })
+    }
+}
+
+for (const width of [320, 375]) {
+    test.describe(`Links to Help at ${width} px`, () => {
+        test.use({ viewport: { width, height: 700 } })
+
+        const staysOnScreen = async (page: Page) => {
+            expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0)
+        }
+
+        test('the contact page keeps its line and the email address inside the card', async ({ page }) => {
+            await page.goto('/contact')
+            await expect(page.getByRole('main').getByRole('link', { name: 'Help', exact: true })).toBeVisible()
+            await staysOnScreen(page)
+            const email = page.getByRole('main').getByRole('link', { name: /@/ })
+            const box = await email.boundingBox()
+            const card = await email.locator('xpath=ancestor::div[contains(@class, "rounded-2xl")]').boundingBox()
+            expect(box!.x + box!.width).toBeLessThanOrEqual(card!.x + card!.width)
+        })
+
+        test('the profile row fits', async ({ page }) => {
+            await mockSession(page, regularUser)
+            await mockAllApi(page)
+            await page.goto('/profile')
+            const row = page.getByRole('main').getByRole('link', { name: /Setup, troubleshooting and common tasks/ })
+            await expect(row).toBeVisible()
+            await staysOnScreen(page)
+            const box = await row.boundingBox()
+            expect(box!.x + box!.width).toBeLessThanOrEqual(width)
+        })
+
+        test('the wizard link can be clicked', async ({ page, context }) => {
+            await mockSession(page, regularUser)
+            await mockAllApi(page)
+            await page.goto('/')
+            await page.locator('button', { hasText: /device/i }).first().click()
+            await staysOnScreen(page)
+            const [helpTab] = await Promise.all([context.waitForEvent('page'), page.getByRole('link', { name: 'Need help?' }).click()])
+            await expect(helpTab).toHaveURL(/#step-power$/)
+        })
+    })
+}
+
 test.describe('Links to Help from the app', () => {
     test('the contact page links to Help', async ({ page }) => {
         await page.goto('/contact')
