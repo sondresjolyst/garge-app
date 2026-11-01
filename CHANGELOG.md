@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.3](https://github.com/sondresjolyst/garge-app/compare/v1.25.2...v1.25.3) (2026-11-01)
+
+
+### Dependencies
+
+* **npm:** update uuid from ^11.1.1 to ^14.0.0 ([7778d83](https://github.com/sondresjolyst/garge-app/commit/7778d8325cfb4627f65ed54f55c59a8620dc17df))
+
 ## [1.25.2](https://github.com/sondresjolyst/garge-app/compare/v1.25.1...v1.25.2) (2026-10-25)
 
 
