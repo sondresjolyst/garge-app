@@ -260,7 +260,8 @@ describe('help content', () => {
     })
 
     it('tells a seller to remove every entry, on the pages and in the manual', () => {
-        for (const text of [prose('en'), manual()]) expect(text).toMatch(/“Remove from account”(<\/\w+>)? on every card/)
+        expect(prose('en')).toContain('On every card for the sensor, select <Ui>“Remove from account”</Ui>.')
+        expect(manual()).toContain('On every card for the sensor, select <span class="ui">“Remove from account”</span>.')
         for (const text of [prose('no'), manual()]) expect(text).toMatch(/«Remove from account»(<\/\w+>)? på alle kortene/)
     })
 
@@ -654,7 +655,7 @@ describe('HelpPage', () => {
 
     it.each([
         ['no', 'En pairing code er en engangskode som kobler sensoren til kontoen din.', 'I oppsettmodus lager sensoren sitt eget Wi-Fi-nettverk, «Garge …».'],
-        ['en', 'A pairing code is a one-time code that links the sensor to your account.', 'In setup mode, the sensor makes its own Wi-Fi network, “Garge …”.'],
+        ['en', 'A pairing code is a one-time code that links the sensor to your account.', 'In setup mode, the sensor creates its own Wi-Fi network, “Garge …”.'],
     ])('explains the technical terms in %s', (name, pairing, setupMode) => {
         expect(prose(name)).toContain(pairing)
         expect(prose(name)).toContain(setupMode)
@@ -662,6 +663,16 @@ describe('HelpPage', () => {
 
     it('splits the Norwegian Read and Edit step into two sentences', () => {
         expect(prose('no')).toContain('bare skal se målingene. Velg <Ui>«Edit»</Ui> hvis')
+    })
+
+    it('uses select for screen buttons and numerals in the English text', () => {
+        for (const text of [prose('en'), manual()]) {
+            expect(text).not.toMatch(/\btap(s|ping)?\b/i)
+            expect(text).not.toMatch(/six characters/)
+            expect(text).not.toMatch(/\bplease\b/i)
+        }
+        expect(prose('en')).toContain('<DoThis>How to fix it</DoThis>')
+        expect(prose('en')).not.toContain('Do this</DoThis>')
     })
 
     it('tells the reader how to skip the wait for a voltmeter', () => {
