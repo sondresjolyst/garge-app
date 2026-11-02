@@ -219,7 +219,7 @@ export const content: HelpContent = {
                                 <>
                                     <DoThis>Do this</DoThis>
                                     <Steps>
-                                        <li>Check that your Wi-Fi works. <Ui>“Last seen”</Ui> in the sensor&apos;s view shows the time of the last reading.</li>
+                                        <li>Check that your Wi-Fi network works. Tap the sensor in <Ui>“My Devices”</Ui>. At <Ui>“Last seen”</Ui> you see when it last sent a reading.</li>
                                         <li>If the network name or password changed, <Go to="change-wifi">change the Wi-Fi network on the sensor</Go>. It does not find the network by itself.</li>
                                         <li>If a card is marked <Ui>“Off”</Ui> in <Ui>“Profile” &gt; “Manage sensors”</Ui>, its readings are hidden. Tap <Ui>“Turn on”</Ui>.</li>
                                     </Steps>
@@ -388,7 +388,7 @@ export const content: HelpContent = {
                                     <li>Straight away, hold the BOOT button until the light blinks fast.</li>
                                 </Steps>
                                 <p>This can take more than 5 seconds. If it does not blink fast, try again. Opening setup mode erases nothing.</p>
-                                <p>If the light does not come on at all, check the power. For a Garge Voltmeter, check the battery and the plug.</p>
+                                <p>If the light does not come on at all, check the power. For a Garge Voltmeter, check the battery and the plug, and press the Restart button once more if the light stays off.</p>
                                 <p>If the sensor is already set up, you can leave setup mode at once. Press the Restart button.</p>
                             </>
                         ),

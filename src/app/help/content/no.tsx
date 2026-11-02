@@ -219,7 +219,7 @@ export const content: HelpContent = {
                                 <>
                                     <DoThis>Slik løser du det</DoThis>
                                     <Steps>
-                                        <li>Sjekk at Wi-Fi-nettverket virker. Åpne sensoren. Ved <Ui>«Last seen»</Ui> ser du når den sist sendte en måling.</li>
+                                        <li>Sjekk at Wi-Fi-nettverket virker. Trykk på sensoren i <Ui>«My Devices»</Ui>. Ved <Ui>«Last seen»</Ui> ser du når den sist sendte en måling.</li>
                                         <li>Hvis nettverksnavnet eller passordet er endret, må du <Go to="change-wifi">bytte Wi-Fi-nettverk på sensoren</Go>. Sensoren finner ikke nettverket selv.</li>
                                         <li>Hvis et kort er merket <Ui>«Off»</Ui> i <Ui>«Profile» &gt; «Manage sensors»</Ui>, er målingene skjult. Trykk på <Ui>«Turn on»</Ui>.</li>
                                     </Steps>
@@ -388,7 +388,7 @@ export const content: HelpContent = {
                                     <li>Hold BOOT-knappen inne med en gang, helt til lyset blinker raskt.</li>
                                 </Steps>
                                 <p>Det kan ta mer enn 5 sekunder. Hvis lyset ikke blinker raskt, prøver du igjen. Du sletter ingenting når du åpner oppsettmodus.</p>
-                                <p>Hvis lyset ikke kommer på i det hele tatt, sjekker du strømmen. På et Garge Voltmeter sjekker du batteriet og kontakten.</p>
+                                <p>Hvis lyset ikke kommer på i det hele tatt, sjekker du strømmen. På et Garge Voltmeter sjekker du batteriet og kontakten, og trykker på Restart-knappen en gang til hvis lyset er av.</p>
                                 <p>Er sensoren allerede satt opp, kan du gå ut av oppsettmodus med en gang. Trykk på Restart-knappen.</p>
                             </>
                         ),
