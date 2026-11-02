@@ -5,6 +5,11 @@ export function Ui({ children }: { children: ReactNode }) {
     return <span className="font-semibold text-gray-100">{children}</span>;
 }
 
+/** Keeps a phrase on one line, for a compound such as «12 V-batteriet» that could break after the hyphen. */
+export function NoBreak({ children }: { children: ReactNode }) {
+    return <span className="whitespace-nowrap">{children}</span>;
+}
+
 /** A link to another place on the page. */
 export function Go({ to, children }: { to: string; children: ReactNode }) {
     return <a href={`#${to}`} className="text-sky-400 hover:text-sky-300">{children}</a>;

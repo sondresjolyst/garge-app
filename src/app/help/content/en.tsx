@@ -56,7 +56,7 @@ export const content: HelpContent = {
                         body: (
                             <>
                                 <p><Ui>Garge Sensor:</Ui> plug in USB-C power.</p>
-                                <p><Ui>Garge Voltmeter:</Ui> connect it to the SAE plug on the 12 V battery.</p>
+                                <p><Ui>Garge Voltmeter:</Ui> connect it to the SAE plug on the 12&nbsp;V battery.</p>
                                 <p>The blue light blinks fast when the sensor is ready. <Go to="light-not-blinking-fast">Does it not blink fast?</Go></p>
                             </>
                         ),
@@ -192,7 +192,7 @@ export const content: HelpContent = {
                             body: (
                                 <>
                                     <DoThis>Do this</DoThis>
-                                    <p>Check that your network is on 2.4 GHz and not hidden. The sensor only supports 2.4 GHz Wi-Fi, and the setup page only lists the networks it finds. If your network is hidden, make it visible. If it is 5 GHz only, use a 2.4 GHz network.</p>
+                                    <p>Check that your network is on 2.4&nbsp;GHz and not hidden. The sensor only supports 2.4&nbsp;GHz Wi-Fi, and the setup page only lists the networks it finds. If your network is hidden, make it visible. If it is 5&nbsp;GHz only, use a 2.4&nbsp;GHz network.</p>
                                     <p>If the password may be wrong:</p>
                                     <Steps>
                                         <li><Go to="step-pairing-code">Get a new pairing code in the app</Go> first. Your phone has no internet while it is on the sensor&apos;s network.</li>
@@ -400,8 +400,8 @@ export const content: HelpContent = {
                             <LightTable
                                 headers={['Light', 'Means', 'Do this']}
                                 rows={[
-                                    ['Fast: 1 s on, 1 s off', 'Setup mode, for up to 30 minutes', <Go key="wifi" to="step-wifi">Connect the sensor to Wi-Fi</Go>],
-                                    ['Slow: 5 s on, 5 s off (Garge Sensor)', 'Running, also when Wi-Fi is down', <>Nothing. <Go to="sensor-stopped-reporting">Getting no readings?</Go></>],
+                                    ['Fast: 1\u00a0s on, 1\u00a0s off', 'Setup mode, for up to 30 minutes', <Go key="wifi" to="step-wifi">Connect the sensor to Wi-Fi</Go>],
+                                    ['Slow: 5\u00a0s on, 5\u00a0s off (Garge Sensor)', 'Running, also when Wi-Fi is down', <>Nothing. <Go to="sensor-stopped-reporting">Getting no readings?</Go></>],
                                     ['Short blink (Garge Voltmeter)', 'Wakes, sends a reading and sleeps', 'Nothing'],
                                 ]}
                             />

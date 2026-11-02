@@ -529,6 +529,23 @@ for (const help of PAGES) {
                 await page.goto(help.path)
                 await page.waitForLoadState('networkidle')
 
+                // A number and its unit stay on one line wherever the text wraps.
+                const splitUnits = await page.locator('main').evaluate(main => {
+                    const walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT)
+                    const split: string[] = []
+                    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+                        for (const match of (node.textContent ?? '').matchAll(/(?:12|2[,.]4|[15])\u00a0(?:V|GHz|s)\b(?:-[a-zæøå]+)?/g)) {
+                            const range = document.createRange()
+                            range.setStart(node, match.index)
+                            range.setEnd(node, match.index + match[0].length)
+                            const tops = new Set([...range.getClientRects()].map(rect => Math.round(rect.top)))
+                            if (tops.size > 1) split.push(match[0])
+                        }
+                    }
+                    return split
+                })
+                expect(splitUnits).toEqual([])
+
                 const facts = await page.evaluate(() => {
                     const right = document.documentElement.clientWidth
                     const visible = (element: Element) => element.getBoundingClientRect().width > 0

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { HelpContent } from '../helpContent';
-import { DoThis, Go, LightTable, Steps, Ui } from './Ui';
+import { DoThis, Go, LightTable, NoBreak, Steps, Ui } from './Ui';
 
 export const content: HelpContent = {
     lang: 'nb',
@@ -56,7 +56,7 @@ export const content: HelpContent = {
                         body: (
                             <>
                                 <p><Ui>Garge Sensor:</Ui> koble den til strøm med en USB-C-kabel.</p>
-                                <p><Ui>Garge Voltmeter:</Ui> koble det til SAE-kontakten på 12 V-batteriet.</p>
+                                <p><Ui>Garge Voltmeter:</Ui> koble det til SAE-kontakten på <NoBreak>12&nbsp;V-batteriet</NoBreak>.</p>
                                 <p>Det blå lyset blinker raskt når sensoren er klar. <Go to="light-not-blinking-fast">Blinker det ikke raskt?</Go></p>
                             </>
                         ),
@@ -134,7 +134,7 @@ export const content: HelpContent = {
                         },
                         {
                             id: 'setup-page-not-opening',
-                            title: 'Sensorens oppsettside åpner seg ikke',
+                            title: 'Oppsettsiden til sensoren åpner seg ikke',
                             body: (
                                 <>
                                     <DoThis>Slik løser du det</DoThis>
@@ -147,7 +147,7 @@ export const content: HelpContent = {
                         },
                         {
                             id: 'setup-asks-for-code',
-                            title: 'Sensorens oppsettside ber bare om pairing code',
+                            title: 'Oppsettsiden til sensoren ber bare om pairing code',
                             body: (
                                 <>
                                     <DoThis>Slik løser du det</DoThis>
@@ -192,7 +192,7 @@ export const content: HelpContent = {
                             body: (
                                 <>
                                     <DoThis>Slik løser du det</DoThis>
-                                    <p>Sjekk at nettverket ditt er på 2,4 GHz og ikke er skjult. Sensoren støtter bare Wi-Fi på 2,4 GHz, og oppsettsiden viser bare nettverkene den finner. Hvis nettverket er skjult, gjør du det synlig. Hvis det bare er på 5 GHz, bruker du et nettverk på 2,4 GHz.</p>
+                                    <p>Sjekk at nettverket ditt er på 2,4&nbsp;GHz og ikke er skjult. Sensoren støtter bare Wi-Fi på 2,4&nbsp;GHz, og oppsettsiden viser bare nettverkene den finner. Hvis nettverket er skjult, gjør du det synlig. Hvis det bare er på 5&nbsp;GHz, bruker du et nettverk på 2,4&nbsp;GHz.</p>
                                     <p>Hvis passordet kan være feil, gjør du slik:</p>
                                     <Steps>
                                         <li><Go to="step-pairing-code">Hent en ny pairing code i appen</Go> først. Mobilen har ikke internett mens den er koblet til sensoren.</li>
@@ -400,8 +400,8 @@ export const content: HelpContent = {
                             <LightTable
                                 headers={['Lyset', 'Hva det betyr', 'Hva du gjør']}
                                 rows={[
-                                    ['Raskt: 1 s på, 1 s av', 'Sensoren er i oppsettmodus. Det varer i opptil 30 minutter.', <Go key="wifi" to="step-wifi">Koble sensoren til Wi-Fi</Go>],
-                                    ['Sakte: 5 s på, 5 s av (Garge Sensor)', 'Sensoren er i drift. Lyset blinker slik også når Wi-Fi ikke virker.', <>Ingenting. <Go to="sensor-stopped-reporting">Får du ikke målinger?</Go></>],
+                                    ['Raskt: 1\u00a0s på, 1\u00a0s av', 'Sensoren er i oppsettmodus. Det varer i opptil 30 minutter.', <Go key="wifi" to="step-wifi">Koble sensoren til Wi-Fi</Go>],
+                                    ['Sakte: 5\u00a0s på, 5\u00a0s av (Garge Sensor)', 'Sensoren er i drift. Lyset blinker slik også når Wi-Fi ikke virker.', <>Ingenting. <Go to="sensor-stopped-reporting">Får du ikke målinger?</Go></>],
                                     ['Kort blink (Garge Voltmeter)', 'Sensoren våkner, sender en måling og sover igjen.', 'Ingenting'],
                                 ]}
                             />

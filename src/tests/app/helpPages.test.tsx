@@ -58,9 +58,16 @@ function renderedIds(content: HelpContent) {
 const withoutLanguage = (src: string) => src.replace(/-(no|en)\.png$/, '.png')
 
 /** Every text in a content file, without the code around it. */
-const prose = (name: string) => readFileSync(resolve(`src/app/help/content/${name}.tsx`), 'utf8')
+const rawProse = (name: string) => readFileSync(resolve(`src/app/help/content/${name}.tsx`), 'utf8')
 
-const manual = () => readFileSync(resolve('docs/manual/garge-manual.html'), 'utf8')
+const rawManual = () => readFileSync(resolve('docs/manual/garge-manual.html'), 'utf8')
+
+/** The text as a reader sees it, where a non-breaking space is a space. */
+const readable = (text: string) => text.replace(/&nbsp;|\\u00a0/g, ' ')
+
+const prose = (name: string) => readable(rawProse(name))
+
+const manual = () => readable(rawManual())
 
 describe('helpPathFor', () => {
     it.each([
@@ -193,7 +200,7 @@ describe('help content', () => {
         expect(no.sections.map(section => section.title)).toEqual(['Sett opp en ny sensor', 'Noe virker ikke', 'Vanlige oppgaver', 'Knappene og lyset på sensoren'])
         expect(helpItems(no).map(item => item.title)).toEqual([
             'Opprett en Garge-konto', 'Hent en pairing code i appen', 'Slå på sensoren', 'Koble sensoren til Wi-Fi', 'Gi sensoren et navn i appen',
-            'Sensoren blinker ikke raskt', 'Mobilen finner ikke Wi-Fi-nettverket «Garge …»', 'Sensorens oppsettside åpner seg ikke', 'Sensorens oppsettside ber bare om pairing code', 'Pairing code har gått ut', 'Appen gir deg ikke en pairing code', 'Ny sensor dukker ikke opp i appen',
+            'Sensoren blinker ikke raskt', 'Mobilen finner ikke Wi-Fi-nettverket «Garge …»', 'Oppsettsiden til sensoren åpner seg ikke', 'Oppsettsiden til sensoren ber bare om pairing code', 'Pairing code har gått ut', 'Appen gir deg ikke en pairing code', 'Ny sensor dukker ikke opp i appen',
             'Sensoren har sluttet å sende målinger', 'Garge Voltmeter reagerer ikke på knappene', 'Varsler fra Garge kommer ikke frem',
             'Bytte Wi-Fi-nettverk på sensoren', 'Få varsel når en sensor er frakoblet', 'Dele en sensor med en annen bruker', 'Gi en sensor nytt navn', 'Selge eller gi bort en sensor',
             'Hvor er BOOT- og Restart-knappene?', 'Slik åpner du oppsettmodus på sensoren', 'Hva betyr det blå lyset på sensoren?',
@@ -222,6 +229,18 @@ describe('help content', () => {
     it('shows the page address for help in both print headers', () => {
         expect(manual().match(/<div class="web">www\.garge\.no\/help<\/div>/g)).toHaveLength(2)
         expect(manual()).toContain('Gå til www.garge.no og')
+    })
+
+    it('never lets a number split from its unit, on the pages or in the manual', () => {
+        for (const text of [rawProse('no'), rawProse('en'), rawManual()]) {
+            expect(text).not.toMatch(/\b12 V\b|\b2[,.]4 GHz|\b5 GHz|\b[15] s\b/)
+        }
+    })
+
+    it('keeps the Norwegian battery compound on one line', () => {
+        expect(rawProse('no')).toContain('<NoBreak>12&nbsp;V-batteriet</NoBreak>')
+        expect(rawManual()).toContain('<span class="nb">12&nbsp;V-batteriet</span>')
+        expect(rawManual()).toContain('.nb { white-space: nowrap; }')
     })
 
     it('uses the example network name on the pages and in the manual', () => {
