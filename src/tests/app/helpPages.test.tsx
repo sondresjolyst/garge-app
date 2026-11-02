@@ -652,6 +652,18 @@ describe('HelpPage', () => {
         expect(within(container.querySelector('#pairing-code-expired') as HTMLElement).getByRole('link', { name: label })).toHaveAttribute('href', '#step-pairing-code')
     })
 
+    it.each([
+        ['no', 'En pairing code er en engangskode som kobler sensoren til kontoen din.', 'I oppsettmodus lager sensoren sitt eget Wi-Fi-nettverk, «Garge …».'],
+        ['en', 'A pairing code is a one-time code that links the sensor to your account.', 'In setup mode, the sensor makes its own Wi-Fi network, “Garge …”.'],
+    ])('explains the technical terms in %s', (name, pairing, setupMode) => {
+        expect(prose(name)).toContain(pairing)
+        expect(prose(name)).toContain(setupMode)
+    })
+
+    it('splits the Norwegian Read and Edit step into two sentences', () => {
+        expect(prose('no')).toContain('bare skal se målingene. Velg <Ui>«Edit»</Ui> hvis')
+    })
+
     it('tells the reader how to skip the wait for a voltmeter', () => {
         expect(prose('no')).toContain('Vil du ikke vente, trykker du på Restart-knappen. Da prøver voltmeteret å koble til med en gang.')
         expect(prose('en')).toContain('To skip the wait, press the Restart button. The voltmeter then tries to connect at once.')

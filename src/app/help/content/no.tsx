@@ -37,6 +37,7 @@ export const content: HelpContent = {
                         title: 'Hent en pairing code i appen',
                         body: (
                             <>
+                                <p>En pairing code er en engangskode som kobler sensoren til kontoen din.</p>
                                 <Steps>
                                     <li>Trykk på <Ui>«+ Add device»</Ui> i <Ui>«My Devices»</Ui>. På mobil står det bare <Ui>«+»</Ui>.</li>
                                     <li>Trykk på <Ui>«Get pairing code»</Ui>.</li>
@@ -114,7 +115,7 @@ export const content: HelpContent = {
                                         <li><Go to="setup-mode">Åpne oppsettmodus på sensoren.</Go></li>
                                         <li><Go to="step-wifi">Koble så sensoren til Wi-Fi.</Go></li>
                                     </Steps>
-                                    <p>En sensor som er satt opp fra før, går ikke i oppsettmodus av seg selv.</p>
+                                    <p>I oppsettmodus lager sensoren sitt eget Wi-Fi-nettverk, «Garge …». En sensor som er satt opp fra før, går ikke i oppsettmodus av seg selv.</p>
                                 </>
                             ),
                         },
@@ -168,7 +169,7 @@ export const content: HelpContent = {
                                     <DoThis>Slik løser du det</DoThis>
                                     <Steps>
                                         <li>Hvis du ser <Ui>«This pairing code has expired.»</Ui>, trykker du på <Ui>«Get new code»</Ui>. Den gamle koden slutter da å virke.</li>
-                                        <li>Hvis du allerede har skrevet inn den gamle koden på sensoren, <Go to="setup-mode">åpner du oppsettmodus</Go>, kobler mobilen til «Garge …» og skriver inn den nye koden. <Go to="setup-asks-for-code">Les mer om siden «Pair device».</Go></li>
+                                        <li>Hvis du allerede har skrevet inn den gamle koden på sensoren, <Go to="setup-mode">åpner du oppsettmodus</Go>. Koble så mobilen til «Garge …» og skriv inn den nye koden. <Go to="setup-asks-for-code">Les mer om siden «Pair device».</Go></li>
                                     </Steps>
                                     <p>Har du lukket siden? <Go to="step-pairing-code">Hent en ny pairing code.</Go></p>
                                     <p>En kode gjelder i 15 minutter, og du kan bare bruke den én gang.</p>
@@ -192,7 +193,7 @@ export const content: HelpContent = {
                             body: (
                                 <>
                                     <DoThis>Slik løser du det</DoThis>
-                                    <p>Sjekk at nettverket ditt er på 2,4&nbsp;GHz og ikke er skjult. Sensoren støtter bare Wi-Fi på 2,4&nbsp;GHz, og oppsettsiden viser bare nettverkene den finner. Hvis nettverket er skjult, gjør du det synlig. Hvis det bare er på 5&nbsp;GHz, bruker du et nettverk på 2,4&nbsp;GHz.</p>
+                                    <p>Sjekk at nettverket ditt er på 2,4&nbsp;GHz og ikke er skjult. Sensoren støtter bare Wi-Fi på 2,4&nbsp;GHz. Oppsettsiden viser bare nettverkene den finner. Hvis nettverket er skjult, gjør du det synlig. Hvis det bare er på 5&nbsp;GHz, bruker du et nettverk på 2,4&nbsp;GHz.</p>
                                     <p>Hvis passordet kan være feil, gjør du slik:</p>
                                     <Steps>
                                         <li><Go to="step-pairing-code">Hent en ny pairing code i appen</Go> først. Mobilen har ikke internett mens den er koblet til sensoren.</li>
@@ -202,7 +203,7 @@ export const content: HelpContent = {
                                         <li>Velg nettverket og skriv inn passordet og den nye koden.</li>
                                         <li>Trykk på <Ui>«Connect»</Ui>.</li>
                                     </Steps>
-                                    <p>Oppsettsiden tester ikke passordet. Det står bare «Data received. Restarting...». En sensor med feil passord går ikke tilbake til oppsettmodus av seg selv.</p>
+                                    <p>Oppsettsiden tester ikke passordet. Det står bare «Data received. Restarting...» En sensor med feil passord går ikke tilbake til oppsettmodus av seg selv.</p>
                                 </>
                             ),
                         },
@@ -223,7 +224,7 @@ export const content: HelpContent = {
                                         <li>Hvis nettverksnavnet eller passordet er endret, må du <Go to="change-wifi">bytte Wi-Fi-nettverk på sensoren</Go>. Sensoren finner ikke nettverket selv.</li>
                                         <li>Hvis et kort er merket <Ui>«Off»</Ui> i <Ui>«Profile» &gt; «Manage sensors»</Ui>, er målingene skjult. Trykk på <Ui>«Turn on»</Ui>.</li>
                                     </Steps>
-                                    <p>En Garge Sensor prøver selv å koble til igjen. Den blinker sakte også mens den prøver, så sakte blink betyr ikke alltid at den har Wi-Fi.</p>
+                                    <p>En Garge Sensor prøver selv å koble til igjen. Den blinker sakte også mens den prøver. Sakte blink betyr derfor ikke alltid at den har Wi-Fi.</p>
                                     <p>Et Garge Voltmeter som ikke får koblet til, sover lenger mellom hvert forsøk, opptil 6 timer. Etter at Wi-Fi virker igjen, kan det gå opptil 6 timer før voltmeteret er tilbake i appen. Vil du ikke vente, trykker du på Restart-knappen. Da prøver voltmeteret å koble til med en gang.</p>
                                 </>
                             ),
@@ -305,10 +306,10 @@ export const content: HelpContent = {
                                     <li>Gå til <Ui>«Profile» &gt; «Manage sensors»</Ui>.</li>
                                     <li>Trykk på <Ui>«Share»</Ui> på kortet du vil dele.</li>
                                     <li>Skriv inn e-postadressen til en annen Garge-bruker.</li>
-                                    <li>Velg <Ui>«Read»</Ui> hvis den andre brukeren bare skal se målingene, eller <Ui>«Edit»</Ui> hvis den andre brukeren også skal kunne lage automatiseringer for stikkontaktene sensoren har funnet.</li>
+                                    <li>Velg <Ui>«Read»</Ui> hvis den andre brukeren bare skal se målingene. Velg <Ui>«Edit»</Ui> hvis den andre brukeren også skal kunne lage automatiseringer for stikkontaktene sensoren har funnet.</li>
                                     <li>Trykk på <Ui>«Share»</Ui>.</li>
                                 </Steps>
-                                <p>Du deler ett kort om gangen. En Garge Sensor vises som to kort, temperatur og luftfuktighet, så del hvert kort den andre brukeren skal se.</p>
+                                <p>Du deler ett kort om gangen. En Garge Sensor vises som to kort, temperatur og luftfuktighet. Del hvert kort den andre brukeren skal se.</p>
                                 <p>Vil du slutte å dele, åpner du <Ui>«Share»</Ui> på nytt og trykker på X-en ved personen under <Ui>«Shared with»</Ui>. Bare eieren kan dele en sensor. Den andre brukeren kan selv fjerne delingen ved å trykke på <Ui>«Leave»</Ui> på kortet.</p>
                             </>
                         ),
@@ -341,7 +342,7 @@ export const content: HelpContent = {
                             <>
                                 <Steps>
                                     <li>Gå til <Ui>«Profile» &gt; «Manage sensors»</Ui>.</li>
-                                    <li>Ta vare på koden under <Ui>«Device code»</Ui> på hvert kort. Koden forsvinner når du fjerner kortet, og en Garge Sensor har to koder.</li>
+                                    <li>Ta vare på koden under <Ui>«Device code»</Ui> på hvert kort. Koden forsvinner når du fjerner kortet. En Garge Sensor har to koder.</li>
                                     <li>Trykk på <Ui>«Remove from account»</Ui> på alle kortene for sensoren.</li>
                                 </Steps>
                                 <p>En Garge Sensor vises som to kort, temperatur og luftfuktighet. Blir ett kort stående, får den nye eieren bare deler av sensoren, og du beholder tilgang til resten.</p>
@@ -354,7 +355,7 @@ export const content: HelpContent = {
                                     <li><Go to="setup-mode">Åpne oppsettmodus på sensoren.</Go></li>
                                     <li>Koble mobilen til «Garge …».</li>
                                     <li>Trykk på <Ui>«Change Wi-Fi»</Ui> på siden <Ui>«Pair device»</Ui>.</li>
-                                    <li>Velg Wi-Fi-nettverket, skriv inn passordet og pairing code, og trykk på <Ui>«Connect»</Ui>.</li>
+                                    <li>Velg Wi-Fi-nettverket. Skriv inn passordet og pairing code. Trykk på <Ui>«Connect»</Ui>.</li>
                                     <li>Følg steg <Go to="step-name">5</Go> i oppsettet.</li>
                                 </Steps>
                                 <p>Den nye eieren ser ikke selgerens målinger. Selgerens Wi-Fi-navn og passord ligger lagret på sensoren til den nye eierens Wi-Fi erstatter dem.</p>
@@ -383,12 +384,13 @@ export const content: HelpContent = {
                         title: 'Slik åpner du oppsettmodus på sensoren',
                         body: (
                             <>
+                                <p>I oppsettmodus lager sensoren sitt eget Wi-Fi-nettverk, «Garge …».</p>
                                 <Steps>
                                     <li>Trykk på Restart-knappen og slipp den.</li>
                                     <li>Hold BOOT-knappen inne med en gang, helt til lyset blinker raskt.</li>
                                 </Steps>
                                 <p>Det kan ta mer enn 5 sekunder. Hvis lyset ikke blinker raskt, prøver du igjen. Du sletter ingenting når du åpner oppsettmodus.</p>
-                                <p>Hvis lyset ikke kommer på i det hele tatt, sjekker du strømmen. På et Garge Voltmeter sjekker du batteriet og kontakten, og trykker på Restart-knappen en gang til hvis lyset er av.</p>
+                                <p>Hvis lyset ikke kommer på i det hele tatt, sjekker du strømmen. På et Garge Voltmeter sjekker du batteriet og kontakten. Er lyset fortsatt av, trykker du på Restart-knappen en gang til.</p>
                                 <p>Er sensoren allerede satt opp, kan du gå ut av oppsettmodus med en gang. Trykk på Restart-knappen.</p>
                             </>
                         ),
@@ -400,9 +402,9 @@ export const content: HelpContent = {
                             <LightTable
                                 headers={['Lyset', 'Hva det betyr', 'Hva du gjør']}
                                 rows={[
-                                    ['Raskt: 1\u00a0s på, 1\u00a0s av', 'Sensoren er i oppsettmodus. Det varer i opptil 30 minutter.', <Go key="wifi" to="step-wifi">Koble sensoren til Wi-Fi</Go>],
+                                    ['Raskt: 1\u00a0s på, 1\u00a0s av', 'Sensoren er i oppsettmodus. Det varer i opptil 30 minutter.', <><Go to="step-wifi">Koble sensoren til Wi-Fi</Go>.</>],
                                     ['Sakte: 5\u00a0s på, 5\u00a0s av (Garge Sensor)', 'Sensoren er i drift. Lyset blinker slik også når Wi-Fi ikke virker.', <>Ingenting. <Go to="sensor-stopped-reporting">Får du ikke målinger?</Go></>],
-                                    ['Kort blink (Garge Voltmeter)', 'Sensoren våkner, sender en måling og sover igjen.', 'Ingenting'],
+                                    ['Kort blink (Garge Voltmeter)', 'Sensoren våkner, sender en måling og sover igjen.', 'Ingenting.'],
                                 ]}
                             />
                         ),

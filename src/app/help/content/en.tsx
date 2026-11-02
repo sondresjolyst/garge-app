@@ -37,6 +37,7 @@ export const content: HelpContent = {
                         title: 'Get a pairing code in the app',
                         body: (
                             <>
+                                <p>A pairing code is a one-time code that links the sensor to your account.</p>
                                 <Steps>
                                     <li>Tap <Ui>“+ Add device”</Ui> in <Ui>“My Devices”</Ui>. On a phone the button only shows <Ui>“+”</Ui>.</li>
                                     <li>Tap <Ui>“Get pairing code”</Ui>.</li>
@@ -114,7 +115,7 @@ export const content: HelpContent = {
                                         <li><Go to="setup-mode">Open setup mode on the sensor.</Go></li>
                                         <li>Continue with <Go to="step-wifi">connecting the sensor to Wi-Fi</Go>.</li>
                                     </Steps>
-                                    <p>A sensor that was set up before does not go into setup mode by itself.</p>
+                                    <p>In setup mode, the sensor makes its own Wi-Fi network, “Garge …”. A sensor that was set up before does not go into setup mode by itself.</p>
                                 </>
                             ),
                         },
@@ -383,6 +384,7 @@ export const content: HelpContent = {
                         title: 'How to open setup mode on the sensor',
                         body: (
                             <>
+                                <p>In setup mode, the sensor makes its own Wi-Fi network, “Garge …”.</p>
                                 <Steps>
                                     <li>Press the Restart button and let go.</li>
                                     <li>Straight away, hold the BOOT button until the light blinks fast.</li>
