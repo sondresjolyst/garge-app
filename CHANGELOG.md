@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.0](https://github.com/sondresjolyst/garge-app/compare/v1.25.3...v1.26.0) (2026-11-03)
+
+
+### Features
+
+* **help:** add public help pages and the printable manual ([#646](https://github.com/sondresjolyst/garge-app/issues/646)) ([4180e5b](https://github.com/sondresjolyst/garge-app/commit/4180e5b48f38e9e5df68686d6e55ebba22de978e))
+
 ## [1.25.3](https://github.com/sondresjolyst/garge-app/compare/v1.25.2...v1.25.3) (2026-11-01)
 
 
