@@ -26,6 +26,13 @@ const FROM_API: CompanyInfo = {
 beforeEach(() => getCompanyInfo.mockReset())
 
 describe('Footer', () => {
+    it('links to the help redirect', async () => {
+        getCompanyInfo.mockResolvedValue(null)
+        render(await Footer())
+
+        expect(screen.getByRole('link', { name: 'Help' })).toHaveAttribute('href', '/help')
+    })
+
     it('shows the legal name and the org number with MVA from the API', async () => {
         getCompanyInfo.mockResolvedValue(FROM_API)
         render(await Footer())

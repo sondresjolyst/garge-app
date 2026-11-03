@@ -1,0 +1,70 @@
+import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
+import { site } from '@/lib/seo/site';
+import { HELP_PATHS } from './language';
+
+export interface HelpImage {
+    src: string;
+    width: number;
+    height: number;
+    alt: string;
+    caption: ReactNode;
+}
+
+export interface HelpItem {
+    /** The same in both languages, in English, so a customer can be sent straight to it. */
+    id: string;
+    title: string;
+    body: ReactNode;
+    images?: HelpImage[];
+    /** Shows the picture of the buttons on the case beside the text. */
+    device?: { label: string; caption: ReactNode };
+}
+
+export interface HelpGroup {
+    id?: string;
+    /** The label above a part of a section. A section with one part leaves it out. */
+    title?: string;
+    items: HelpItem[];
+}
+
+export interface HelpSection {
+    id: string;
+    title: string;
+    /** Numbers the items, for the setup steps. */
+    numbered?: boolean;
+    groups: HelpGroup[];
+    /** A line after the last item, for what to do when nothing above helped. */
+    closing?: ReactNode;
+}
+
+export interface HelpContent {
+    /** The BCP 47 tag of the text. */
+    lang: 'nb' | 'en';
+    path: string;
+    switchLabel: string;
+    switchPath: string;
+    switchLang: 'nb' | 'en';
+    title: string;
+    metaDescription: string;
+    download: { label: string };
+    contentsLabel: string;
+    /** The accessible name of a section's link, ahead of its title. */
+    linkLabel: string;
+    sections: HelpSection[];
+}
+
+/** The description, canonical and language alternates of a help page. The tab title comes from the layout. */
+export function helpMetadata(content: HelpContent): Metadata {
+    return {
+        description: content.metaDescription,
+        alternates: {
+            canonical: site.absoluteUrl(content.path),
+            languages: {
+                nb: site.absoluteUrl(HELP_PATHS.no),
+                en: site.absoluteUrl(HELP_PATHS.en),
+                'x-default': site.absoluteUrl('/help'),
+            },
+        },
+    };
+}

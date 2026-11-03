@@ -20,12 +20,14 @@ export default async function Footer() {
                 {/* Links */}
                 <nav className="flex flex-wrap justify-center gap-x-5 gap-y-2">
                     {[
+                        // /help only redirects, so a prefetch on every page would cost a request and give nothing.
+                        { href: '/help', label: 'Help', prefetch: false },
                         { href: '/contact', label: 'Contact' },
                         { href: '/terms', label: 'Terms of Service' },
                         { href: '/privacy', label: 'Privacy Policy' },
                         { href: '/cookies', label: 'Cookie Policy' },
-                    ].map(({ href, label }) => (
-                        <Link key={href} href={href} className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
+                    ].map(({ href, label, prefetch }) => (
+                        <Link key={href} href={href} prefetch={prefetch} className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
                             {label}
                         </Link>
                     ))}

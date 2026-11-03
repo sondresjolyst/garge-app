@@ -7,4 +7,6 @@
 - Terms — `src/app/terms/page.tsx`
 - Cookie policy — `src/app/cookies/`
 
+**Printable manual** is `docs/manual/garge-manual.html`, with its images in `public/help/`. Edit the HTML and run `docs/manual/render.sh` to write `public/garge-manual.pdf`. To print from a browser, use A4, margins None and Background graphics on.
+
 When a change here alters data processing (new field, retention, lawful basis, sub-processor), update the relevant doc in the umbrella repo in the same change-set — see its `docs/compliance/README.md` checklist.
