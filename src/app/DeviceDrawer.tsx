@@ -775,7 +775,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
                             <h3 className="text-sm font-semibold text-gray-300">Battery Health</h3>
                             <div className="space-y-2.5">
                                 <div className="flex items-center justify-between text-sm">
-                                    <InfoLabel tooltip="Compares the voltage the battery settles at after each full charge with its own earlier charges. Shows Learning until there are enough charges to compare.">
+                                    <InfoLabel tooltip="Compares the voltage the battery settles at after each full charge with its earlier charges. Only uses charges from the time you have had access to this sensor. Shows Learning until there are enough charges to compare.">
                                         Status
                                     </InfoLabel>
                                     <span className={`font-medium ${healthCfg.color}`}>{healthCfg.label}</span>

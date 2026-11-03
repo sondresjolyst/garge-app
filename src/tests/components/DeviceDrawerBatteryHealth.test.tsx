@@ -114,7 +114,7 @@ describe('DeviceDrawer battery health', () => {
     })
 
     it.each([
-        ['Status', 'Compares the voltage the battery settles at after each full charge with its own earlier charges. Shows Learning until there are enough charges to compare.'],
+        ['Status', 'Compares the voltage the battery settles at after each full charge with its earlier charges. Only uses charges from the time you have had access to this sensor. Shows Learning until there are enough charges to compare.'],
         ['Charger', 'Whether a charge is in progress.'],
         ['Full charges (30d)', 'Full charges detected in the last 30 days.'],
         ['Weekly decline', 'Trend in the voltage the battery settles at after recent full charges. Needs at least 3 full charges to compute.'],

@@ -113,7 +113,7 @@ export interface BatteryChargeEvent {
     startedAt: string;
     endedAt: string;
     peakVoltage: number;
-    restingAtTime: number;
+    restingAtTime: number | null;
     durationMinutes: number;
     /** Absent from older API versions. */
     isFull?: boolean;
