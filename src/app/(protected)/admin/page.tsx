@@ -550,7 +550,7 @@ export default function AdminPage() {
                         <div className="flex items-center justify-between gap-4 bg-gray-900/50 border border-gray-700/40 rounded-xl p-4">
                             <div className="min-w-0 flex-1">
                                 <p className="text-sm font-medium text-gray-200">Reanalyze all voltage sensors</p>
-                                <p className="text-xs text-gray-500 mt-0.5">Rebuilds each sensor&apos;s battery-health row from its full voltage history. Use after deploying a new analyzer version.</p>
+                                <p className="text-xs text-gray-500 mt-0.5">Rebuilds each voltage sensor&apos;s saved charges from its full voltage history and adds a new health result for it. Use after deploying a new analyzer version.</p>
                             </div>
                             <button
                                 onClick={handleReanalyzeBattery}

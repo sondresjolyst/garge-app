@@ -95,15 +95,15 @@ export interface BatteryHealthData {
     sensorId: number;
     status: string;
     currentVoltage: number;
-    restingMedian: number;
-    peakResting: number;
+    restingMedian: number | null;
     onChargerNow: boolean;
     lastFullChargeAt: string | null;
     lastFullChargePeak: number | null;
     voltageMin24h: number | null;
     fullChargesLast30d: number;
     dailyDropPctPerWeek: number | null;
-    chargeAcceptanceRatio: number | null;
+    /** Percent of voltage lost per week early in a rest period. Positive means losing voltage. For information only. Absent from older API versions. */
+    selfDischargePctPerWeek?: number | null;
     timestamp: string;
 }
 
@@ -114,8 +114,11 @@ export interface BatteryChargeEvent {
     endedAt: string;
     peakVoltage: number;
     restingAtTime: number;
-    peakRatio: number;
     durationMinutes: number;
+    /** Absent from older API versions. */
+    isFull?: boolean;
+    /** Absent from older API versions. */
+    settledVoltage?: number | null;
 }
 
 export interface PagedResponse<T> {
