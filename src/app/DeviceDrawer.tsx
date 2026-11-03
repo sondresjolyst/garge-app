@@ -775,14 +775,14 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
                             <h3 className="text-sm font-semibold text-gray-300">Battery Health</h3>
                             <div className="space-y-2.5">
                                 <div className="flex items-center justify-between text-sm">
-                                    <InfoLabel tooltip="Overall battery health. Needs ≥14 days of data and at least one charge event to assess.">
+                                    <InfoLabel tooltip="Compares the voltage the battery settles at after each full charge with its own earlier charges. Shows Learning until there are enough charges to compare.">
                                         Status
                                     </InfoLabel>
                                     <span className={`font-medium ${healthCfg.color}`}>{healthCfg.label}</span>
                                 </div>
 
                                 <div className="flex items-center justify-between text-sm">
-                                    <InfoLabel tooltip="Whether the battery is currently being charged.">
+                                    <InfoLabel tooltip="Whether a charge is in progress.">
                                         Charger
                                     </InfoLabel>
                                     {health.onChargerNow ? (
@@ -809,7 +809,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
 
                                 {health.fullChargesLast30d > 0 && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <InfoLabel tooltip="Charge events detected in the last 30 days.">
+                                        <InfoLabel tooltip="Full charges detected in the last 30 days.">
                                             Full charges (30d)
                                         </InfoLabel>
                                         <span className="text-gray-200 font-medium tabular-nums">{health.fullChargesLast30d}</span>
@@ -820,12 +820,16 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
                                     <InfoLabel tooltip="Battery's current rested voltage, smoothed over the last 3 days.">
                                         Resting voltage (3d)
                                     </InfoLabel>
-                                    <span className="text-gray-200 font-medium tabular-nums">
-                                        {health.restingMedian.toFixed(2)} V
-                                    </span>
+                                    {typeof health.restingMedian === 'number' ? (
+                                        <span className="text-gray-200 font-medium tabular-nums">
+                                            {health.restingMedian.toFixed(2)} V
+                                        </span>
+                                    ) : (
+                                        <span className="text-gray-500 text-xs">No recent readings</span>
+                                    )}
                                 </div>
 
-                                {health.voltageMin24h !== null && (
+                                {typeof health.voltageMin24h === 'number' && (
                                     <div className="flex items-center justify-between text-sm">
                                         <InfoLabel tooltip="Lowest reading in the last 24 hours.">
                                             Min (24h)
@@ -835,50 +839,28 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
                                 )}
 
                                 {health.status !== 'learning' && (
-                                    <>
-                                        <div className="flex items-center justify-between text-sm">
-                                            <InfoLabel tooltip="Long-term resting voltage baseline observed over the last 90 days.">
-                                                Resting voltage (90d)
-                                            </InfoLabel>
-                                            <span className="text-gray-200 font-medium tabular-nums">
-                                                {health.peakResting.toFixed(2)} V
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-between text-sm">
-                                            <InfoLabel tooltip="How the current 3-day resting voltage compares to the 90-day baseline.">
-                                                Difference
-                                            </InfoLabel>
-                                            <span className="text-gray-200 font-medium tabular-nums text-right">
-                                                {(() => {
-                                                    const delta = health.peakResting > 0
-                                                        ? ((health.restingMedian - health.peakResting) / health.peakResting) * 100
-                                                        : 0;
-                                                    if (Math.abs(delta) < 0.05) return '0.0%';
-                                                    return `${Math.abs(delta).toFixed(1)}% ${delta > 0 ? 'above' : 'below'}`;
-                                                })()}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-between text-sm">
-                                            <InfoLabel tooltip="Trend across post-charge resting voltage over recent charge cycles. Needs at least 3 charge cycles to compute.">
-                                                Weekly decline
-                                            </InfoLabel>
-                                            <span className="text-gray-200 font-medium tabular-nums text-right">
-                                                {health.dailyDropPctPerWeek === null
-                                                    ? <span className="text-gray-500 text-xs">Needs more charge cycles</span>
-                                                    : health.dailyDropPctPerWeek < 0
-                                                        ? `${(-health.dailyDropPctPerWeek).toFixed(2)}% / wk`
-                                                        : 'stable'}
-                                            </span>
-                                        </div>
-                                    </>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <InfoLabel tooltip="Trend in the voltage the battery settles at after recent full charges. Needs at least 3 full charges to compute.">
+                                            Weekly decline
+                                        </InfoLabel>
+                                        <span className="text-gray-200 font-medium tabular-nums text-right">
+                                            {typeof health.dailyDropPctPerWeek !== 'number'
+                                                ? <span className="text-gray-500 text-xs">Needs more charge cycles</span>
+                                                : health.dailyDropPctPerWeek < 0
+                                                    ? `${(-health.dailyDropPctPerWeek).toFixed(2)}% / wk`
+                                                    : 'stable'}
+                                        </span>
+                                    </div>
                                 )}
 
-                                {health.chargeAcceptanceRatio !== null && (
+                                {typeof health.selfDischargePctPerWeek === 'number' && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <InfoLabel tooltip="How well the battery accepts charge. Healthy ≥1.10×.">
-                                            Charge response
+                                        <InfoLabel tooltip="Voltage lost per week early in a rest period. For information only. It does not affect battery status.">
+                                            Self-discharge
                                         </InfoLabel>
-                                        <span className="text-gray-200 font-medium tabular-nums">{health.chargeAcceptanceRatio.toFixed(2)}×</span>
+                                        <span className="text-gray-200 font-medium tabular-nums text-right">
+                                            {Math.abs(health.selfDischargePctPerWeek) < 0.005 ? '0.00' : health.selfDischargePctPerWeek.toFixed(2)}% per week
+                                        </span>
                                     </div>
                                 )}
                             </div>
