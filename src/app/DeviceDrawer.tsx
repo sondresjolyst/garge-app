@@ -825,7 +825,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
                                             {health.restingMedian.toFixed(2)} V
                                         </span>
                                     ) : (
-                                        <span className="text-gray-500 text-xs">No recent readings</span>
+                                        <span className="text-gray-500 text-xs">No rest readings yet</span>
                                     )}
                                 </div>
 
@@ -845,7 +845,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
                                         </InfoLabel>
                                         <span className="text-gray-200 font-medium tabular-nums text-right">
                                             {typeof health.dailyDropPctPerWeek !== 'number'
-                                                ? <span className="text-gray-500 text-xs">Needs more charge cycles</span>
+                                                ? <span className="text-gray-500 text-xs">Needs more full charges</span>
                                                 : health.dailyDropPctPerWeek < 0
                                                     ? `${(-health.dailyDropPctPerWeek).toFixed(2)}% / wk`
                                                     : 'stable'}
@@ -859,7 +859,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
                                             Self-discharge
                                         </InfoLabel>
                                         <span className="text-gray-200 font-medium tabular-nums text-right">
-                                            {Math.abs(health.selfDischargePctPerWeek) < 0.005 ? '0.00' : health.selfDischargePctPerWeek.toFixed(2)}% per week
+                                            {Math.max(health.selfDischargePctPerWeek, 0).toFixed(2)}% per week
                                         </span>
                                     </div>
                                 )}

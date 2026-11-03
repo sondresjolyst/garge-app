@@ -88,8 +88,8 @@ describe('DeviceDrawer battery health', () => {
         expect(screen.queryByText('Weekly decline')).not.toBeInTheDocument()
     })
 
-    it('shows a value that rounds to zero without a minus sign', () => {
-        renderHealth({ ...newShape, selfDischargePctPerWeek: -0.001 })
+    it.each([0, -0.001, -0.35])('shows self-discharge of %d as 0.00% per week', (value) => {
+        renderHealth({ ...newShape, selfDischargePctPerWeek: value })
 
         expect(screen.getByText('0.00% per week')).toBeInTheDocument()
     })
@@ -97,19 +97,19 @@ describe('DeviceDrawer battery health', () => {
     it('shows the empty text for null values and no self-discharge row', () => {
         renderHealth(newNulls)
 
-        expect(screen.getByText('No recent readings')).toBeInTheDocument()
+        expect(screen.getByText('No rest readings yet')).toBeInTheDocument()
         expect(screen.queryByText(/0\.00 V/)).not.toBeInTheDocument()
         expect(screen.queryByText('Self-discharge')).not.toBeInTheDocument()
         expect(screen.queryByText('Min (24h)')).not.toBeInTheDocument()
-        expect(screen.getByText('Needs more charge cycles')).toBeInTheDocument()
+        expect(screen.getByText('Needs more full charges')).toBeInTheDocument()
     })
 
     it('renders when the optional values are missing from the response', () => {
         renderHealth({ id: 1, sensorId: 7, status: 'replace', onChargerNow: false, lastFullChargeAt: null })
 
         expect(screen.getAllByText('Replace').length).toBeGreaterThan(0)
-        expect(screen.getByText('No recent readings')).toBeInTheDocument()
-        expect(screen.getByText('Needs more charge cycles')).toBeInTheDocument()
+        expect(screen.getByText('No rest readings yet')).toBeInTheDocument()
+        expect(screen.getByText('Needs more full charges')).toBeInTheDocument()
         expect(screen.queryByText('Self-discharge')).not.toBeInTheDocument()
     })
 

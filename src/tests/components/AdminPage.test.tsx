@@ -174,6 +174,15 @@ describe('AdminPage', () => {
         await waitFor(() => expect(getUsers).toHaveBeenLastCalledWith(true))
     })
 
+    it('says what reanalyzing the voltage sensors does', async () => {
+        render(<AdminPage />)
+
+        expect(await screen.findByText(
+            "Rebuilds each voltage sensor's saved charges from its full voltage history and adds a new health result for it. A sensor with no readings in the last 3 days keeps its last result. Use after deploying a new analyzer version.",
+        )).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Reanalyze' })).toBeInTheDocument()
+    })
+
     it('shows the branding and legal page editors', async () => {
         render(<AdminPage />)
 
