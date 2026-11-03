@@ -178,7 +178,7 @@ describe('AdminPage', () => {
         render(<AdminPage />)
 
         expect(await screen.findByText(
-            "Rebuilds each voltage sensor's saved charges from its full voltage history and adds a new health result for it. A sensor with no readings in the last 3 days keeps its last result. Use after deploying a new analyzer version.",
+            "Rebuilds each voltage sensor's saved charges from its full voltage history and adds a new health result for it. Use after deploying a new analyzer version.",
         )).toBeInTheDocument()
         expect(screen.getByRole('button', { name: 'Reanalyze' })).toBeInTheDocument()
     })
