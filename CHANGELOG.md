@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.27.0](https://github.com/sondresjolyst/garge-app/compare/v1.26.0...v1.27.0) (2026-11-04)
+
+
+### Features
+
+* **battery:** update the battery health panel for settled voltage signals ([#660](https://github.com/sondresjolyst/garge-app/issues/660)) ([20c99b4](https://github.com/sondresjolyst/garge-app/commit/20c99b415991ddde163370b73419f11dc9dffbde))
+
+
+### Bug Fixes
+
+* **battery:** update the reanalyze description and the Status tooltip for sensor access ([#662](https://github.com/sondresjolyst/garge-app/issues/662)) ([04aaf7a](https://github.com/sondresjolyst/garge-app/commit/04aaf7adc76ed0ac39fc4efaab61207cd2e26fc9))
+
 ## [1.26.0](https://github.com/sondresjolyst/garge-app/compare/v1.25.3...v1.26.0) (2026-11-03)
 
 
