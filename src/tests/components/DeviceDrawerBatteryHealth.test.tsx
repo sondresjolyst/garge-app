@@ -116,7 +116,10 @@ describe('DeviceDrawer battery health', () => {
     it.each([
         ['Status', "Compares the battery's voltage after each full charge with its earlier charges. Shows Learning until there are enough charges to compare."],
         ['Charger', 'Whether a charge is in progress.'],
+        ['Last full charge', 'When the last full charge ended.'],
         ['Full charges (30d)', 'Full charges detected in the last 30 days.'],
+        ['Resting voltage (3d)', 'Voltage at rest over the last 3 days, not counting charging.'],
+        ['Lowest (24h)', 'Lowest reading in the last 24 hours.'],
         ['Weekly decline', 'How much the voltage after a full charge falls per week. Needs at least 3 full charges.'],
     ])('explains %s in its tooltip', async (label, tooltip) => {
         renderHealth(newShape)
