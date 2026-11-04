@@ -775,7 +775,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
                             <h3 className="text-sm font-semibold text-gray-300">Battery Health</h3>
                             <div className="space-y-2.5">
                                 <div className="flex items-center justify-between text-sm">
-                                    <InfoLabel tooltip="Compares the voltage the battery settles at after each full charge with its earlier charges. Shows Learning until there are enough charges to compare.">
+                                    <InfoLabel tooltip="Compares the battery's voltage after each full charge with its earlier charges. Shows Learning until there are enough charges to compare.">
                                         Status
                                     </InfoLabel>
                                     <span className={`font-medium ${healthCfg.color}`}>{healthCfg.label}</span>
@@ -795,7 +795,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
                                 </div>
 
                                 <div className="flex items-center justify-between text-sm">
-                                    <InfoLabel tooltip="When the battery was last detected as fully charged.">
+                                    <InfoLabel tooltip="When the last full charge ended.">
                                         Last full charge
                                     </InfoLabel>
                                     <span className="text-gray-200 font-medium text-right">
@@ -817,7 +817,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
                                 )}
 
                                 <div className="flex items-center justify-between text-sm">
-                                    <InfoLabel tooltip="Battery's current rested voltage, smoothed over the last 3 days.">
+                                    <InfoLabel tooltip="Voltage at rest over the last 3 days, not counting charging.">
                                         Resting voltage (3d)
                                     </InfoLabel>
                                     {typeof health.restingMedian === 'number' ? (
@@ -832,7 +832,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
                                 {typeof health.voltageMin24h === 'number' && (
                                     <div className="flex items-center justify-between text-sm">
                                         <InfoLabel tooltip="Lowest reading in the last 24 hours.">
-                                            Min (24h)
+                                            Lowest (24h)
                                         </InfoLabel>
                                         <span className="text-gray-200 font-medium tabular-nums">{health.voltageMin24h.toFixed(2)} V</span>
                                     </div>
@@ -840,14 +840,14 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
 
                                 {health.status !== 'learning' && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <InfoLabel tooltip="Trend in the voltage the battery settles at after recent full charges. Needs at least 3 full charges to compute.">
+                                        <InfoLabel tooltip="How much the voltage after a full charge falls per week. Needs at least 3 full charges.">
                                             Weekly decline
                                         </InfoLabel>
                                         <span className="text-gray-200 font-medium tabular-nums text-right">
                                             {typeof health.dailyDropPctPerWeek !== 'number'
                                                 ? <span className="text-gray-500 text-xs">Needs more full charges</span>
                                                 : health.dailyDropPctPerWeek < 0
-                                                    ? `${(-health.dailyDropPctPerWeek).toFixed(2)}% / wk`
+                                                    ? `${(-health.dailyDropPctPerWeek).toFixed(2)}% per week`
                                                     : 'stable'}
                                         </span>
                                     </div>
@@ -855,7 +855,7 @@ const DeviceDrawer: React.FC<DeviceDrawerProps> = ({ device, onClose, onRename, 
 
                                 {typeof health.selfDischargePctPerWeek === 'number' && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <InfoLabel tooltip="Voltage lost per week early in a rest period. For information only. It does not affect battery status.">
+                                        <InfoLabel tooltip="Voltage lost per week while the battery is not charging. For information only.">
                                             Self-discharge
                                         </InfoLabel>
                                         <span className="text-gray-200 font-medium tabular-nums text-right">

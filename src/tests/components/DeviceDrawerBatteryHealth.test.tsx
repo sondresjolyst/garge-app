@@ -77,7 +77,7 @@ describe('DeviceDrawer battery health', () => {
         expect(screen.getByText('Self-discharge')).toBeInTheDocument()
         expect(screen.getByText('0.42% per week')).toBeInTheDocument()
         expect(await screen.findByRole('button', {
-            name: 'Voltage lost per week early in a rest period. For information only. It does not affect battery status.',
+            name: 'Voltage lost per week while the battery is not charging. For information only.',
         })).toBeInTheDocument()
     })
 
@@ -100,7 +100,7 @@ describe('DeviceDrawer battery health', () => {
         expect(screen.getByText('No rest readings yet')).toBeInTheDocument()
         expect(screen.queryByText(/0\.00 V/)).not.toBeInTheDocument()
         expect(screen.queryByText('Self-discharge')).not.toBeInTheDocument()
-        expect(screen.queryByText('Min (24h)')).not.toBeInTheDocument()
+        expect(screen.queryByText('Lowest (24h)')).not.toBeInTheDocument()
         expect(screen.getByText('Needs more full charges')).toBeInTheDocument()
     })
 
@@ -114,10 +114,10 @@ describe('DeviceDrawer battery health', () => {
     })
 
     it.each([
-        ['Status', 'Compares the voltage the battery settles at after each full charge with its earlier charges. Shows Learning until there are enough charges to compare.'],
+        ['Status', "Compares the battery's voltage after each full charge with its earlier charges. Shows Learning until there are enough charges to compare."],
         ['Charger', 'Whether a charge is in progress.'],
         ['Full charges (30d)', 'Full charges detected in the last 30 days.'],
-        ['Weekly decline', 'Trend in the voltage the battery settles at after recent full charges. Needs at least 3 full charges to compute.'],
+        ['Weekly decline', 'How much the voltage after a full charge falls per week. Needs at least 3 full charges.'],
     ])('explains %s in its tooltip', async (label, tooltip) => {
         renderHealth(newShape)
 
