@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.27.1](https://github.com/sondresjolyst/garge-app/compare/v1.27.0...v1.27.1) (2026-11-06)
+
+
+### Dependencies
+
+* **docker:** update node from 26.12.1-slim to 26.13.0-slim ([67ac013](https://github.com/sondresjolyst/garge-app/commit/67ac013ef015dfb2c6c638c54abed9544a50ee43))
+* **npm:** update @sjolystinnovation/app-kit from ^1.6.1 to 1.6.1 ([fd5df0d](https://github.com/sondresjolyst/garge-app/commit/fd5df0d1192a619b373fa053d081d1fbaca6b3c4))
+
 ## [1.27.0](https://github.com/sondresjolyst/garge-app/compare/v1.26.0...v1.27.0) (2026-11-04)
 
 
