@@ -13,7 +13,7 @@ Next.js 16 App Router frontend for Garge — a smart garage monitoring system fo
 | HTTP | Axios with JWT interceptors |
 | Validation | Zod v4 |
 | Notifications | Sonner |
-| Charts | ApexCharts |
+| Charts | ECharts |
 | Icons | Heroicons |
 
 ## Folder Structure

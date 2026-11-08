@@ -30,7 +30,7 @@ vi.mock('@/hooks/useFeature', () => ({ useFeature: () => false }))
 
 vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 
-// Avoid pulling ApexCharts into jsdom; sockets don't render it anyway.
+// Avoid pulling ECharts into jsdom; sockets don't render it anyway.
 vi.mock('next/dynamic', () => ({ default: () => () => null }))
 
 import DeviceDrawer from '@/app/DeviceDrawer'

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ElectricityService, { type ElectricityData } from '@/services/electricityService';
 import UserService from '@/services/userService';
 import { pickCurrentSlot } from '@/lib/electricitySlot';
@@ -124,6 +124,9 @@ const ElectricityPage = () => {
     };
 
     const data = cache[activeTab] ?? [];
+    // Memoised so a re-render does not hand the chart new data and reset the user's zoom.
+    const tabData = cache[activeTab];
+    const chartData = useMemo(() => (tabData ?? []).map(d => ({ x: d.x, y: d.y })), [tabData]);
     // Derived rather than stored: a tab is loading until it has data or failed.
     const loading = priceZone !== null && !cache[activeTab] && !failedTabs[activeTab];
     const error = failedTabs[activeTab] ? 'Failed to fetch electricity data' : null;
@@ -239,7 +242,7 @@ const ElectricityPage = () => {
                                 </span>
                             </div>
                         ) : data.length > 0 ? (
-                            <TimeSeriesChart title="" data={data.map(d => ({ x: d.x, y: d.y }))} chartType={TABS.find(t => t.key === activeTab)!.chartType} />
+                            <TimeSeriesChart title="" data={chartData} chartType={TABS.find(t => t.key === activeTab)!.chartType} />
                         ) : (
                             <div className="h-[300px] flex items-center justify-center text-gray-500 text-sm">
                                 No data available

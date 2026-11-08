@@ -7,7 +7,7 @@ Website for Garge, backed by
 ## Stack
 
 Next.js 16 App Router, TypeScript, Tailwind CSS 4, next-auth, Axios,
-SignalR, ApexCharts, zod, Vitest, Playwright.
+SignalR, ECharts, zod, Vitest, Playwright.
 
 ## Quick start
 
