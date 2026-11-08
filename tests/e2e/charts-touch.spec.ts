@@ -9,7 +9,7 @@ test.describe('Charts on a touch screen', () => {
     /** Returns a function that sends touch events. One session keeps the touch going from start to end. */
     async function toucher(page: Page) {
         const cdp = await page.context().newCDPSession(page)
-        return (type: string, points: { x: number; y: number }[]) =>
+        return (type: 'touchStart' | 'touchMove' | 'touchEnd', points: { x: number; y: number }[]) =>
             cdp.send('Input.dispatchTouchEvent', { type, touchPoints: points.map((p, id) => ({ ...p, id })) })
     }
 
