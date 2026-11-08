@@ -1,5 +1,37 @@
 # Changelog
 
+## [1.28.0](https://github.com/sondresjolyst/garge-app/compare/v1.27.0...v1.28.0) (2026-11-08)
+
+
+### Features
+
+* **charts:** replace ApexCharts with ECharts ([#675](https://github.com/sondresjolyst/garge-app/issues/675)) ([c90b8ee](https://github.com/sondresjolyst/garge-app/commit/c90b8eefd587008c84d775fe4e3f5d3324a4ed19))
+
+
+### Dependencies
+
+* **docker:** update node from 26.12.1-slim to 26.13.0-slim ([67ac013](https://github.com/sondresjolyst/garge-app/commit/67ac013ef015dfb2c6c638c54abed9544a50ee43))
+* **npm:** update @heroicons/react from ^2.2.0 to 2.2.0 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update @microsoft/signalr from ^10.0.11 to 10.0.11 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update @sjolystinnovation/app-kit from ^1.6.1 to 1.6.1 ([fd5df0d](https://github.com/sondresjolyst/garge-app/commit/fd5df0d1192a619b373fa053d081d1fbaca6b3c4))
+* **npm:** update apexcharts from ^7.8.0 to 7.8.0 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update apexcharts to 8.7.0 ([#673](https://github.com/sondresjolyst/garge-app/issues/673)) ([ef7ab1d](https://github.com/sondresjolyst/garge-app/commit/ef7ab1d45b0dcb1e2f320b8e5e1d36c357748620))
+* **npm:** update axios from ^1.20.0 to 1.20.0 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update date-fns from ^4.4.0 to 4.4.0 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update js-cookie from ^3.0.8 to 3.0.8 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update next from ^16.4.3 to 16.4.3 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update next-auth from ^4.24.15 to 4.24.15 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update react from ^19.3.1 to 19.3.1 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update react-apexcharts from ^2.1.1 to 2.1.1 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update react-datepicker from ^9.1.0 to 9.1.0 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update react-dom from ^19.3.1 to 19.3.1 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update react-markdown from ^10.1.0 to 10.1.0 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update rehype-sanitize from ^6.0.0 to 6.0.0 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update remark-gfm from ^4.0.1 to 4.0.1 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update sonner from ^2.0.8 to 2.0.8 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update uuid from ^14.0.0 to 14.0.3 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+* **npm:** update zod from ^4.6.7 to 4.6.7 ([087cf57](https://github.com/sondresjolyst/garge-app/commit/087cf5742d08b3577d12837c0125d1893faadb19))
+
 ## [1.27.0](https://github.com/sondresjolyst/garge-app/compare/v1.26.0...v1.27.0) (2026-11-04)
 
 
