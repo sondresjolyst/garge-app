@@ -36,7 +36,7 @@ vi.mock('@/components/ActivitiesSection', () => ({ default: () => null }))
 vi.mock('@/hooks/useFeature', () => ({ useFeature: () => false }))
 vi.mock('sonner', async () => (await import('@sjolystinnovation/app-kit/testing')).toastMock())
 
-// Render the series as plain text so assertions do not depend on ApexCharts.
+// Render the series as plain text so assertions do not depend on ECharts.
 vi.mock('next/dynamic', () => ({
     default: () => function Chart({ data }: { data: { x: number; y: number }[] }) {
         return <div data-testid="series">{data.map(p => p.y).join(',')}</div>

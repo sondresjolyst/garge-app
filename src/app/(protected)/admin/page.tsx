@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { TrashIcon, PlusIcon, XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
@@ -271,6 +271,12 @@ export default function AdminPage() {
         }
     };
 
+    // Memoised so a re-render does not hand the chart new data and reset the user's zoom.
+    const statChartData = useMemo(
+        () => selectedStat ? history.map(s => ({ x: new Date(s.date).getTime(), y: s[selectedStat] })) : [],
+        [history, selectedStat],
+    );
+
     return (
         <div className="max-w-7xl mx-auto px-4 py-8 space-y-6 pb-32">
             <h1 className="text-xl font-bold text-gray-100">Admin</h1>
@@ -316,10 +322,7 @@ export default function AdminPage() {
                                         totalSwitches: 'Sockets over time',
                                         totalAutomations: 'Automations over time',
                                     }[selectedStat]}
-                                    data={history.map(s => ({
-                                        x: new Date(s.date).getTime(),
-                                        y: s[selectedStat],
-                                    }))}
+                                    data={statChartData}
                                     chartType="line"
                                     integerY
                                 />
