@@ -275,6 +275,58 @@ describe('SetupWizard pairing status', () => {
         expectNamingSensor('Sensor 3')
     })
 
+    it('advances on the SignalR event during the 5 minutes after the code expired', async () => {
+        expiresInMs = 10_000
+        await startPairing()
+        await advance(10_000 + 4 * 60 * 1000)
+        expect(screen.getByText(CHECKING)).toBeInTheDocument()
+
+        await act(async () => { deviceCreated?.({ kind: 'sensor', id: 8 }) })
+
+        expectNamingSensor('Sensor 8')
+    })
+
+    it.each([
+        ['ownedByOther', status('ownedByOther')],
+        ['paired with no devices', status('paired')],
+    ])('keeps polling and the other-account message on %s after the code expired', async (_, result) => {
+        expiresInMs = 10_000
+        await startPairing()
+        await advance(10_500)
+        expect(screen.getByText(CHECKING)).toBeInTheDocument()
+
+        vi.mocked(PairingService.getStatus).mockResolvedValue(result)
+        await advance(3000)
+        expect(screen.getByRole('alert')).toHaveTextContent(OTHER_ACCOUNT)
+
+        const before = calls()
+        await advance(9000)
+        expect(calls()).toBe(before + 3)
+        expect(screen.getByRole('alert')).toHaveTextContent(OTHER_ACCOUNT)
+    })
+
+    it('replaces the other-account message with the connecting text when the poll says provisioned', async () => {
+        vi.mocked(PairingService.getStatus).mockResolvedValue(status('ownedByOther'))
+        await startPairing()
+        expect(screen.getByRole('alert')).toHaveTextContent(OTHER_ACCOUNT)
+
+        vi.mocked(PairingService.getStatus).mockResolvedValue(status('provisioned'))
+        await advance(3000)
+
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+        expect(screen.getByText('Your device got the code and is connecting to your account…')).toBeInTheDocument()
+    })
+
+    it('stops every timer once checking has ended after the code expired', async () => {
+        expiresInMs = 10_000
+        await startPairing()
+        vi.mocked(PairingService.getStatus).mockResolvedValue(status('expired'))
+        await advance(10_500)
+
+        expect(screen.getByText(EXPIRED)).toBeInTheDocument()
+        expect(vi.getTimerCount()).toBe(0)
+    })
+
     it('checks at once when the countdown reaches zero', async () => {
         expiresInMs = 10_000
         await startPairing()
@@ -320,6 +372,7 @@ describe('SetupWizard pairing status', () => {
         const before = calls()
         await advance(9000)
         expect(calls()).toBe(before)
+        expect(vi.getTimerCount()).toBe(0)
     })
 
     it('pauses while the tab is hidden and checks at once when it is visible again', async () => {

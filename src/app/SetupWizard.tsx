@@ -118,13 +118,6 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
 
     // ── Pairing mode ──────────────────────────────────────────────────────────
 
-    // Tick once a second while a pairing code is displayed, driving the countdown.
-    useEffect(() => {
-        if (!pairingToken) return;
-        const id = setInterval(() => setNow(Date.now()), 1000);
-        return () => clearInterval(id);
-    }, [pairingToken]);
-
     const pairingSecondsLeft = pairingToken
         ? Math.max(0, Math.floor((new Date(pairingToken.expiresAt).getTime() - now) / 1000))
         : 0;
@@ -140,6 +133,15 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
     // after commit.
     const pairingActive = step === 0 && claimMode === 'pair' && pairingToken !== null
         && !pairingClosed && !pairingPastCap;
+
+    // Tick once a second while a pairing code is displayed, driving the
+    // countdown. Stops once the code expired and checking has ended.
+    const pairingTickDone = pairingExpired && (pairingClosed || pairingPastCap);
+    useEffect(() => {
+        if (!pairingToken || pairingTickDone) return;
+        const id = setInterval(() => setNow(Date.now()), 1000);
+        return () => clearInterval(id);
+    }, [pairingToken, pairingTickDone]);
     const pairingActiveRef = useRef(false);
     useEffect(() => {
         pairingActiveRef.current = pairingActive;
