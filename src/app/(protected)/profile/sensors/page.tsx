@@ -18,6 +18,7 @@ const config: DevicePageConfig<Sensor> = {
     listShares: (id) => SensorService.getSensorShares(id),
     share: (id, email, permission) => SensorService.shareSensor(id, email, permission),
     revokeShare: (id, userId) => SensorService.revokeSensorShare(id, userId),
+    editShareDescription: 'also manage automations',
 };
 
 export default function SensorsPage() {

@@ -43,6 +43,8 @@ export interface DevicePageConfig<T extends DeviceItem> {
     listShares?: (id: number) => Promise<SensorShare[]>;
     share?: (id: number, email: string, permission: SharePermission) => Promise<unknown>;
     revokeShare?: (id: number, userId: string) => Promise<unknown>;
+    /** What an Edit share adds. Without it, the device is shared read only. */
+    editShareDescription?: string;
 }
 
 interface Props<T extends DeviceItem> {
@@ -63,7 +65,7 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
     const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
     const { canClaim, loading: eligibilityLoading, refresh: refreshEligibility } = useCanClaimDevice();
 
-    const { title, itemLabel, fetchAll, claim, unclaim, updateName, getDisplayName, getDefaultName, suspend, activate, listShares, share, revokeShare } = config;
+    const { title, itemLabel, fetchAll, claim, unclaim, updateName, getDisplayName, getDefaultName, suspend, activate, listShares, share, revokeShare, editShareDescription } = config;
     const label = itemLabel;
     const Label = label.charAt(0).toUpperCase() + label.slice(1);
     const [togglingId, setTogglingId] = useState<number | null>(null);
@@ -195,6 +197,7 @@ export function DeviceManagePage<T extends DeviceItem>({ config }: Props<T>) {
                     deviceLabel={label}
                     deviceName={getDisplayName(shareTarget)}
                     deviceId={shareTarget.id}
+                    editDescription={editShareDescription}
                     listShares={listShares}
                     share={share}
                     revokeShare={revokeShare}
