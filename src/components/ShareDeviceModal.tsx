@@ -11,6 +11,8 @@ interface ShareDeviceModalProps {
     deviceLabel: string;
     deviceName: string;
     deviceId: number;
+    /** What an Edit share adds, such as "also manage automations". Without it, shares are read only. */
+    editDescription?: string;
     listShares: (id: number) => Promise<SensorShare[]>;
     share: (id: number, email: string, permission: SharePermission) => Promise<unknown>;
     revokeShare: (id: number, userId: string) => Promise<unknown>;
@@ -18,7 +20,7 @@ interface ShareDeviceModalProps {
 }
 
 const ShareDeviceModal: React.FC<ShareDeviceModalProps> = ({
-    deviceLabel, deviceName, deviceId, listShares, share, revokeShare, onClose,
+    deviceLabel, deviceName, deviceId, editDescription, listShares, share, revokeShare, onClose,
 }) => {
     const [shares, setShares] = useState<SensorShare[]>([]);
     const [loading, setLoading] = useState(true);
@@ -100,7 +102,7 @@ const ShareDeviceModal: React.FC<ShareDeviceModalProps> = ({
                 <div className="flex items-start justify-between gap-3 mb-4">
                     <div>
                         <h3 id="share-modal-title" className="text-sm font-semibold text-gray-100">Share {deviceName}</h3>
-                        <p className="text-xs text-gray-400">Share this {deviceLabel} with another Garge user by their account email.</p>
+                        <p className="text-xs text-gray-400">Share this {deviceLabel} with another Garge user by their account email.{!editDescription && ' They can view its data.'}</p>
                     </div>
                     <button onClick={onClose} className="p-1 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700/60 transition-all" aria-label="Close">
                         <XMarkIcon className="h-4 w-4" />
@@ -118,19 +120,22 @@ const ShareDeviceModal: React.FC<ShareDeviceModalProps> = ({
                         disabled={submitting}
                     />
                     <div className="flex gap-2">
-                        <select
-                            value={permission}
-                            onChange={e => setPermission(e.target.value as SharePermission)}
-                            disabled={submitting}
-                            className="flex-1 min-w-0 bg-gray-900/60 border border-gray-700/60 rounded-xl px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60"
-                        >
-                            <option value="read">Read — view data only</option>
-                            <option value="edit">Edit — also control & automate</option>
-                        </select>
+                        {editDescription && (
+                            <select
+                                value={permission}
+                                onChange={e => setPermission(e.target.value as SharePermission)}
+                                disabled={submitting}
+                                aria-label="Permission"
+                                className="flex-1 min-w-0 bg-gray-900/60 border border-gray-700/60 rounded-xl px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60"
+                            >
+                                <option value="read">Read: view data only</option>
+                                <option value="edit">Edit: {editDescription}</option>
+                            </select>
+                        )}
                         <button
                             onClick={handleShare}
                             disabled={submitting}
-                            className="flex items-center gap-1.5 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-all whitespace-nowrap"
+                            className={`${editDescription ? '' : 'flex-1 justify-center '}flex items-center gap-1.5 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-all whitespace-nowrap`}
                         >
                             <UserPlusIcon className="h-4 w-4" />
                             {submitting ? 'Sharing…' : 'Share'}

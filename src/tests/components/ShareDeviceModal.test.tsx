@@ -29,6 +29,7 @@ function renderModal(over: Partial<React.ComponentProps<typeof ShareDeviceModal>
         deviceLabel: 'sensor',
         deviceName: 'garage_temp',
         deviceId: 3,
+        editDescription: 'also manage automations',
         listShares: vi.fn(async () => [share1]),
         share: vi.fn(async () => ({})),
         revokeShare: vi.fn(async () => ({})),
@@ -85,5 +86,34 @@ describe('ShareDeviceModal', () => {
         rerender(<ShareDeviceModal {...props} deviceId={9} />)
 
         await waitFor(() => expect(listShares).toHaveBeenCalledWith(9))
+    })
+
+    it('offers Edit with the description it is given', async () => {
+        const shareFn = vi.fn(async () => ({}))
+        renderModal({ share: shareFn })
+
+        expect(screen.getByRole('option', { name: 'Read: view data only' })).toBeInTheDocument()
+        fireEvent.change(screen.getByRole('combobox'), { target: { value: 'edit' } })
+        expect(screen.getByRole('option', { name: 'Edit: also manage automations' })).toBeInTheDocument()
+        fireEvent.change(screen.getByPlaceholderText('person@example.com'), {
+            target: { value: 'friend@example.com' },
+        })
+        fireEvent.click(screen.getByText('Share'))
+
+        await waitFor(() => expect(shareFn).toHaveBeenCalledWith(3, 'friend@example.com', 'edit'))
+    })
+
+    it('shares read only when no Edit description is given', async () => {
+        const shareFn = vi.fn(async () => ({}))
+        renderModal({ share: shareFn, editDescription: undefined })
+
+        expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+        expect(screen.getByText(/They can view its data\./)).toBeInTheDocument()
+        fireEvent.change(screen.getByPlaceholderText('person@example.com'), {
+            target: { value: 'friend@example.com' },
+        })
+        fireEvent.click(screen.getByText('Share'))
+
+        await waitFor(() => expect(shareFn).toHaveBeenCalledWith(3, 'friend@example.com', 'read'))
     })
 })
