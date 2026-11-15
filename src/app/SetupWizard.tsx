@@ -200,6 +200,8 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                 if (stopped || !result) return;
                 if (result.status === 'provisioned') {
                     setPairingProgress('provisioned');
+                } else if (result.status === 'ownedByOther') {
+                    if (consumePairing()) setPairingProgress('otherAccount');
                 } else if (result.status === 'paired') {
                     if (!consumePairing()) return;
                     const sensorId = result.sensorIds.length > 0 ? Math.min(...result.sensorIds) : null;

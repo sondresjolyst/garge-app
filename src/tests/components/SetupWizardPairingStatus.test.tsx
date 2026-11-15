@@ -155,6 +155,21 @@ describe('SetupWizard pairing status', () => {
         expect(screen.getByText('Waiting for your device…')).toBeInTheDocument()
     })
 
+    it('says the device belongs to another account when the poll says ownedByOther', async () => {
+        await startPairing()
+
+        vi.mocked(PairingService.getStatus).mockResolvedValue(status('ownedByOther'))
+        await advance(3000)
+
+        expect(screen.getByRole('alert')).toHaveTextContent('This device belongs to another account.')
+        expect(screen.queryByText('Waiting for your device…')).not.toBeInTheDocument()
+        expect(screen.getByRole('link', { name: 'How to move a device to a new owner' })).toHaveAttribute('href', '/help#selling')
+
+        const calls = vi.mocked(PairingService.getStatus).mock.calls.length
+        await advance(9000)
+        expect(PairingService.getStatus).toHaveBeenCalledTimes(calls)
+    })
+
     it('says the device is connecting when the poll says provisioned', async () => {
         await startPairing()
 

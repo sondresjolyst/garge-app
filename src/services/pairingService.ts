@@ -17,10 +17,10 @@ export interface PairingToken {
 
 /**
  * Progress of a pairing token (GET /pairing/token/{token}).
- * `paired` with both id lists empty means the device belongs to another account.
+ * `ownedByOther`, or `paired` with both id lists empty, means the device belongs to another account.
  */
 export interface PairingStatus {
-    status: 'waiting' | 'provisioned' | 'paired' | 'expired';
+    status: 'waiting' | 'provisioned' | 'paired' | 'ownedByOther' | 'expired';
     /** Sensors from this pairing that the caller owns, ascending. */
     sensorIds: number[];
     /** Switches from this pairing that the caller owns, ascending. */
