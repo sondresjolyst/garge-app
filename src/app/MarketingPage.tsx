@@ -46,7 +46,7 @@ const faqs = [
     },
     {
         q: 'How do I add a device to my account?',
-        a: 'Open your dashboard, click "Add a device" and then "Get pairing code". Plug in your device and connect your phone to the Wi-Fi network with the same name as printed on the device ("Garge …"). The setup page opens by itself. If it does not, go to http://192.168.4.1. Choose your home Wi-Fi, enter its password and the pairing code, and press Connect. The device then shows up in the app, ready to be named. The code works for 15 minutes. If the setup network is gone, hold the button on the device for 5 seconds. Have you been given a device code, for example when taking over a device? Enter it under "Have a device code?" instead.',
+        a: 'In "My Devices", select "Add device" and then "Get pairing code". The code lasts 15 minutes. Power on the device. The blue light blinks fast when it is ready. On your phone, join the Wi-Fi network "Garge …". The setup page opens. If it does not, go to http://192.168.4.1. Choose your Wi-Fi network, enter its password and the pairing code, and select "Connect". The device shows up in "My Devices" within a couple of minutes. If the light does not blink fast, open setup mode. Press the Restart button and let go. Straight away, hold the BOOT button until the light blinks fast. This can take more than 5 seconds. Have you been given a device code, for example when taking over a device? Enter it under "Have a device code?" instead.',
     },
     {
         q: 'Can I access my data remotely?',
