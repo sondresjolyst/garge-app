@@ -122,7 +122,7 @@ const ShareDeviceModal: React.FC<ShareDeviceModalProps> = ({
                             value={permission}
                             onChange={e => setPermission(e.target.value as SharePermission)}
                             disabled={submitting}
-                            className="flex-1 bg-gray-900/60 border border-gray-700/60 rounded-xl px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60"
+                            className="flex-1 min-w-0 bg-gray-900/60 border border-gray-700/60 rounded-xl px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-sky-500/60"
                         >
                             <option value="read">Read — view data only</option>
                             <option value="edit">Edit — also control & automate</option>
