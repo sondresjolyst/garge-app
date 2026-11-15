@@ -27,6 +27,9 @@ interface WizardProps {
     onComplete?: () => void;
 }
 
+/** How long the wizard keeps checking the pairing status after the code expires. */
+const PAIRING_GRACE_MS = 5 * 60 * 1000;
+
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
 const StepIndicator: React.FC<{ current: number; total: number }> = ({ current, total }) => (
@@ -88,6 +91,8 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
     const [pairError, setPairError]     = useState('');
     const [now, setNow]                 = useState(() => Date.now());
     const [pairingProgress, setPairingProgress] = useState<'waiting' | 'provisioned' | 'otherAccount'>('waiting');
+    // Set when the API says the code expired, or answers 404 after it expired.
+    const [pairingClosed, setPairingClosed] = useState(false);
 
     const [customName, setCustomName]   = useState(prefillSensor?.customName ?? prefillSensor?.defaultName ?? '');
     const [saving, setSaving]           = useState(false);
@@ -125,12 +130,16 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
         : 0;
     const pairingExpired = pairingToken !== null && pairingSecondsLeft <= 0;
     const pairingCountdown = `${Math.floor(pairingSecondsLeft / 60)}:${String(pairingSecondsLeft % 60).padStart(2, '0')}`;
+    // A device may pair just before the code expires, so the wizard keeps
+    // checking for up to 5 minutes after the local countdown ends.
+    const pairingPastCap = pairingToken !== null
+        && now >= new Date(pairingToken.expiresAt).getTime() + PAIRING_GRACE_MS;
 
     // True while the pairing step waits for a device. The SignalR callback and
     // the status poll only reach this through pairingActiveRef, which is written
     // after commit.
-    const pairingActive = step === 0 && claimMode === 'pair' && pairingToken !== null && !pairingExpired
-        && pairingProgress !== 'otherAccount';
+    const pairingActive = step === 0 && claimMode === 'pair' && pairingToken !== null
+        && !pairingClosed && !pairingPastCap;
     const pairingActiveRef = useRef(false);
     useEffect(() => {
         pairingActiveRef.current = pairingActive;
@@ -183,12 +192,13 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
     });
 
     // The live event is lost while the phone is on the device's setup Wi-Fi,
-    // so ask the API for the pairing status as well. Polls every 3 seconds
-    // while the tab is visible, and checks at once when the tab becomes
-    // visible or the browser goes online.
+    // so ask the API for the pairing status as well. Checks at once, then every
+    // 3 seconds while the tab is visible. Also checks at once when the code
+    // expires, the tab becomes visible or the browser goes online.
     useEffect(() => {
         if (!pairingActive || !pairingToken) return;
         const token = pairingToken.token;
+        const expired = pairingExpired;
         let stopped = false;
         let inFlight = false;
 
@@ -197,18 +207,25 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
             inFlight = true;
             try {
                 const result = await PairingService.getStatus(token);
-                if (stopped || !result) return;
+                if (stopped) return;
+                if (!result) {
+                    // An API without this endpoint also answers 404, so only give up after the code expired.
+                    if (expired) setPairingClosed(true);
+                    return;
+                }
+                const sensorId = result.sensorIds.length > 0 ? Math.min(...result.sensorIds) : null;
+                const switchId = result.switchIds.length > 0 ? Math.min(...result.switchIds) : null;
                 if (result.status === 'provisioned') {
                     setPairingProgress('provisioned');
-                } else if (result.status === 'ownedByOther') {
-                    if (consumePairing()) setPairingProgress('otherAccount');
-                } else if (result.status === 'paired') {
+                } else if (result.status === 'expired') {
+                    setPairingClosed(true);
+                } else if (result.status === 'paired' && (sensorId !== null || switchId !== null)) {
                     if (!consumePairing()) return;
-                    const sensorId = result.sensorIds.length > 0 ? Math.min(...result.sensorIds) : null;
-                    const switchId = result.switchIds.length > 0 ? Math.min(...result.switchIds) : null;
                     if (sensorId !== null) handlePairedDeviceRef.current({ kind: 'sensor', id: sensorId });
                     else if (switchId !== null) handlePairedDeviceRef.current({ kind: 'switch', id: switchId });
-                    else setPairingProgress('otherAccount');
+                } else if (result.status === 'paired' || result.status === 'ownedByOther') {
+                    // Keep polling. The user may enter the code on their own device next.
+                    setPairingProgress('otherAccount');
                 }
             } catch {
                 // Keep waiting. The phone may be offline on the setup Wi-Fi.
@@ -218,6 +235,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
         };
         const onVisibilityChange = () => { void check(); };
 
+        void check();
         const id = setInterval(check, 3000);
         document.addEventListener('visibilitychange', onVisibilityChange);
         window.addEventListener('online', onVisibilityChange);
@@ -227,7 +245,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
             document.removeEventListener('visibilitychange', onVisibilityChange);
             window.removeEventListener('online', onVisibilityChange);
         };
-    }, [pairingActive, pairingToken, consumePairing]);
+    }, [pairingActive, pairingToken, pairingExpired, consumePairing]);
 
     const handleMintToken = async () => {
         setMinting(true);
@@ -237,6 +255,7 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
             setNow(Date.now());
             pairingConsumedRef.current = false;
             setPairingProgress('waiting');
+            setPairingClosed(false);
             setPairingToken(token);
         } catch (e: unknown) {
             setPairError(e instanceof Error ? e.message : 'Failed to get pairing code.');
@@ -442,16 +461,16 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                                 {pairingToken && pairingProgress === 'otherAccount' ? (
                                     <div className="space-y-3">
                                         <div role="alert" className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-300 text-sm space-y-1">
-                                            <p>This device belongs to another account. The owner must remove it from their account first. Then get a new code.</p>
+                                            <p>This device belongs to another account. The owner must select “Remove from account” on every card for this device. Then get a new code.</p>
                                             <a href="/help#selling" target="_blank" rel="noopener noreferrer" className="underline font-medium">
-                                                How to move a device to a new owner
+                                                How to sell or give away a sensor
                                             </a>
                                         </div>
                                         <Btn onClick={handleMintToken} loading={minting} disabled={!canClaim || eligibilityLoading}>
                                             Get new code
                                         </Btn>
                                     </div>
-                                ) : pairingToken && !pairingExpired ? (
+                                ) : pairingToken && !pairingExpired && !pairingClosed ? (
                                     <div className="p-4 bg-gray-800/60 border border-gray-700/40 rounded-xl text-center space-y-2">
                                         <div className="flex items-center justify-center gap-2">
                                             <span className="font-mono text-3xl tracking-[0.3em] text-gray-100 select-all">
@@ -476,7 +495,12 @@ const SetupWizard: React.FC<WizardProps> = ({ onClose, prefillSensor, initialSte
                                                 : 'Waiting for your device…'}
                                         </p>
                                     </div>
-                                ) : pairingExpired ? (
+                                ) : pairingExpired && pairingActive ? (
+                                    <p className="text-xs text-gray-500 flex items-center justify-center gap-2">
+                                        <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                        Checking if your device is paired…
+                                    </p>
+                                ) : pairingExpired || pairingClosed ? (
                                     <div className="space-y-3">
                                         <p className="text-sm text-amber-300 text-center">This pairing code has expired.</p>
                                         <Btn onClick={handleMintToken} loading={minting} disabled={!canClaim || eligibilityLoading}>

@@ -35,8 +35,14 @@ const sensor = (id: number): Sensor => ({
 const status = (s: PairingStatus['status'], sensorIds: number[] = [], switchIds: number[] = []): PairingStatus =>
     ({ status: s, sensorIds, switchIds })
 
+const WAITING = 'Waiting for your device…'
+const CHECKING = 'Checking if your device is paired…'
+const EXPIRED = 'This pairing code has expired.'
+const OTHER_ACCOUNT = 'This device belongs to another account. The owner must select “Remove from account” on every card for this device. Then get a new code.'
+
 let visibility: DocumentVisibilityState = 'visible'
 let deviceCreated: ((e: DeviceCreatedEvent) => void) | undefined
+let expiresInMs = 15 * 60 * 1000
 
 const advance = async (ms: number) => {
     await act(async () => { await vi.advanceTimersByTimeAsync(ms) })
@@ -47,18 +53,25 @@ const setVisibility = async (value: DocumentVisibilityState) => {
     await act(async () => { document.dispatchEvent(new Event('visibilitychange')) })
 }
 
-/** Renders the wizard and gets a pairing code, so the pairing step is waiting. */
+const calls = () => vi.mocked(PairingService.getStatus).mock.calls.length
+
+/** Renders the wizard and gets a pairing code, which also runs the first status check. */
 const startPairing = async () => {
     const view = render(<SetupWizard onClose={vi.fn()} />)
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Get pairing code' })) })
-    expect(screen.getByText('Waiting for your device…')).toBeInTheDocument()
     return view
+}
+
+const expectNamingSensor = (name: string) => {
+    expect(screen.getByRole('heading', { name: 'Name your sensor' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toHaveValue(name)
 }
 
 beforeEach(() => {
     resetTestMocks()
     vi.useFakeTimers()
     visibility = 'visible'
+    expiresInMs = 15 * 60 * 1000
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => visibility })
     deviceCreated = undefined
     vi.mocked(useDeviceStream).mockReset()
@@ -66,7 +79,7 @@ beforeEach(() => {
     vi.mocked(PairingService.mintToken).mockReset()
     vi.mocked(PairingService.mintToken).mockImplementation(() => Promise.resolve({
         token: 'ABC123',
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        expiresAt: new Date(Date.now() + expiresInMs).toISOString(),
     }))
     vi.mocked(PairingService.getStatus).mockReset()
     vi.mocked(PairingService.getStatus).mockResolvedValue(status('waiting'))
@@ -81,17 +94,24 @@ afterEach(() => {
 })
 
 describe('SetupWizard pairing status', () => {
+    it('checks the status at once when a code is shown', async () => {
+        await startPairing()
+
+        expect(PairingService.getStatus).toHaveBeenCalledTimes(1)
+        expect(PairingService.getStatus).toHaveBeenCalledWith('ABC123')
+        expect(screen.getByText(WAITING)).toBeInTheDocument()
+    })
+
     it('advances to naming the lowest sensor id when the poll says paired', async () => {
         await startPairing()
         await advance(3000)
-        expect(PairingService.getStatus).toHaveBeenCalledWith('ABC123')
-        expect(screen.getByText('Waiting for your device…')).toBeInTheDocument()
+        expect(calls()).toBe(2)
+        expect(screen.getByText(WAITING)).toBeInTheDocument()
 
         vi.mocked(PairingService.getStatus).mockResolvedValue(status('paired', [3, 8], [1]))
         await advance(3000)
 
-        expect(screen.getByRole('heading', { name: 'Name your sensor' })).toBeInTheDocument()
-        expect(screen.getByRole('textbox')).toHaveValue('Sensor 3')
+        expectNamingSensor('Sensor 3')
         expect(SwitchService.getAllSwitches).not.toHaveBeenCalled()
     })
 
@@ -136,38 +156,85 @@ describe('SetupWizard pairing status', () => {
         expect(SensorService.getAllSensors).toHaveBeenCalledTimes(1)
     })
 
-    it('says the device belongs to another account when paired with no devices', async () => {
+    it('says the device belongs to another account when paired with no devices, and keeps polling', async () => {
         await startPairing()
 
         vi.mocked(PairingService.getStatus).mockResolvedValue(status('paired'))
         await advance(3000)
 
-        expect(screen.getByRole('alert')).toHaveTextContent('This device belongs to another account.')
-        expect(screen.queryByText('Waiting for your device…')).not.toBeInTheDocument()
-        expect(screen.getByRole('link', { name: 'How to move a device to a new owner' })).toHaveAttribute('href', '/help#selling')
+        expect(screen.getByRole('alert')).toHaveTextContent(OTHER_ACCOUNT)
+        expect(screen.queryByText(WAITING)).not.toBeInTheDocument()
+        expect(screen.getByRole('link', { name: 'How to sell or give away a sensor' })).toHaveAttribute('href', '/help#selling')
         expect(screen.getByRole('button', { name: 'Get new code' })).toBeInTheDocument()
 
-        const calls = vi.mocked(PairingService.getStatus).mock.calls.length
-        await advance(9000)
-        expect(PairingService.getStatus).toHaveBeenCalledTimes(calls)
-
-        await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Get new code' })) })
-        expect(screen.getByText('Waiting for your device…')).toBeInTheDocument()
+        const before = calls()
+        await advance(3000)
+        expect(calls()).toBe(before + 1)
+        expect(screen.getByRole('alert')).toHaveTextContent(OTHER_ACCOUNT)
     })
 
-    it('says the device belongs to another account when the poll says ownedByOther', async () => {
+    it('advances when a poll says paired with devices after ownedByOther', async () => {
+        vi.mocked(PairingService.getStatus).mockResolvedValue(status('ownedByOther'))
         await startPairing()
 
-        vi.mocked(PairingService.getStatus).mockResolvedValue(status('ownedByOther'))
+        expect(screen.getByRole('alert')).toHaveTextContent(OTHER_ACCOUNT)
+        expect(screen.getByRole('link', { name: 'How to sell or give away a sensor' })).toHaveAttribute('href', '/help#selling')
+
+        vi.mocked(PairingService.getStatus).mockResolvedValue(status('paired', [8]))
         await advance(3000)
 
-        expect(screen.getByRole('alert')).toHaveTextContent('This device belongs to another account.')
-        expect(screen.queryByText('Waiting for your device…')).not.toBeInTheDocument()
-        expect(screen.getByRole('link', { name: 'How to move a device to a new owner' })).toHaveAttribute('href', '/help#selling')
+        expectNamingSensor('Sensor 8')
+    })
 
-        const calls = vi.mocked(PairingService.getStatus).mock.calls.length
-        await advance(9000)
-        expect(PairingService.getStatus).toHaveBeenCalledTimes(calls)
+    it('advances on the SignalR event after ownedByOther', async () => {
+        vi.mocked(PairingService.getStatus).mockResolvedValue(status('ownedByOther'))
+        await startPairing()
+        expect(screen.getByRole('alert')).toHaveTextContent(OTHER_ACCOUNT)
+
+        await act(async () => { deviceCreated?.({ kind: 'sensor', id: 3 }) })
+
+        expectNamingSensor('Sensor 3')
+    })
+
+    it('polls the new code after you get a new code from the other-account message', async () => {
+        vi.mocked(PairingService.getStatus).mockResolvedValue(status('ownedByOther'))
+        await startPairing()
+        vi.mocked(PairingService.mintToken).mockResolvedValue({
+            token: 'NEW456',
+            expiresAt: new Date(Date.now() + expiresInMs).toISOString(),
+        })
+        vi.mocked(PairingService.getStatus).mockResolvedValue(status('waiting'))
+
+        await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Get new code' })) })
+
+        expect(screen.getByText(WAITING)).toBeInTheDocument()
+        expect(PairingService.getStatus).toHaveBeenLastCalledWith('NEW456')
+        await advance(3000)
+        expect(PairingService.getStatus).toHaveBeenLastCalledWith('NEW456')
+    })
+
+    it('ignores a late result for the old code after you get a new code', async () => {
+        let resolveOld: (value: PairingStatus) => void = () => {}
+        let oldCalls = 0
+        vi.mocked(PairingService.getStatus).mockImplementation(token => {
+            if (token !== 'ABC123') return Promise.resolve(status('waiting'))
+            oldCalls += 1
+            if (oldCalls === 1) return Promise.resolve(status('ownedByOther'))
+            return new Promise(resolve => { resolveOld = resolve })
+        })
+        await startPairing()
+        await advance(3000)
+        expect(oldCalls).toBe(2)
+
+        vi.mocked(PairingService.mintToken).mockResolvedValue({
+            token: 'NEW456',
+            expiresAt: new Date(Date.now() + expiresInMs).toISOString(),
+        })
+        await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Get new code' })) })
+        await act(async () => { resolveOld(status('paired', [3])) })
+
+        expect(SensorService.getAllSensors).not.toHaveBeenCalled()
+        expect(screen.getByText(WAITING)).toBeInTheDocument()
     })
 
     it('says the device is connecting when the poll says provisioned', async () => {
@@ -177,34 +244,92 @@ describe('SetupWizard pairing status', () => {
         await advance(3000)
 
         expect(screen.getByText('Your device got the code and is connecting to your account…')).toBeInTheDocument()
-        expect(screen.queryByText('Waiting for your device…')).not.toBeInTheDocument()
+        expect(screen.queryByText(WAITING)).not.toBeInTheDocument()
     })
 
-    it('keeps waiting quietly on a 404 or a network error', async () => {
-        await startPairing()
-
+    it('keeps waiting quietly on a 404 or a network error before the code expires', async () => {
         vi.mocked(PairingService.getStatus).mockResolvedValueOnce(null)
-        await advance(3000)
+        await startPairing()
         vi.mocked(PairingService.getStatus).mockRejectedValueOnce(new Error('Network Error'))
         await advance(3000)
 
-        expect(PairingService.getStatus).toHaveBeenCalledTimes(2)
-        expect(screen.getByText('Waiting for your device…')).toBeInTheDocument()
+        expect(calls()).toBe(2)
+        expect(screen.getByText(WAITING)).toBeInTheDocument()
         expect(toastSpies.error).not.toHaveBeenCalled()
 
         vi.mocked(PairingService.getStatus).mockResolvedValue(status('paired', [3]))
         await advance(3000)
-        expect(screen.getByRole('heading', { name: 'Name your sensor' })).toBeInTheDocument()
+        expectNamingSensor('Sensor 3')
+    })
+
+    it('keeps checking after the code expires and advances when the poll says paired', async () => {
+        expiresInMs = 10_000
+        await startPairing()
+        await advance(10_500)
+
+        expect(screen.getByText(CHECKING)).toBeInTheDocument()
+        expect(screen.queryByText(EXPIRED)).not.toBeInTheDocument()
+
+        vi.mocked(PairingService.getStatus).mockResolvedValue(status('paired', [3]))
+        await advance(3000)
+        expectNamingSensor('Sensor 3')
+    })
+
+    it('checks at once when the countdown reaches zero', async () => {
+        expiresInMs = 10_000
+        await startPairing()
+        await advance(9500)
+        expect(calls()).toBe(4)
+
+        await advance(1000)
+        expect(calls()).toBe(5)
+    })
+
+    it('stops polling and shows the expired state when the API says expired', async () => {
+        await startPairing()
+
+        vi.mocked(PairingService.getStatus).mockResolvedValue(status('expired'))
+        await advance(3000)
+        expect(screen.getByText(EXPIRED)).toBeInTheDocument()
+
+        const before = calls()
+        await advance(9000)
+        expect(calls()).toBe(before)
+    })
+
+    it('stops polling on a 404 after the code expired', async () => {
+        expiresInMs = 10_000
+        await startPairing()
+        vi.mocked(PairingService.getStatus).mockResolvedValue(null)
+        await advance(10_500)
+
+        expect(screen.getByText(EXPIRED)).toBeInTheDocument()
+        const before = calls()
+        await advance(9000)
+        expect(calls()).toBe(before)
+    })
+
+    it('stops checking 5 minutes after the code expired', async () => {
+        expiresInMs = 10_000
+        await startPairing()
+        await advance(10_000 + 5 * 60 * 1000 - 1000)
+        expect(screen.getByText(CHECKING)).toBeInTheDocument()
+
+        await advance(2000)
+        expect(screen.getByText(EXPIRED)).toBeInTheDocument()
+        const before = calls()
+        await advance(9000)
+        expect(calls()).toBe(before)
     })
 
     it('pauses while the tab is hidden and checks at once when it is visible again', async () => {
         await startPairing()
         await setVisibility('hidden')
         await advance(9000)
-        expect(PairingService.getStatus).not.toHaveBeenCalled()
+        expect(calls()).toBe(1)
 
         await setVisibility('visible')
-        expect(PairingService.getStatus).toHaveBeenCalledTimes(1)
+        expect(calls()).toBe(2)
     })
 
     it('checks at once when the browser goes online', async () => {
@@ -212,7 +337,7 @@ describe('SetupWizard pairing status', () => {
 
         await act(async () => { window.dispatchEvent(new Event('online')) })
 
-        expect(PairingService.getStatus).toHaveBeenCalledTimes(1)
+        expect(calls()).toBe(2)
     })
 
     it('does not start a check while one is still running', async () => {
@@ -222,24 +347,22 @@ describe('SetupWizard pairing status', () => {
         await advance(9000)
         await act(async () => { window.dispatchEvent(new Event('online')) })
 
-        expect(PairingService.getStatus).toHaveBeenCalledTimes(1)
+        expect(calls()).toBe(1)
     })
 
     it('stops polling after leaving the pairing step or closing the wizard', async () => {
         const view = await startPairing()
-        await advance(3000)
-        expect(PairingService.getStatus).toHaveBeenCalledTimes(1)
+        expect(calls()).toBe(1)
 
         await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Have a device code?' })) })
         await advance(9000)
-        expect(PairingService.getStatus).toHaveBeenCalledTimes(1)
+        expect(calls()).toBe(1)
 
         await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Pair new device' })) })
-        await advance(3000)
-        expect(PairingService.getStatus).toHaveBeenCalledTimes(2)
+        expect(calls()).toBe(2)
 
         view.unmount()
         await advance(9000)
-        expect(PairingService.getStatus).toHaveBeenCalledTimes(2)
+        expect(calls()).toBe(2)
     })
 })

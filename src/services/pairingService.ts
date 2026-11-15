@@ -37,10 +37,10 @@ const PairingService = {
         }
     },
 
-    /** Returns null on 404, which means an unknown token or an API without this endpoint. */
+    /** Returns null on 404, which means an unknown token or an API without this endpoint. Gives up after 10 seconds. */
     async getStatus(token: string): Promise<PairingStatus | null> {
         try {
-            const response = await axiosInstance.get<PairingStatus>(`/pairing/token/${encodeURIComponent(token)}`);
+            const response = await axiosInstance.get<PairingStatus>(`/pairing/token/${encodeURIComponent(token)}`, { timeout: 10000 });
             return response.data;
         } catch (error: unknown) {
             if (axios.isAxiosError(error) && error.response?.status === 404) return null;

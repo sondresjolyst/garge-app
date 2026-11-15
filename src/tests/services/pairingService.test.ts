@@ -27,13 +27,13 @@ describe('PairingService', () => {
 
         await expect(PairingService.mintToken()).rejects.toThrow()
     })
-    it('gets the status of a code via GET /pairing/token/{token}', async () => {
+    it('gets the status of a code via GET /pairing/token/{token} with a 10 second timeout', async () => {
         const body = { status: 'paired', sensorIds: [3, 8], switchIds: [] }
         axiosSpies.get.mockResolvedValueOnce({ data: body })
 
         const result = await PairingService.getStatus('ABC123')
 
-        expect(axiosSpies.get).toHaveBeenCalledWith('/pairing/token/ABC123')
+        expect(axiosSpies.get).toHaveBeenCalledWith('/pairing/token/ABC123', { timeout: 10000 })
         expect(result).toEqual(body)
     })
 
