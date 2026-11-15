@@ -33,9 +33,6 @@ export default async function Layout({
     return (
         <html lang="en" className="dark">
             <Script src='/register-sw.js' />
-            <head>
-                <title>Garge</title>
-            </head>
             <body className={`bg-gray-900 text-gray-200 font-sans ${jetMono.variable}`}>
                 <SessionProviderWrapper initialBranding={branding ?? undefined}>
                     <div className="min-h-screen flex flex-col">
