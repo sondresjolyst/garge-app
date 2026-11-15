@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.28.1](https://github.com/sondresjolyst/garge-app/compare/v1.28.0...v1.28.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **home:** send an ended session to the login page ([#676](https://github.com/sondresjolyst/garge-app/issues/676)) ([710ac52](https://github.com/sondresjolyst/garge-app/commit/710ac52d4b7939d5cab3504e46e260c44b70d8fe))
+* **layout:** drop the hardcoded title from the root layout ([#679](https://github.com/sondresjolyst/garge-app/issues/679)) ([670c448](https://github.com/sondresjolyst/garge-app/commit/670c4487c9f6d2743cea3b400cc8e0690dbd964b)), closes [#650](https://github.com/sondresjolyst/garge-app/issues/650)
+* **marketing:** match the setup FAQ to the Help page ([#684](https://github.com/sondresjolyst/garge-app/issues/684)) ([858d403](https://github.com/sondresjolyst/garge-app/commit/858d40375b1bf895a88f7002c88168c0fe3a1580)), closes [#647](https://github.com/sondresjolyst/garge-app/issues/647)
+* **setup:** check the pairing status while the wizard waits for a device ([#686](https://github.com/sondresjolyst/garge-app/issues/686)) ([60296e4](https://github.com/sondresjolyst/garge-app/commit/60296e4c3db339bb0095ed2aba66478e3b94fce0)), closes [#651](https://github.com/sondresjolyst/garge-app/issues/651)
+* **share:** describe what an Edit share grants ([#685](https://github.com/sondresjolyst/garge-app/issues/685)) ([8f0dfbb](https://github.com/sondresjolyst/garge-app/commit/8f0dfbb5895e7c170b08e71fb8699dd98820f121)), closes [#648](https://github.com/sondresjolyst/garge-app/issues/648)
+* **share:** keep the share button inside the dialog at phone width ([#682](https://github.com/sondresjolyst/garge-app/issues/682)) ([6920377](https://github.com/sondresjolyst/garge-app/commit/6920377d0c0be0d834f65ffc5abcd2b30e15ecdf)), closes [#649](https://github.com/sondresjolyst/garge-app/issues/649)
+
+
+### Dependencies
+
+* **docker:** update node from 26.13.0-slim to 26.13.1-slim ([58c4491](https://github.com/sondresjolyst/garge-app/commit/58c44914563bfb7cd1540df82926b4ec0902b7fb))
+* **npm:** update axios from 1.20.0 to 1.21.0 ([0ceb531](https://github.com/sondresjolyst/garge-app/commit/0ceb5310c730c22b0a72830dfffaa57c76495dee))
+* **npm:** update next from 16.4.3 to 16.4.5 ([0ceb531](https://github.com/sondresjolyst/garge-app/commit/0ceb5310c730c22b0a72830dfffaa57c76495dee))
+
 ## [1.28.0](https://github.com/sondresjolyst/garge-app/compare/v1.27.0...v1.28.0) (2026-11-08)
 
 
