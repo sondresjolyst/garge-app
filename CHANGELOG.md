@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.28.2](https://github.com/sondresjolyst/garge-app/compare/v1.28.1...v1.28.2) (2026-11-22)
+
+
+### Dependencies
+
+* **npm:** update @microsoft/signalr from 10.0.11 to 11.0.0 ([d32a7a6](https://github.com/sondresjolyst/garge-app/commit/d32a7a6780c1c97dfe92cb1c25be8e0891d8b225))
+* **npm:** update @sjolystinnovation/app-kit from 1.6.1 to 1.7.0 ([30b75db](https://github.com/sondresjolyst/garge-app/commit/30b75dbedc08fb380ea62ce5c39da60d37babe8f))
+* **npm:** update axios from 1.21.0 to 1.21.1 ([3ff7d2b](https://github.com/sondresjolyst/garge-app/commit/3ff7d2b70542370d7d1079c7ab012ba8d35f1844))
+* **npm:** update next from 16.4.5 to 16.4.6 ([3ff7d2b](https://github.com/sondresjolyst/garge-app/commit/3ff7d2b70542370d7d1079c7ab012ba8d35f1844))
+
 ## [1.28.1](https://github.com/sondresjolyst/garge-app/compare/v1.28.0...v1.28.1) (2026-11-15)
 
 
